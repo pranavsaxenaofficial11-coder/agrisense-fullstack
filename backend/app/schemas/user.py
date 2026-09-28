@@ -5,6 +5,8 @@ class UserProfileOut(BaseModel):
     id: int
     uid: str
     name: str
+    role: str = "farmer"
+    business_name: Optional[str] = "Saxena Family Farm"
     email: str
     phone: str
     state: str
@@ -21,6 +23,8 @@ class UserProfileOut(BaseModel):
 
 class UserProfileUpdate(BaseModel):
     name: Optional[str] = None
+    role: Optional[str] = None
+    business_name: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
     state: Optional[str] = None

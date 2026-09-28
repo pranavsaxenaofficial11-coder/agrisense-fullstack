@@ -16,22 +16,146 @@ async def seed_mongodb_if_empty():
         if user_count == 0:
             logger.info("Seeding initial MongoDB documents...")
             
-            # 1. User
-            await db.users.insert_one({
-                "uid": "user_pranav_01",
-                "name": "Pranav Saxena",
-                "email": "pranav@agrisense.io",
-                "phone": "+91 98765 43210",
-                "state": "Punjab",
-                "district": "Ludhiana",
-                "village": "Samrala",
-                "farm_size_acres": 14.5,
-                "primary_crop": "Tomato, Wheat & Mustard",
-                "soil_type": "Sandy Loam",
-                "irrigation_system": "Solar Smart Drip",
-                "points": 1420,
-                "created_at": datetime.now(timezone.utc)
-            })
+            # 1. Users (All Platform Personas)
+            users_data = [
+                {
+                    "uid": "user_pranav_01",
+                    "name": "Pranav Saxena",
+                    "role": "farmer",
+                    "business_name": "Saxena Family Farm",
+                    "email": "pranav@agrisense.io",
+                    "phone": "+91 98765 43210",
+                    "state": "Punjab",
+                    "district": "Ludhiana",
+                    "village": "Samrala",
+                    "farm_size_acres": 14.5,
+                    "primary_crop": "Tomato, Wheat & Mustard",
+                    "soil_type": "Sandy Loam",
+                    "irrigation_system": "Solar Smart Drip",
+                    "points": 1420,
+                    "created_at": datetime.now(timezone.utc)
+                },
+                {
+                    "uid": "user_wholesaler_01",
+                    "name": "Rajesh Aggarwal",
+                    "role": "wholesaler",
+                    "business_name": "Aggarwal Mandi Traders",
+                    "email": "rajesh.mandi@agrisense.io",
+                    "phone": "+91 98140 33221",
+                    "state": "Punjab",
+                    "district": "Ludhiana",
+                    "village": "Khanna Mandi",
+                    "farm_size_acres": 0.0,
+                    "primary_crop": "Wheat & Tomato Wholesale",
+                    "soil_type": "N/A",
+                    "irrigation_system": "N/A",
+                    "points": 2850,
+                    "created_at": datetime.now(timezone.utc)
+                },
+                {
+                    "uid": "user_vendor_01",
+                    "name": "Sukhdev Singh",
+                    "role": "vendor",
+                    "business_name": "Kisan Seva Kendra & AgriTech Inputs",
+                    "email": "sukhdev.inputs@agrisense.io",
+                    "phone": "+91 98722 55443",
+                    "state": "Punjab",
+                    "district": "Ludhiana",
+                    "village": "Samrala Market",
+                    "farm_size_acres": 0.0,
+                    "primary_crop": "Bio-Fertilizers & Drip Spares",
+                    "soil_type": "N/A",
+                    "irrigation_system": "N/A",
+                    "points": 1940,
+                    "created_at": datetime.now(timezone.utc)
+                },
+                {
+                    "uid": "user_factory_01",
+                    "name": "Vikramaditya Mehta",
+                    "role": "factory",
+                    "business_name": "Punjab Agro Processing Foods Ltd.",
+                    "email": "procurement@punjabagrofoods.com",
+                    "phone": "+91 99880 77665",
+                    "state": "Punjab",
+                    "district": "SAS Nagar",
+                    "village": "Mohali Phase 8",
+                    "farm_size_acres": 0.0,
+                    "primary_crop": "Industrial Tomato & Grain Processing",
+                    "soil_type": "N/A",
+                    "irrigation_system": "N/A",
+                    "points": 5400,
+                    "created_at": datetime.now(timezone.utc)
+                },
+                {
+                    "uid": "user_customer_01",
+                    "name": "Sunita Sharma",
+                    "role": "customer",
+                    "business_name": "Green Living Organic Consumer Co-op",
+                    "email": "sunita.consumer@agrisense.io",
+                    "phone": "+91 98550 11223",
+                    "state": "Chandigarh",
+                    "district": "Chandigarh",
+                    "village": "Sector 35-C",
+                    "farm_size_acres": 0.0,
+                    "primary_crop": "Fresh Organic Produce",
+                    "soil_type": "N/A",
+                    "irrigation_system": "N/A",
+                    "points": 890,
+                    "created_at": datetime.now(timezone.utc)
+                },
+                {
+                    "uid": "user_expert_01",
+                    "name": "Dr. Anita Kulkarni",
+                    "role": "expert",
+                    "business_name": "PAU Agronomy & Extension Division",
+                    "email": "anita.kulkarni@pau.edu",
+                    "phone": "+91 94170 88990",
+                    "state": "Punjab",
+                    "district": "Ludhiana",
+                    "village": "PAU Campus",
+                    "farm_size_acres": 0.0,
+                    "primary_crop": "Agronomy & Crop Pathology",
+                    "soil_type": "N/A",
+                    "irrigation_system": "N/A",
+                    "points": 3600,
+                    "created_at": datetime.now(timezone.utc)
+                },
+                {
+                    "uid": "user_transport_01",
+                    "name": "Jarnail Singh",
+                    "role": "transport",
+                    "business_name": "Singh Logistics & Tractor Sharing",
+                    "email": "jarnail.transport@agrisense.io",
+                    "phone": "+91 98150 99881",
+                    "state": "Punjab",
+                    "district": "Ludhiana",
+                    "village": "Samrala & Khanna",
+                    "farm_size_acres": 0.0,
+                    "primary_crop": "Logistics & Farm Haulage",
+                    "soil_type": "N/A",
+                    "irrigation_system": "N/A",
+                    "points": 1100,
+                    "created_at": datetime.now(timezone.utc)
+                },
+                {
+                    "uid": "user_farmer_02",
+                    "name": "Gurpreet Singh",
+                    "role": "farmer",
+                    "business_name": "Gurpreet Green Farms",
+                    "email": "gurpreet.singh@kisanmail.com",
+                    "phone": "+91 98144 66778",
+                    "state": "Punjab",
+                    "district": "Ludhiana",
+                    "village": "Samrala",
+                    "farm_size_acres": 5.0,
+                    "primary_crop": "Tomato & Vegetables",
+                    "soil_type": "Loamy",
+                    "irrigation_system": "Drip",
+                    "points": 950,
+                    "created_at": datetime.now(timezone.utc)
+                }
+            ]
+            await db.users.insert_many(users_data)
 
             # 2. Controls
             await db.controls.insert_one({

@@ -8,6 +8,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     uid = Column(String(100), unique=True, index=True, default="user_default")
     name = Column(String(120), default="Pranav Saxena")
+    role = Column(String(50), default="farmer") # farmer, wholesaler, vendor, factory, customer, expert
+    business_name = Column(String(150), default="Saxena Family Farm")
     email = Column(String(120), default="pranav@agrisense.io")
     phone = Column(String(30), default="+91 98765 43210")
     state = Column(String(60), default="Punjab")
