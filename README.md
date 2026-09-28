@@ -85,7 +85,30 @@ npm run dev
 
 ---
 
-## 🐧 Production Deployment (systemd)
+## ☁️ Deployment Guides
+
+### 🌐 Frontend on Cloudflare Pages (Free & Global CDN)
+1. In Cloudflare Dashboard, go to **Workers & Pages → Create → Pages → Connect to Git**.
+2. Select your repository: `pranavsaxenaofficial11-coder/agrisense-fullstack`.
+3. Set:
+   - **Root directory**: `frontend`
+   - **Framework preset**: `Vite`
+   - **Build command**: `npm run build`
+   - **Build output directory**: `dist`
+4. Add environment variable `VITE_API_BASE_URL` pointing to your live backend.
+5. Click **Save and Deploy**.
+
+*(Or deploy directly from CLI: `npx wrangler pages deploy frontend/dist --project-name=agrisense`)*
+
+---
+
+### 🍃 Dual Database Support (SQLite + MongoDB)
+- **Local Development**: Uses local `sqlite:///./agrisense.db` by default (zero setup needed).
+- **Production / Cloud**: Set `DB_TYPE="mongodb"` and `MONGODB_URL="mongodb+srv://..."` in `backend/.env` to stream high-frequency IoT telemetry and store records in MongoDB Atlas.
+
+---
+
+## 🐧 Production Backend Deployment (systemd)
 
 For persistent background execution on Linux:
 
@@ -94,7 +117,5 @@ For persistent background execution on Linux:
 3. Reload systemd and start the service:
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable agrisense
-sudo systemctl start agrisense
-sudo systemctl status agrisense
+sudo systemctl enable --now agrisense
 ```
