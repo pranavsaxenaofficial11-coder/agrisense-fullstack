@@ -17,10 +17,13 @@ from app.routes import (
     schemes,
     user,
     weather,
-    logs
+    logs,
+    mongodb
 )
+from app.mongodb import connect_to_mongodb, close_mongodb_connection
+from app.services.mongodb_service import seed_mongodb_if_empty
 
-# Initialize database schema
+# Initialize database schema (SQLite)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -51,13 +54,27 @@ app.include_router(schemes.router)
 app.include_router(user.router)
 app.include_router(weather.router)
 app.include_router(logs.router)
+app.include_router(mongodb.router)
 
 @app.on_event("startup")
-def on_startup():
+async def on_startup():
+    # 1. Seed SQLite (Local DB)
     try:
         seed_database()
     except Exception as e:
-        print(f"Startup seeder warning: {e}")
+        print(f"SQLite startup seeder warning: {e}")
+
+    # 2. Connect and seed MongoDB (Cloud / IoT DB)
+    try:
+        connected = await connect_to_mongodb()
+        if connected:
+            await seed_mongodb_if_empty()
+    except Exception as e:
+        print(f"MongoDB startup warning: {e}")
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    await close_mongodb_connection()
 
 @app.get("/")
 def root():

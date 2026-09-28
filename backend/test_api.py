@@ -40,7 +40,12 @@ def test_endpoints():
     assert r.status_code == 200, f"Weather failed: {r.status_code}"
     print(" -> Weather OK: Location:", r.json().get("location"))
 
-    print("\nALL BACKEND API TESTS PASSED SUCCESSFULLY! ?")
+    print("Testing /api/mongodb/status ...")
+    r = client.get("/api/mongodb/status")
+    assert r.status_code == 200, f"MongoDB status failed: {r.status_code}"
+    print(" -> MongoDB status endpoint OK:", r.json())
+
+    print("\nALL BACKEND API TESTS (SQLITE + MONGODB HYBRID) PASSED SUCCESSFULLY! [OK]")
 
 if __name__ == "__main__":
     test_endpoints()
