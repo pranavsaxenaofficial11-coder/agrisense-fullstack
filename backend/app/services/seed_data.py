@@ -189,6 +189,33 @@ def seed_database():
             ]
             db.add_all(posts)
 
+        # 7b. Seed Direct Messages
+        if db.query(app.models.DirectMessage).count() == 0:
+            dms = [
+                app.models.DirectMessage(
+                    sender_email="gurpreet.singh@kisanmail.com",
+                    recipient_email="pranav@agrisense.io",
+                    sender_name="Gurpreet Singh",
+                    message="Sat Sri Akal Pranav ji, is your solar drip pump system working well with 3-phase power? Want to install on 5 acres.",
+                    is_read=True
+                ),
+                app.models.DirectMessage(
+                    sender_email="pranav@agrisense.io",
+                    recipient_email="gurpreet.singh@kisanmail.com",
+                    sender_name="Pranav Saxena",
+                    message="Yes Gurpreet ji, it runs on DC solar power and automatically handles pressure regulation across all 4 zones.",
+                    is_read=True
+                ),
+                app.models.DirectMessage(
+                    sender_email="anita.kulkarni@pau.edu",
+                    recipient_email="pranav@agrisense.io",
+                    sender_name="Dr. Anita Kulkarni",
+                    message="Hello Pranav, I reviewed your Zone A soil test report. Micronutrient levels look great for your tomato crop.",
+                    is_read=False
+                )
+            ]
+            db.add_all(dms)
+
         # 8. Seed Transport
         if db.query(app.models.TransportListing).count() == 0:
             t_list = [

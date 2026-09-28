@@ -14,6 +14,8 @@ class TelemetryPayload(BaseModel):
     humidity: float
     npk: Optional[Dict[str, float]] = None
 
+@router.get("")
+@router.get("/")
 @router.get("/status")
 async def get_mongodb_status():
     """Check MongoDB connection status, database name, and collection counts."""
