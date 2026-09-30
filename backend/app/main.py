@@ -23,8 +23,10 @@ from app.routes import (
     user,
     weather,
     logs,
-    mongodb
+    mongodb,
+    analytics
 )
+from app.middleware import RateLimiterMiddleware
 from app.mongodb import connect_to_mongodb, close_mongodb_connection, get_mongodb
 from app.services.mongodb_service import seed_mongodb_if_empty
 from app.views.dashboard import render_dashboard_html
@@ -50,7 +52,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 3. Security & Telemetry Timing Middleware
+# 3. Security: In-Memory Sliding-Window IoT & API Rate Limiter
+app.add_middleware(RateLimiterMiddleware, max_requests=240, window_seconds=60)
+
+# 4. Security & Telemetry Timing Middleware
 @app.middleware("http")
 async def add_security_and_timing_headers(request: Request, call_next):
     start_time = time.time()
@@ -71,6 +76,7 @@ async def add_security_and_timing_headers(request: Request, call_next):
 # Mount all domain routers
 app.include_router(sensors.router)
 app.include_router(controls.router)
+app.include_router(analytics.router)
 app.include_router(ai.router)
 app.include_router(market.router)
 app.include_router(community.router)

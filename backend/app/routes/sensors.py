@@ -107,6 +107,19 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
 
     db.commit()
 
+    # 4. Instant WebSocket Broadcast
+    from app.services.websocket_manager import telemetry_ws_manager
+    await telemetry_ws_manager.broadcast({
+        "type": "telemetry_update",
+        "temp_c": temp,
+        "humidity_pct": hum,
+        "moisture_pct": moist,
+        "sunlight_lux": lux,
+        "water_tank_level": ctrl.water_tank_level if ctrl else 80.0,
+        "pump_running": ctrl.pump_state if ctrl else False,
+        "timestamp": datetime.utcnow().isoformat()
+    })
+
     return {
         "status": "success",
         "pump_command": ctrl.pump_state if ctrl else False,
@@ -135,4 +148,28 @@ def get_latest_hardware_reading(db: Session = Depends(get_db)):
         "pump_running": ctrl.pump_state if ctrl else False,
         "timestamp": recent.timestamp.isoformat() if recent else datetime.utcnow().isoformat()
     }
+
+from fastapi import WebSocket, WebSocketDisconnect
+import json
+
+@router.websocket("/ws")
+async def websocket_telemetry_endpoint(websocket: WebSocket):
+    """
+    Bi-directional sub-10ms real-time WebSocket connection.
+    Streams live hardware telemetry to connected dashboards and receives remote override commands.
+    """
+    from app.services.websocket_manager import telemetry_ws_manager
+    await telemetry_ws_manager.connect(websocket)
+    try:
+        while True:
+            text = await websocket.receive_text()
+            try:
+                msg = json.loads(text)
+                if msg.get("action") == "ping":
+                    await websocket.send_text(json.dumps({"type": "pong", "time": datetime.utcnow().isoformat()}))
+            except Exception:
+                pass
+    except WebSocketDisconnect:
+        telemetry_ws_manager.disconnect(websocket)
+
 

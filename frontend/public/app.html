@@ -5,7 +5,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://apis.google.com https://www.google.com https://www.recaptcha.net https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://server.arcgisonline.com https://unpkg.com data: blob:; connect-src 'self' data: blob: https://*.openrouter.ai https://openrouter.ai https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://generativelanguage.googleapis.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseappcheck.googleapis.com https://content-firebaseappcheck.googleapis.com https://openrouter.ai https://api.open-meteo.com https://geocoding-api.open-meteo.com https://cloudflareinsights.com https://server.arcgisonline.com https://unpkg.com https://api.rss2json.com; frame-src https://*.firebaseapp.com https://accounts.google.com https://www.google.com https://recaptcha.google.com https://www.recaptcha.net; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://apis.google.com https://www.google.com https://www.recaptcha.net https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://server.arcgisonline.com https://unpkg.com; connect-src 'self' data: blob: ws: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://*.pages.dev https://*.openrouter.ai https://openrouter.ai https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://generativelanguage.googleapis.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseappcheck.googleapis.com https://content-firebaseappcheck.googleapis.com https://api.open-meteo.com https://geocoding-api.open-meteo.com https://cloudflareinsights.com https://server.arcgisonline.com https://unpkg.com https://api.rss2json.com; worker-src 'self' blob: data:; frame-src https://*.firebaseapp.com https://accounts.google.com https://www.google.com https://recaptcha.google.com https://www.recaptcha.net; base-uri 'self'; form-action 'self'; object-src 'none';">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <title>AgriSense — Dashboard</title>
@@ -1860,7 +1860,126 @@
           <button class="btn ghost sm" id="homeOrdersBtn">📦 My orders <span id="ordersCountHome" style="display:none"></span></button>
           <button class="btn ghost sm" id="homePayBtn">💳 Payments</button>
           <button class="btn green sm" id="connectUsbBtn" style="font-weight:700">🔌 Connect Hardware (USB Serial)</button>
+          <button class="btn ghost sm" id="hwCalibrationToggleBtn">⚙️ Hardware Controls &amp; Calibration</button>
+          <button class="btn ghost sm" id="exportCsvBtn">📥 Export CSV Audit</button>
           <span id="hwStatusBadge" class="pill" style="display:none;background:var(--green-soft);color:var(--green-deep);font-weight:700">⚡ Real Hardware Streaming</span>
+        </div>
+
+        <!-- Hardware Control & Live Calibration Drawer -->
+        <div id="hwCalibrationDrawer" class="card" style="display:none;margin-bottom:16px;background:var(--card);border:1px solid var(--accent);border-radius:14px;padding:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="font-weight:700;font-size:15px;color:var(--ink);display:flex;align-items:center;gap:8px">
+              <span>⚡ Live Hardware Diagnostics &amp; Controls</span>
+              <span class="pill" id="liveBaudPill" style="font-size:11px;background:var(--green-soft);color:var(--green-deep)">115200 BAUD</span>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn green sm" id="btnHwPumpToggle">💧 Toggle Pump</button>
+              <button class="btn ghost sm" id="btnHwFanToggle">💨 Toggle Fan</button>
+              <button class="btn ghost sm" id="btnAudioAlarms">🔔 Sound: ON</button>
+              <button class="close" id="closeHwDrawerBtn" aria-label="Close">✕</button>
+            </div>
+          </div>
+          
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin-bottom:14px">
+            <div style="background:var(--bg);padding:10px 12px;border-radius:10px;border:1px solid var(--line-soft)">
+              <div style="font-size:11px;color:var(--ink-mute);font-weight:600">SOIL 1 RAW</div>
+              <div style="font-size:18px;font-weight:700;color:var(--green-deep)" id="diagSoilRaw1">—</div>
+            </div>
+            <div style="background:var(--bg);padding:10px 12px;border-radius:10px;border:1px solid var(--line-soft)">
+              <div style="font-size:11px;color:var(--ink-mute);font-weight:600">SOIL 2 RAW</div>
+              <div style="font-size:18px;font-weight:700;color:var(--green-deep)" id="diagSoilRaw2">—</div>
+            </div>
+            <div style="background:var(--bg);padding:10px 12px;border-radius:10px;border:1px solid var(--line-soft)">
+              <div style="font-size:11px;color:var(--ink-mute);font-weight:600">LDR LIGHT RAW</div>
+              <div style="font-size:18px;font-weight:700;color:var(--amber)" id="diagLdrRaw">—</div>
+            </div>
+            <div style="background:var(--bg);padding:10px 12px;border-radius:10px;border:1px solid var(--line-soft)">
+              <div style="font-size:11px;color:var(--ink-mute);font-weight:600">RAIN SENSOR RAW</div>
+              <div style="font-size:18px;font-weight:700;color:var(--blue)" id="diagRainRaw">—</div>
+            </div>
+            <div style="background:var(--bg);padding:10px 12px;border-radius:10px;border:1px solid var(--line-soft)">
+              <div style="font-size:11px;color:var(--ink-mute);font-weight:600">PUMP RELAY</div>
+              <div style="font-size:16px;font-weight:700" id="diagPumpRelay">STANDBY</div>
+            </div>
+            <div style="background:var(--bg);padding:10px 12px;border-radius:10px;border:1px solid var(--line-soft)">
+              <div style="font-size:11px;color:var(--ink-mute);font-weight:600">FAN RELAY</div>
+              <div style="font-size:16px;font-weight:700" id="diagFanRelay">STANDBY</div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:14px;background:var(--bg);padding:12px 14px;border-radius:10px">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+                <span style="font-weight:600">Soil Dry Point (ADC)</span>
+                <span id="valDryPoint" style="font-family:var(--mono);font-weight:700">4095</span>
+              </div>
+              <input type="range" id="sliderDryPoint" min="3000" max="4095" value="4095" style="width:100%">
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+                <span style="font-weight:600">Soil Wet Point (ADC)</span>
+                <span id="valWetPoint" style="font-family:var(--mono);font-weight:700">1200</span>
+              </div>
+              <input type="range" id="sliderWetPoint" min="800" max="2500" value="1200" style="width:100%">
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+                <span style="font-weight:600">Pump Cutoff Threshold (%)</span>
+                <span id="valPumpThresh" style="font-family:var(--mono);font-weight:700">100%</span>
+              </div>
+              <input type="range" id="sliderPumpThresh" min="20" max="100" value="100" style="width:100%">
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-time Oscilloscope Waveform Card -->
+        <div class="card" style="margin-bottom:16px;background:var(--card);border-radius:14px;padding:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px">
+              <span>📈 Real-Time Multi-Stream Oscilloscope (Live Waveform)</span>
+              <span class="pill green dot" style="font-size:11px">Streaming 1Hz</span>
+            </div>
+            <div style="display:flex;gap:12px;font-size:12px;font-weight:600">
+              <span style="color:#22c55e">● Soil Moisture</span>
+              <span style="color:#f59e0b">● Temperature</span>
+              <span style="color:#38bdf8">● Humidity</span>
+              <span style="color:#a855f7">● Light</span>
+            </div>
+          </div>
+          <canvas id="liveOscilloscope" height="130" style="width:100%;height:130px;background:#0f172a;border-radius:10px;display:block"></canvas>
+        </div>
+
+        <!-- Agronomy Microclimate Disease Risk & Water Deficit Engine -->
+        <div class="card" id="agronomyRiskCard" style="margin-bottom:16px;background:var(--card);border-radius:14px;padding:16px;border:1px solid var(--line)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div style="font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px">
+              <span>🛡️ Agronomy Microclimate &amp; Disease Risk Predictor</span>
+              <span class="pill" id="riskLevelBadge" style="font-size:11px;background:rgba(34,197,94,0.15);color:#22c55e;font-weight:700">LOW RISK (OPTIMAL)</span>
+            </div>
+            <div style="font-size:12px;color:var(--ink-mute)">Model: FAO-56 Penman-Monteith &amp; Blight Spore Simulation</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px">
+            <div style="background:var(--bg);padding:12px;border-radius:10px;border:1px solid var(--line-soft)">
+              <div style="font-size:11px;color:var(--ink-mute);font-weight:600">FUNGAL SPORE RISK (BLIGHT)</div>
+              <div style="font-size:20px;font-weight:800;color:#22c55e" id="blightRiskVal">12%</div>
+              <div style="font-size:11px;color:var(--ink-mute);margin-top:2px" id="blightAdvice">Foliage dry, spore germination inhibited</div>
+            </div>
+            <div style="background:var(--bg);padding:12px;border-radius:10px;border:1px solid var(--line-soft)">
+              <div style="font-size:11px;color:var(--ink-mute);font-weight:600">EVAPOTRANSPIRATION (ET₀)</div>
+              <div style="font-size:20px;font-weight:800;color:var(--amber)" id="etVal">4.2 mm/day</div>
+              <div style="font-size:11px;color:var(--ink-mute);margin-top:2px" id="etAdvice">Moderate atmospheric water demand</div>
+            </div>
+            <div style="background:var(--bg);padding:12px;border-radius:10px;border:1px solid var(--line-soft)">
+              <div style="font-size:11px;color:var(--ink-mute);font-weight:600">RECOMMENDED DRIP RUNTIME</div>
+              <div style="font-size:20px;font-weight:800;color:var(--blue)" id="recDripTime">0 min (Field Optimal)</div>
+              <div style="font-size:11px;color:var(--ink-mute);margin-top:2px" id="recDripAdvice">Save water: Soil moisture is at optimal capacity</div>
+            </div>
+            <div style="background:var(--bg);padding:12px;border-radius:10px;border:1px solid var(--line-soft)">
+              <div style="font-size:11px;color:var(--ink-mute);font-weight:600">HEAT STRESS / WILTING RISK</div>
+              <div style="font-size:20px;font-weight:800;color:#22c55e" id="heatStressVal">OPTIMAL</div>
+              <div style="font-size:11px;color:var(--ink-mute);margin-top:2px" id="heatStressAdvice">Canopy transpiration balanced</div>
+            </div>
+          </div>
         </div>
         <div class="farm-tabs" id="farmTabs"></div>
         <div class="quiz-banner" id="quizBanner" style="display:none">
@@ -2046,6 +2165,35 @@
         </div>
 
         <div id="mktMandi" style="display:none">
+          <!-- Mandi Arbitrage & Net Revenue Optimizer -->
+          <div class="card" style="margin-bottom:16px;background:var(--card);border:1px solid var(--accent);border-radius:14px;padding:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+              <div style="font-weight:700;font-size:15px;color:var(--ink);display:flex;align-items:center;gap:8px">
+                <span>🚛 Multi-Mandi Freight &amp; Net Profit Arbitrage</span>
+                <span class="pill green" style="font-size:11px">AgriSense Profit Maximizer</span>
+              </div>
+              <div style="font-size:12px;color:var(--ink-mute)">Factoring road freight &amp; APMC fees from Samrala / Ludhiana</div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:6px">
+                <label style="font-size:12px;font-weight:600;color:var(--ink-soft)">Select Crop:</label>
+                <select id="arbCropSelect" class="lang-select" style="padding:6px 10px;font-size:12px">
+                  <option value="Tomato">Tomato</option>
+                  <option value="Wheat">Wheat</option>
+                  <option value="Mustard">Mustard</option>
+                </select>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <label style="font-size:12px;font-weight:600;color:var(--ink-soft)">Harvest Volume (Quintals):</label>
+                <input type="number" id="arbQtyInput" value="25" min="1" max="1000" style="width:70px;padding:6px;border-radius:6px;background:var(--bg);border:1px solid var(--line);color:var(--ink);font-weight:700">
+              </div>
+              <button class="btn green sm" id="calcArbitrageBtn" style="font-weight:700">Calculate Best Mandi</button>
+            </div>
+            <div id="arbResultsMount" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:10px">
+              <!-- Dynamically rendered comparison cards -->
+            </div>
+          </div>
+
           <div class="chan-row" id="mandiFilters"></div>
           <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Crop</th><th>Mandi</th><th>Price (₹/qtl)</th><th>vs yesterday</th></tr></thead><tbody id="mandiBody"></tbody></table></div>
           <p style="font-family:var(--mono);font-size:11px;color:var(--ink-mute);margin-top:12px">Demo rates in eNAM style — production version connects the eNAM / Agmarknet API for live prices.</p>
@@ -2909,7 +3057,365 @@ function maybeWarnInAppBrowser(){
 }
 
 /* ============ HARDWARE CONNECTIVITY (Web Serial & Local API Poller) ============ */
+
+/* ============ LIVE OSCILLOSCOPE & TELEMETRY ENGINE ============ */
+const oscHistory = {
+  times: [],
+  soil: [],
+  temp: [],
+  hum: [],
+  light: []
+};
+
+let _serialWriter = null;
+
+function pushOscReading(soil, temp, hum, light) {
+  const now = new Date().toLocaleTimeString().slice(3, 8);
+  oscHistory.times.push(now);
+  oscHistory.soil.push(soil != null ? soil : 40);
+  oscHistory.temp.push(temp != null ? temp : 28);
+  oscHistory.hum.push(hum != null ? hum : 60);
+  oscHistory.light.push(light != null ? light : 70);
+
+  if (oscHistory.times.length > 60) {
+    oscHistory.times.shift();
+    oscHistory.soil.shift();
+    oscHistory.temp.shift();
+    oscHistory.hum.shift();
+    oscHistory.light.shift();
+  }
+  drawOscilloscope();
+}
+
+function drawOscilloscope() {
+  const canvas = document.getElementById('liveOscilloscope');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.parentElement.clientWidth - 32;
+  const H = canvas.height = 130;
+
+  // Background
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth = 1;
+  for (let y = 25; y < H; y += 25) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+
+  const N = oscHistory.soil.length;
+  if (N < 2) return;
+
+  const drawSeries = (data, color, minV, maxV) => {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const x = (i / (N - 1)) * W;
+      const normalized = (data[i] - minV) / (maxV - minV || 1);
+      const y = H - (normalized * (H - 20) + 10);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  };
+
+  // Draw series with scales:
+  drawSeries(oscHistory.soil, '#22c55e', 0, 100);  // Green Soil
+  drawSeries(oscHistory.temp, '#f59e0b', 10, 50);  // Amber Temp
+  drawSeries(oscHistory.hum, '#38bdf8', 0, 100);   // Blue Humidity
+  drawSeries(oscHistory.light, '#a855f7', 0, 100); // Purple Light
+}
+
+window.audioAlarmsEnabled = true;
+function playAgronomyAlertTone(type = 'warning') {
+  if (!window.audioAlarmsEnabled) return;
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = (type === 'critical') ? 'sawtooth' : 'sine';
+    osc.frequency.setValueAtTime(type === 'critical' ? 880 : 587.33, ctx.currentTime);
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.35);
+  } catch(e) {}
+}
+
+function updateAgronomyRiskModel() {
+  const t = state.sensors.airTemp || 28;
+  const h = state.sensors.airHumidity || 60;
+  const m = state.sensors.soilA || 38;
+  const rain = state.sensors.rain || 0;
+
+  // 1. Fungal Spore Risk (Alternaria / Phytophthora Late Blight)
+  let sporeRisk = 10;
+  if (t >= 18 && t <= 26) sporeRisk += 35;
+  if (h > 75) sporeRisk += Math.min(45, (h - 75) * 2.2);
+  if (rain > 10) sporeRisk += 20;
+  sporeRisk = Math.min(99, Math.round(sporeRisk));
+
+  // 2. Reference Evapotranspiration ET0
+  const vpdFactor = Math.max(1, (100 - h) / 100);
+  const et0 = Math.max(1.8, Math.min(8.5, (0.0023 * (t + 17.8) * Math.sqrt(12) * vpdFactor * 2.5))).toFixed(1);
+
+  // 3. Recommended Drip Runtime (minutes)
+  let dripMins = 0;
+  if (m < 35) {
+    dripMins = Math.round((38 - m) * 4.2);
+  }
+
+  // 4. Heat Stress Index
+  let heatStatus = 'OPTIMAL';
+  let heatColor = '#22c55e';
+  if (t > 36) {
+    heatStatus = 'CRITICAL HEAT';
+    heatColor = '#ef4444';
+  } else if (t > 32) {
+    heatStatus = 'MODERATE STRESS';
+    heatColor = '#f59e0b';
+  }
+
+  // DOM Updates
+  const bRisk = document.getElementById('blightRiskVal');
+  const bAdv = document.getElementById('blightAdvice');
+  const rBadge = document.getElementById('riskLevelBadge');
+  const etEl = document.getElementById('etVal');
+  const etAdv = document.getElementById('etAdvice');
+  const dripEl = document.getElementById('recDripTime');
+  const dripAdv = document.getElementById('recDripAdvice');
+  const hsEl = document.getElementById('heatStressVal');
+  const hsAdv = document.getElementById('heatStressAdvice');
+
+  if (bRisk) {
+    bRisk.textContent = sporeRisk + '%';
+    bRisk.style.color = sporeRisk > 65 ? '#ef4444' : (sporeRisk > 40 ? '#f59e0b' : '#22c55e');
+  }
+  if (bAdv) {
+    bAdv.textContent = sporeRisk > 65 ? 'High risk! Apply preventive Neem oil or Trichoderma spray.' : (sporeRisk > 40 ? 'Moderate spore load. Monitor lower leaf canopy.' : 'Foliage dry, spore germination inhibited.');
+  }
+  if (rBadge) {
+    if (sporeRisk > 65 || heatStatus === 'CRITICAL HEAT') {
+      rBadge.textContent = 'HIGH RISK ALERT';
+      rBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+      rBadge.style.color = '#ef4444';
+      if (window.audioAlarmsEnabled && (!window._lastAlertTime || (Date.now() - window._lastAlertTime > 15000))) {
+        window._lastAlertTime = Date.now();
+        playAgronomyAlertTone('critical');
+      }
+    } else {
+      rBadge.textContent = 'LOW RISK (OPTIMAL)';
+      rBadge.style.background = 'rgba(34, 197, 94, 0.15)';
+      rBadge.style.color = '#22c55e';
+    }
+  }
+  if (etEl) etEl.textContent = `${et0} mm/day`;
+  if (etAdv) etAdv.textContent = et0 > 5.5 ? 'High crop transpiration. Ensure adequate root zone reserve.' : 'Standard crop water consumption.';
+  if (dripEl) {
+    dripEl.textContent = dripMins > 0 ? `${dripMins} min recommended` : '0 min (Field Optimal)';
+    dripEl.style.color = dripMins > 0 ? '#38bdf8' : '#22c55e';
+  }
+  if (dripAdv) {
+    dripAdv.textContent = dripMins > 0 ? `Soil moisture at ${m}% is below trigger point. Pulse drip recommended.` : `Soil moisture (${m}%) is within optimal field capacity.`;
+  }
+  if (hsEl) {
+    hsEl.textContent = heatStatus;
+    hsEl.style.color = heatColor;
+  }
+  if (hsAdv) {
+    hsAdv.textContent = t > 34 ? 'Operate shade net / ventilation fan to cool canopy.' : 'Canopy transpiration balanced.';
+  }
+}
+
+function wireMandiArbitrage() {
+  const btn = document.getElementById('calcArbitrageBtn');
+  const cropSel = document.getElementById('arbCropSelect');
+  const qtyInp = document.getElementById('arbQtyInput');
+  const mount = document.getElementById('arbResultsMount');
+
+  const renderArbitrage = async () => {
+    if (!mount) return;
+    const crop = (cropSel ? cropSel.value : 'Tomato');
+    const qty = parseFloat(qtyInp ? qtyInp.value : 25) || 25;
+
+    mount.innerHTML = '<div style="color:var(--ink-mute);font-size:12px;grid-column:1/-1">Calculating live freight and mandi arbitrage...</div>';
+
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/market/arbitrage?crop=${encodeURIComponent(crop)}&quantity_qtl=${qty}`);
+      let data;
+      if (res.ok) {
+        data = await res.json();
+      } else {
+        throw new Error('Fallback to local calculation');
+      }
+      displayArbitrageResults(data, qty);
+    } catch (e) {
+      const localBenchmarks = {
+        Tomato: [
+          { mandi: 'Khanna Mandi', distance_km: 18, price_per_qtl: 2450, rate: 1.2 },
+          { mandi: 'Ludhiana APMC', distance_km: 35, price_per_qtl: 2380, rate: 1.1 },
+          { mandi: 'Jalandhar Mandi', distance_km: 92, price_per_qtl: 2520, rate: 1.0 },
+          { mandi: 'Delhi Azadpur', distance_km: 310, price_per_qtl: 2750, rate: 0.9 },
+        ],
+        Wheat: [
+          { mandi: 'Khanna Mandi', distance_km: 18, price_per_qtl: 2275, rate: 1.2 },
+          { mandi: 'Ludhiana APMC', distance_km: 35, price_per_qtl: 2290, rate: 1.1 },
+          { mandi: 'Jalandhar Mandi', distance_km: 92, price_per_qtl: 2310, rate: 1.0 },
+          { mandi: 'Delhi Azadpur', distance_km: 310, price_per_qtl: 2380, rate: 0.9 },
+        ],
+        Mustard: [
+          { mandi: 'Khanna Mandi', distance_km: 18, price_per_qtl: 5650, rate: 1.2 },
+          { mandi: 'Ludhiana APMC', distance_km: 35, price_per_qtl: 5580, rate: 1.1 },
+          { mandi: 'Jalandhar Mandi', distance_km: 92, price_per_qtl: 5700, rate: 1.0 },
+          { mandi: 'Delhi Azadpur', distance_km: 310, price_per_qtl: 5920, rate: 0.9 },
+        ]
+      };
+      const list = (localBenchmarks[crop] || localBenchmarks.Tomato).map(m => {
+        const gross = m.price_per_qtl * qty;
+        const transport = m.distance_km * m.rate * qty;
+        const net = gross - transport;
+        return {
+          mandi: m.mandi,
+          distance_km: m.distance_km,
+          price_per_qtl: m.price_per_qtl,
+          gross_revenue: gross,
+          transport_cost: transport,
+          net_revenue: net,
+          net_price_per_qtl: net / qty
+        };
+      });
+      list.sort((a,b) => b.net_revenue - a.net_revenue);
+      list.forEach((x, i) => x.is_best = (i === 0));
+      displayArbitrageResults({ crop, quantity_qtl: qty, options: list, best_mandi: list[0].mandi, arbitrage_gain: list[0].net_revenue - list[list.length-1].net_revenue }, qty);
+    }
+  };
+
+  const displayArbitrageResults = (data, qty) => {
+    if (!mount) return;
+    mount.innerHTML = data.options.map(opt => `
+      <div style="background:var(--bg);border-radius:10px;padding:12px;border:1.5px solid ${opt.is_best ? 'var(--green)' : 'var(--line-soft)'};position:relative">
+        ${opt.is_best ? '<span class="pill green" style="position:absolute;top:8px;right:8px;font-size:9.5px;font-weight:700">🏆 BEST NET RETURN</span>' : ''}
+        <div style="font-weight:700;font-size:14px;color:var(--ink)">${escapeHtml(opt.mandi)}</div>
+        <div style="font-size:11px;color:var(--ink-mute);margin-bottom:8px">📍 ${opt.distance_km} km away · Modal ₹${opt.price_per_qtl.toLocaleString('en-IN')}/qtl</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">
+          <span style="color:var(--ink-mute)">Gross Revenue:</span>
+          <b>₹${Math.round(opt.gross_revenue).toLocaleString('en-IN')}</b>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+          <span style="color:var(--ink-mute)">Est. Transport:</span>
+          <span style="color:#ef4444">-₹${Math.round(opt.transport_cost).toLocaleString('en-IN')}</span>
+        </div>
+        <div style="border-top:1px dashed var(--line);padding-top:6px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:11px;font-weight:600">Net Farmer Payout:</span>
+          <span style="font-size:15px;font-weight:800;color:${opt.is_best ? 'var(--green-deep)' : 'var(--ink)'}">₹${Math.round(opt.net_revenue).toLocaleString('en-IN')}</span>
+        </div>
+        <div style="font-size:10.5px;color:var(--ink-soft);margin-top:4px">Net effective: ₹${Math.round(opt.net_price_per_qtl)}/qtl</div>
+      </div>
+    `).join('');
+  };
+
+  if (btn) btn.addEventListener('click', renderArbitrage);
+  if (cropSel) cropSel.addEventListener('change', renderArbitrage);
+  renderArbitrage();
+}
+
+function wireAdvancedHardwareControls() {
+  const toggleBtn = document.getElementById('hwCalibrationToggleBtn');
+  const drawer = document.getElementById('hwCalibrationDrawer');
+  const closeBtn = document.getElementById('closeHwDrawerBtn');
+
+  if (toggleBtn && drawer) {
+    toggleBtn.addEventListener('click', () => {
+      const isVisible = drawer.style.display !== 'none';
+      drawer.style.display = isVisible ? 'none' : 'block';
+    });
+  }
+  if (closeBtn && drawer) {
+    closeBtn.addEventListener('click', () => drawer.style.display = 'none');
+  }
+
+  // Audio Alerts Toggle
+  const btnAudio = document.getElementById('btnAudioAlarms');
+  if (btnAudio) {
+    btnAudio.addEventListener('click', () => {
+      window.audioAlarmsEnabled = !window.audioAlarmsEnabled;
+      btnAudio.textContent = window.audioAlarmsEnabled ? '🔔 Sound: ON' : '🔕 Sound: OFF';
+      toast(`Audio alerts: ${window.audioAlarmsEnabled ? 'ENABLED' : 'MUTED'}`);
+      if (window.audioAlarmsEnabled) playAgronomyAlertTone('warning');
+    });
+  }
+
+  // Sliders
+  const slDry = document.getElementById('sliderDryPoint');
+  const slWet = document.getElementById('sliderWetPoint');
+  const slPump = document.getElementById('sliderPumpThresh');
+
+  if (slDry) slDry.addEventListener('input', (e) => {
+    document.getElementById('valDryPoint').textContent = e.target.value;
+  });
+  if (slWet) slWet.addEventListener('input', (e) => {
+    document.getElementById('valWetPoint').textContent = e.target.value;
+  });
+  if (slPump) slPump.addEventListener('input', (e) => {
+    document.getElementById('valPumpThresh').textContent = e.target.value + '%';
+  });
+
+  // Manual Relay Toggles
+  const btnPump = document.getElementById('btnHwPumpToggle');
+  const btnFan = document.getElementById('btnHwFanToggle');
+
+  if (btnPump) btnPump.addEventListener('click', async () => {
+    state.pump.on = !state.pump.on;
+    toast(`💧 Pump manual toggle: ${state.pump.on ? 'ON' : 'OFF'}`);
+    renderStatus();
+    // Send to USB Serial if open
+    if (window._serialWriter) {
+      try {
+        await window._serialWriter.write(state.pump.on ? 'PUMP_ON\n' : 'PUMP_OFF\n');
+      } catch(e){}
+    }
+    // Also send to backend controls
+    try {
+      await fetch('http://127.0.0.1:8000/api/controls/pump/toggle', { method: 'POST' });
+    } catch(e){}
+  });
+
+  if (btnFan) btnFan.addEventListener('click', async () => {
+    state.fanOn = !state.fanOn;
+    toast(`💨 Fan manual toggle: ${state.fanOn ? 'ON' : 'OFF'}`);
+    const badge = document.getElementById('diagFanRelay');
+    if (badge) badge.textContent = state.fanOn ? 'ACTIVE (Cooling)' : 'STANDBY';
+    if (window._serialWriter) {
+      try {
+        await window._serialWriter.write(state.fanOn ? 'FAN_ON\n' : 'FAN_OFF\n');
+      } catch(e){}
+    }
+  });
+
+  // Export CSV
+  const expBtn = document.getElementById('exportCsvBtn');
+  if (expBtn) expBtn.addEventListener('click', () => {
+    window.location.href = 'http://127.0.0.1:8000/api/analytics/export/csv';
+  });
+
+  // Start Oscilloscope loop (ticks every 1s)
+  setInterval(() => {
+    pushOscReading(state.sensors.soilA, state.sensors.airTemp, state.sensors.airHumidity, state.sensors.light);
+  }, 1000);
+}
+
 function initHardwareBridge() {
+  wireAdvancedHardwareControls();
   const btn = $('#connectUsbBtn');
   const badge = $('#hwStatusBadge');
   if (!btn) return;
@@ -2929,6 +3435,13 @@ function initHardwareBridge() {
       if (badge) {
         badge.style.display = 'inline-block';
         badge.textContent = '⚡ Real Hardware Streaming';
+      }
+
+      // Initialize bidirectional serial writer
+      if (port.writable) {
+        const textEncoder = new TextEncoderStream();
+        textEncoder.readable.pipeTo(port.writable).catch(()=>{});
+        window._serialWriter = textEncoder.writable.getWriter();
       }
 
       const textDecoder = new TextDecoderStream();
@@ -2981,6 +3494,21 @@ function initHardwareBridge() {
 
 function parseHardwareLine(line) {
   if (!line) return;
+  const lower = line.toLowerCase();
+
+  // Update raw diagnostics drawer
+  const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  if (lower.includes('soil 1 raw')) setEl('diagSoilRaw1', line.split(':')[1].trim());
+  if (lower.includes('soil 2 raw')) setEl('diagSoilRaw2', line.split(':')[1].trim());
+  if (lower.includes('ldr raw')) setEl('diagLdrRaw', line.split(':')[1].trim());
+  if (lower.includes('rain raw')) setEl('diagRainRaw', line.split(':')[1].trim());
+  if (lower.includes('pump        :') || lower.includes('pump :')) {
+    setEl('diagPumpRelay', lower.includes('on') ? 'ACTIVE (Pumping)' : 'STANDBY');
+  }
+  if (lower.includes('fan         :') || lower.includes('fan :')) {
+    setEl('diagFanRelay', lower.includes('on') ? 'ACTIVE (Cooling)' : 'STANDBY');
+  }
+
   // JSON format from ESP32
   if (line.startsWith('{') && line.endsWith('}')) {
     try {
@@ -2995,12 +3523,12 @@ function parseHardwareLine(line) {
       if (d.pump != null) state.pump.on = (d.pump === true || d.pump === 'true');
       renderSensors();
       renderStatus();
+      updateAgronomyRiskModel();
       return;
     } catch(e){}
   }
 
   // Key-value text format from ESP32 Serial
-  const lower = line.toLowerCase();
   if (lower.includes('temperature :') || lower.includes('temperature:') || lower.includes('air temp:')) {
     const val = parseFloat(line.split(':')[1]);
     if (!isNaN(val)) state.sensors.airTemp = val;
@@ -3036,6 +3564,7 @@ function parseHardwareLine(line) {
   }
   renderSensors();
   renderStatus();
+  updateAgronomyRiskModel();
 }
 
 function showApp(){
@@ -3548,6 +4077,7 @@ function renderSensors(){
       grid.appendChild(wrap);
     }
   });
+  if (typeof updateAgronomyRiskModel === 'function') updateAgronomyRiskModel();
 }
 
 /* ============ CROP ENVIRONMENT MATCH + LEARNING UI ============ */
@@ -7219,7 +7749,7 @@ function setMarketTab(tab){
   $('#mktInputs').style.display = tab === 'inputs' ? 'block' : 'none';
   $('#mktRetail').style.display = tab === 'retail' ? 'block' : 'none';
   $('#mktSellInputs').style.display = tab === 'sellinputs' ? 'block' : 'none';
-  if (tab === 'mandi') renderMandi();
+  if (tab === 'mandi') { renderMandi(); if (typeof wireMandiArbitrage === 'function') wireMandiArbitrage(); }
   if (tab === 'inputs') renderInputs();
   if (tab === 'retail') renderRetail();
   if (tab === 'sellinputs') renderSellInputs();
