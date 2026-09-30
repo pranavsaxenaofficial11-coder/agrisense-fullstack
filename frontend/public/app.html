@@ -3001,31 +3001,38 @@ function parseHardwareLine(line) {
 
   // Key-value text format from ESP32 Serial
   const lower = line.toLowerCase();
-  if (lower.includes('air temp:')) {
+  if (lower.includes('temperature :') || lower.includes('temperature:') || lower.includes('air temp:')) {
     const val = parseFloat(line.split(':')[1]);
     if (!isNaN(val)) state.sensors.airTemp = val;
-  } else if (lower.includes('air humidity:')) {
+  } else if (lower.includes('humidity    :') || lower.includes('humidity :') || lower.includes('humidity:') || lower.includes('air humidity:')) {
     const val = parseFloat(line.split(':')[1]);
     if (!isNaN(val)) state.sensors.airHumidity = val;
-  } else if (lower.includes('soil average:') || lower.includes('soil moisture:')) {
+  } else if (lower.includes('soil average:') || lower.includes('soil average :') || lower.includes('soil moisture:')) {
     const val = parseFloat(line.split(':')[1]);
     if (!isNaN(val)) state.sensors.soilA = val;
-  } else if (lower.includes('soil moisture1:') || lower.includes('soil1:')) {
+  } else if (lower.includes('soil 1      :') || lower.includes('soil 1 :') || lower.includes('soil 1:') || lower.includes('soil moisture1:') || lower.includes('soil1:')) {
     const val = parseFloat(line.split(':')[1]);
     if (!isNaN(val)) state.sensors.soilB = val;
-  } else if (lower.includes('sunlight:') || lower.includes('light:')) {
+  } else if (lower.includes('soil 2      :') || lower.includes('soil 2 :') || lower.includes('soil 2:')) {
+    const val = parseFloat(line.split(':')[1]);
+    if (!isNaN(val)) state.sensors.soilC = val;
+  } else if (lower.includes('light       :') || lower.includes('light :') || lower.includes('light:') || lower.includes('sunlight:')) {
     const val = parseFloat(line.split(':')[1]);
     if (!isNaN(val)) state.sensors.light = val;
-  } else if (lower.includes('rain:')) {
+  } else if (lower.includes('rain        :') || lower.includes('rain :') || lower.includes('rain:')) {
     const val = parseFloat(line.split(':')[1]);
     if (!isNaN(val)) state.sensors.rain = val;
   } else if (lower.includes('tank level:')) {
     const val = parseFloat(line.split(':')[1]);
-    if (!isNaN(val)) {
-      state.sensors.waterTank = val;
+    if (!isNaN(val)) state.sensors.waterTank = val;
+  } else if (lower.includes('pump        :') || lower.includes('pump :') || lower.includes('pump:')) {
+    if (!lower.includes('relay test') && !lower.includes('testing')) {
+      state.pump.on = lower.includes('on') || lower.includes('active');
     }
-  } else if (lower.includes('pump:')) {
-    state.pump.on = lower.includes('active') || lower.includes('on');
+  } else if (lower.includes('fan         :') || lower.includes('fan :') || lower.includes('fan:')) {
+    if (!lower.includes('relay test') && !lower.includes('testing')) {
+      state.fanOn = lower.includes('on') || lower.includes('active');
+    }
   }
   renderSensors();
   renderStatus();
