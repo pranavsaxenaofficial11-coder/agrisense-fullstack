@@ -1815,7 +1815,7 @@
     <div class="user-chip">
       <div class="av" id="sbAv">P</div>
       <div>
-        <div class="n" id="sbName">Demo Farmer</div>
+        <div class="n" id="sbName">Pranav Saxena</div>
         <div class="h" id="sbFarm">Saxena Family Farm</div>
       </div>
     </div>
@@ -2346,8 +2346,8 @@
         <div class="pf-hero">
           <div class="av" id="pfAv">P</div>
           <div>
-            <div class="name" id="pfName">Demo Farmer</div>
-            <div class="h" id="pfHandle">@demo · joined Jun 2026 · AgriSense Demo Farm</div>
+            <div class="name" id="pfName">Pranav Saxena</div>
+            <div class="h" id="pfHandle">@pranav · joined Jun 2026 · Saxena Family Farm</div>
           </div>
         </div>
         <div class="card" style="margin-bottom:16px" id="pfSocialCard">
@@ -2367,7 +2367,7 @@
         <div class="pf-grid">
           <div class="card">
             <div class="section-title" style="margin-top:0">Farm details</div>
-            <div class="field"><label class="label">Full name</label><input class="input" id="iName" value="Demo Farmer"></div>
+            <div class="field"><label class="label">Full name</label><input class="input" id="iName" value="Pranav Saxena"></div>
             <div class="field"><label class="label">Farm name</label><input class="input" id="iFarm" value="Saxena Family Farm"></div>
             <div class="fields-row">
               <div class="field"><label class="label">Location</label><input class="input" id="iLoc" value="Pune, MH"></div>
@@ -2537,6 +2537,41 @@ if ('serviceWorker' in navigator) {
 function isoDaysAgo(n){ const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0,10); }
 function fmtDate(d){ const dt = (d instanceof Date) ? d : new Date(d); return isNaN(dt) ? '' : dt.toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' }); }
 function daysBetween(a, b){ return Math.round((b - a) / 86400000); }
+
+const KNOWN_USERS = {
+  'pranav@agrisense.io': { name: 'Pranav Saxena', farm: 'Saxena Family Farm', loc: 'Ludhiana, Punjab', role: 'farmer' },
+  'pranavsaxenaofficial11@gmail.com': { name: 'Pranav Saxena', farm: 'Saxena Family Farm', loc: 'Ludhiana, Punjab', role: 'farmer' },
+  'pranavsaxenaunofficial11@gmail.com': { name: 'Pranav Saxena', farm: 'Saxena Family Farm', loc: 'Ludhiana, Punjab', role: 'farmer' },
+  'hiyashadeviyal@gmail.com': { name: 'Hiyasha Deviyal', farm: 'Deviyal Organic Farm', loc: 'New Delhi, Delhi NCR', role: 'farmer' },
+  'kairavipatel@gmail.com': { name: 'Kairavi Patel', farm: 'Patel Horticultural Farm', loc: 'Sanand, Gujarat', role: 'farmer' },
+  'chaitanya.vashishtha.2011@gmail.com': { name: 'Chaitanya Vashisht', farm: 'Vashisht Precision Orchards', loc: 'Ludhiana, Punjab', role: 'farmer' },
+  'mrgarg22082011@gmail.com': { name: 'Ekansh Patni', farm: 'Patni Modern Agro Fields', loc: 'Ludhiana, Punjab', role: 'farmer' },
+  'pakhijoshi2011@gmail.com': { name: 'Pranavi Joshi', farm: 'Joshi Green Acres', loc: 'Ludhiana, Punjab', role: 'farmer' },
+  'rajesh.mandi@agrisense.io': { name: 'Rajesh Aggarwal', farm: 'Aggarwal Mandi Traders', loc: 'Khanna Mandi, Punjab', role: 'wholesaler' },
+  'sukhdev.inputs@agrisense.io': { name: 'Sukhdev Singh', farm: 'Kisan Seva Kendra', loc: 'Samrala, Punjab', role: 'vendor' },
+  'procurement@punjabagrofoods.com': { name: 'Vikramaditya Mehta', farm: 'Punjab Agro Foods Ltd.', loc: 'Mohali, Punjab', role: 'factory' },
+  'sunita.consumer@agrisense.io': { name: 'Sunita Sharma', farm: 'Organic Consumer Co-op', loc: 'Sector 35-C, Chandigarh', role: 'customer' },
+  'anita.kulkarni@pau.edu': { name: 'Dr. Anita Kulkarni', farm: 'PAU Agronomy Division', loc: 'Ludhiana, Punjab', role: 'expert' },
+  'jarnail.transport@agrisense.io': { name: 'Jarnail Singh', farm: 'Singh Farm Logistics', loc: 'Samrala, Punjab', role: 'transport' },
+  'gurpreet.singh@kisanmail.com': { name: 'Gurpreet Singh', farm: 'Gurpreet Green Farms', loc: 'Samrala, Punjab', role: 'farmer' },
+  'opgamervihu@gmail.com': { name: 'Vihaan Vir Singh', farm: 'Vir Smart Fields', loc: 'Ludhiana, Punjab', role: 'farmer' },
+  'jaingeetika77@gmail.com': { name: 'Geetika Jain', farm: 'Jain Agro Farm', loc: 'Ludhiana, Punjab', role: 'farmer' },
+  'sumita1704@yahoo.co.in': { name: 'Svayam', farm: 'Svayam Agro Farm', loc: 'Punjab', role: 'farmer' },
+  'atharvgamr2022@gmail.com': { name: 'Atharv', farm: 'Atharv Organic Farm', loc: 'Punjab', role: 'farmer' },
+  'iamvimahero@gmail.com': { name: 'Vimlesh Yadav', farm: 'Yadav Smart Farm', loc: 'Ludhiana, Punjab', role: 'farmer' },
+  'rahul.yadav.234956@gmail.com': { name: 'Rahul Yadav', farm: 'Yadav Agro Fields', loc: 'Ludhiana, Punjab', role: 'farmer' },
+  'kusumsaxena1611945@gmail.com': { name: 'Kusum Saxena', farm: 'Saxena Model Farm', loc: 'Ludhiana, Punjab', role: 'farmer' }
+};
+
+function inferUserFromEmail(email){
+  if (!email) return { name: 'Pranav Saxena', email: 'pranavsaxenaofficial11@gmail.com', farm: 'Saxena Family Farm', loc: 'Ludhiana, Punjab', role: 'farmer' };
+  const clean = email.toLowerCase().trim();
+  if (KNOWN_USERS[clean]) return { ...KNOWN_USERS[clean], email: clean };
+  const rawPart = clean.split('@')[0].replace(/[0-9_.-]+/g, ' ').trim();
+  const titleName = rawPart ? rawPart.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'AgriSense Farmer';
+  return { name: titleName, email: clean, farm: titleName + ' Farm', loc: 'Punjab, India', role: 'farmer' };
+}
+
 const state = {
   current: 'home', mode: 'auto', health: 87,
   notifs: [], voiceReplies: false, alwaysSpeak: false, onboarded: false,
@@ -2546,7 +2581,16 @@ const state = {
     autoDose: true, doseNAt: 120, doseSec: 6,
     zones: { A:true, B:true, C:true, D:true }
   },
-  user: { name: 'Demo Farmer', email: 'demo@agrisense.app', farm: 'AgriSense Demo Farm', loc: 'Pune, MH' },
+    user: (function(){
+    try {
+      const saved = localStorage.getItem('agrisense_current_user');
+      if (saved) {
+        const u = JSON.parse(saved);
+        if (u && u.name && u.name !== 'Demo Farmer') return u;
+      }
+    } catch(e){}
+    return { name: 'Pranav Saxena', email: 'pranavsaxenaofficial11@gmail.com', farm: 'Saxena Family Farm', loc: 'Ludhiana, Punjab' };
+  })(),
   role: 'farmer',
   pump: { on: true, zone: 'B3', startMs: Date.now()-4*60*1000, durMin: 22, reason: 'Auto: soil moisture 19% < trigger 30% · no rain in 72h forecast' },
   sensors: { soilA: 32, soilB: 19, airTemp: 31, airHumidity: 38, soilTemp: 26, light: 78, rain: 0, pressure: 1009, waterTank: 73, airQuality: 28, waterTemp: 23.5, smoke: 14, tds: 340, soilPH: 6.5, nitrogen: 180, phosphorus: 22, potassium: 165, leafWet: 30, co2: 430, flow: 0, soilEC: 1.1, wind: 8, uv: 6, windDir: 180, soilC: 28, soilD: 35, dewPoint: 19, par: 850, soilO2: 19, waterFlow: 0, waterPH: 7.0, pestMic: 12, vibration: 2, ndvi: 0.72, sapFlow: 45, stemDia: 12.4, pestCount: 3, frost: 8 },
@@ -2744,7 +2788,7 @@ const state = {
     { ts:'8 Jun · 07:12', name:'Asha Verma', email:'asha.v@example.com', method:'Google', device:'Chrome · Windows' }
   ],
   adminUsers: [
-    { name:'Demo Farmer', email:'demo@agrisense.app', count:14, last:'Today · 06:38', joined:'2 Jun 2026', loc:'Pune, MH', method:'Email', points:135, plan:'Pilot',
+    { name:'Pranav Saxena', email:'pranavsaxenaofficial11@gmail.com', count:14, last:'Today · 06:38', joined:'2 Jun 2026', loc:'Pune, MH', method:'Email', points:135, plan:'Pilot',
       farms:[{n:'Tomato Field',c:'Tomatoes',s:'1.5 acres',iq:60},{n:'Wheat Plot',c:'Wheat',s:'1 acre',iq:20}],
       recent:['Today 06:42 — auto irrigation Zone B3','Today 05:30 — applied 500g urea','Yesterday — flagged aphids A2'] },
     { name:'Anjali Verma', email:'anjali.v@example.com', count:9, last:'Yesterday · 19:02', joined:'3 Jun 2026', loc:'Nashik, MH', method:'Google', points:460, plan:'Pilot',
@@ -3004,6 +3048,9 @@ $('#signInBtn').addEventListener('click', async () => {
     return;
   }
   // demo fallback
+  const foundUser = inferUserFromEmail(email);
+  state.user = { ...state.user, ...foundUser };
+  try { localStorage.setItem('agrisense_current_user', JSON.stringify(state.user)); } catch(e){}
   state.isAdmin = true;
   recordLoginDemo(state.user.name, email, 'Email');
   showApp(); toast(`Welcome back, ${state.user.name.split(' ')[0]}!`);
@@ -9383,10 +9430,11 @@ function renderPoints(){
 let _saveTimer = null;
 function profileSnapshot(){
   return {
+    name: state.user.name, farm: state.user.farm, loc: state.user.loc || '', phone: state.user.phone || '',
     farms: state.farms, activeFarm: state.activeFarm, points: state.points,
     notifs: state.notifs.slice(0,20), onboarded: state.onboarded,
     followingFarmers: state.followingFarmers, followedCats: state.followedCats,
-    loc: state.user.loc || '', mode: state.mode, adv: state.adv,
+    mode: state.mode, adv: state.adv,
     role: state.role, uiStyle: state.uiStyle, finance: state.finance,
     recoveryEmail: state.user.recoveryEmail || '',
     prefs: { lang: (typeof curLang!=='undefined'?curLang:'en') }
@@ -9408,7 +9456,12 @@ async function loadProfile(){
       if (typeof d.points === 'number') state.points = d.points;
       state.notifs = d.notifs || []; state.onboarded = d.onboarded !== false;
       state.followingFarmers = d.followingFarmers || []; state.followedCats = d.followedCats || [];
-      if (d.loc) state.user.loc = d.loc; if (d.mode) state.mode = d.mode; if (d.adv) state.adv = d.adv;
+      if (d.name && d.name !== 'Demo Farmer') state.user.name = d.name;
+      if (d.farm) state.user.farm = d.farm;
+      if (d.phone) state.user.phone = d.phone;
+      if (d.loc) state.user.loc = d.loc;
+      if (d.mode) state.mode = d.mode; if (d.adv) state.adv = d.adv;
+      try { localStorage.setItem('agrisense_current_user', JSON.stringify(state.user)); } catch(e){}
       if (d.role){ state.role = d.role; applyRole(d.role); const rs=$('#roleSelect'); if (rs) rs.value = d.role; }
       if (d.uiStyle) applyUiStyle(d.uiStyle);
       if (d.recoveryEmail) state.user.recoveryEmail = d.recoveryEmail;
@@ -9569,10 +9622,15 @@ $$('.gbtn').forEach(b => b.addEventListener('click', async () => {
 
 /* Bridge: called by the Firebase module script after a real sign-in */
 window.handleFirebaseLogin = function(u, isAdmin){
-  state.user = { ...state.user, name: u.name || state.user.name, email: u.email || state.user.email };
+  const foundMatch = inferUserFromEmail(u.email);
+  const resolvedName = (u.name && u.name !== 'Farmer') ? u.name : (foundMatch ? foundMatch.name : (state.user.name !== 'Demo Farmer' ? state.user.name : 'Pranav Saxena'));
+  const resolvedFarm = u.farm || (foundMatch ? foundMatch.farm : state.user.farm);
+  const resolvedLoc = u.loc || (foundMatch ? foundMatch.loc : state.user.loc);
+  state.user = { ...state.user, name: resolvedName, email: u.email || state.user.email, farm: resolvedFarm, loc: resolvedLoc };
+  try { localStorage.setItem('agrisense_current_user', JSON.stringify(state.user)); } catch(e){}
   state.isAdmin = !!isAdmin;
   showApp();
-  toast(`Signed in as ${(u.name||'Farmer').split(' ')[0]}`);
+  toast(`Signed in as ${resolvedName.split(' ')[0]}`);
   if (false && isAdmin && window.AgriAuth.watchAdmin && !state._adminWatch){
     state._adminWatch = window.AgriAuth.watchAdmin((kind, rows) => {
       if (kind === 'logins'){
@@ -10214,17 +10272,37 @@ if (configured) {
       try { if (typeof startRequirementsLive === 'function') startRequirementsLive(); } catch(e){}
       const email = (u.email || "").toLowerCase();
       const isAdmin = ADMIN_EMAILS.includes(email);
+      let profData = null;
+      try {
+        const profSnap = await getDoc(doc(db, "profiles", u.uid));
+        if (profSnap.exists()) profData = profSnap.data();
+      } catch(e){}
+      let uData = null;
+      try {
+        const uSnap = await getDoc(doc(db, "users", u.uid));
+        if (uSnap.exists()) uData = uSnap.data();
+      } catch(e){}
+      const matched = inferUserFromEmail(email);
+      const finalName = (profData && profData.name) || (uData && uData.name) || u.displayName || (matched && matched.name) || 'Pranav Saxena';
+      const finalFarm = (profData && profData.farm) || (matched && matched.farm) || 'Saxena Family Farm';
+      const finalLoc  = (profData && profData.loc)  || (matched && matched.loc)  || 'Ludhiana, Punjab';
+      const finalPhone= (profData && profData.phone)|| (matched && matched.phone)|| '+91 98765 43210';
+      const finalRole = (profData && profData.role) || (matched && matched.role) || 'farmer';
+      
       try {
         await setDoc(doc(db, "users", u.uid), {
-          name: u.displayName || "Farmer",
+          name: finalName,
           email: email,
+          farm: finalFarm,
+          loc: finalLoc,
+          role: finalRole,
           photo: u.photoURL || "",
           lastLogin: serverTimestamp(),
           loginCount: increment(1)
         }, { merge: true });
         await addDoc(collection(db, "logins"), {
           uid: u.uid,
-          name: u.displayName || "",
+          name: finalName,
           email: email,
           method: viaGoogle ? "Google" : "Email",
           ts: serverTimestamp(),
@@ -10232,7 +10310,7 @@ if (configured) {
         });
       } catch (e) { console.warn("Firestore write failed:", e.message); }
       const callBridge = (tries) => {
-        if (window.handleFirebaseLogin) window.handleFirebaseLogin({ name: u.displayName || "Farmer", email: email }, isAdmin);
+        if (window.handleFirebaseLogin) window.handleFirebaseLogin({ name: finalName, email: email, farm: finalFarm, loc: finalLoc, phone: finalPhone, role: finalRole }, isAdmin);
         else if (tries < 40) setTimeout(() => callBridge(tries + 1), 100);
       };
       callBridge(0);
