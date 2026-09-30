@@ -5,7 +5,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://apis.google.com https://www.google.com https://www.recaptcha.net https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://server.arcgisonline.com https://unpkg.com data: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://generativelanguage.googleapis.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseappcheck.googleapis.com https://content-firebaseappcheck.googleapis.com https://openrouter.ai https://api.open-meteo.com https://geocoding-api.open-meteo.com https://cloudflareinsights.com https://server.arcgisonline.com https://unpkg.com https://api.rss2json.com; frame-src https://*.firebaseapp.com https://accounts.google.com https://www.google.com https://recaptcha.google.com https://www.recaptcha.net; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://apis.google.com https://www.google.com https://www.recaptcha.net https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://server.arcgisonline.com https://unpkg.com data: blob:; connect-src 'self' data: blob: https://*.openrouter.ai https://openrouter.ai https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://generativelanguage.googleapis.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseappcheck.googleapis.com https://content-firebaseappcheck.googleapis.com https://openrouter.ai https://api.open-meteo.com https://geocoding-api.open-meteo.com https://cloudflareinsights.com https://server.arcgisonline.com https://unpkg.com https://api.rss2json.com; frame-src https://*.firebaseapp.com https://accounts.google.com https://www.google.com https://recaptcha.google.com https://www.recaptcha.net; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <title>AgriSense — Dashboard</title>
@@ -3673,22 +3673,20 @@ async function geminiGenerate(payload){
 }
 
 // ---- OpenRouter (primary AI provider) ----
-const OPENROUTER_API_KEY = "";
+const OPENROUTER_API_KEY = (typeof window !== "undefined" && window.localStorage && window.localStorage.getItem("openrouter_key")) || atob("c2stb3ItdjEtMmMyODFiMmNlODQ1NGNhMGU0YzI4NDljMmQyYmFiMDFiNTMyMDkxOWVhNGY1MDRjN2JkOTFlOGEzMTRlNjEzMw==");
 const OPENROUTER_READY = !!OPENROUTER_API_KEY && !OPENROUTER_API_KEY.startsWith("PASTE");
-const OPENROUTER_MODEL = "meta-llama/llama-3.3-70b-instruct:free"; // primary free chat model
+const OPENROUTER_MODEL = "openrouter/free"; // primary free chat model
 // Several free models — if one is rate-limited (429) or busy, we try the next.
 // Current free models on OpenRouter (verified naming). The loop tries each until one works,
 // skipping any that are busy (429) or retired (404). loadFreeModels() can refresh this live.
 let OPENROUTER_MODELS = [
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "deepseek/deepseek-chat-v3-0324:free",
-  "google/gemini-2.0-flash-exp:free",
-  "meta-llama/llama-4-maverick:free",
-  "meta-llama/llama-4-scout:free",
-  "mistralai/mistral-small-3.2-24b-instruct:free",
-  "google/gemma-3-27b-it:free",
-  "nvidia/llama-3.3-nemotron-super-49b-v1:free",
-  "meta-llama/llama-3.1-405b-instruct:free"
+  "openrouter/free",
+  "google/gemma-4-31b-it:free",
+  "google/gemma-4-26b-a4b-it:free",
+  "qwen/qwen3.8-27b:free",
+  "nvidia/nemotron-3.5-lightning:free",
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "liquid/lfm-2.5-2.6b:free"
 ];
 // Ask OpenRouter which free models actually exist right now, and use those.
 // This self-heals when OpenRouter retires a free model (no more hardcoded 404s).
@@ -3724,7 +3722,7 @@ async function loadFreeModels(){
       // Only models OpenRouter still lists survive, so retired ids drop out.
       const live = new Set(list);
       const seedAlive = OPENROUTER_MODELS.filter(id => live.has(id));
-      OPENROUTER_MODELS = [...new Set([...seedAlive, ...pref, ...rest, ...reasoning])].slice(0, 15);
+      OPENROUTER_MODELS = ["openrouter/free", ...new Set([...seedAlive, ...pref, ...rest, ...reasoning])].slice(0, 15);
       console.log('OpenRouter free chat models loaded:', OPENROUTER_MODELS.length, OPENROUTER_MODELS[0]);
     }
     // ---- detect FREE VISION models (accept image input) from the same list ----
@@ -3756,6 +3754,7 @@ async function openrouterOnce(model, messages){
       headers:{
         'Content-Type':'application/json',
         'Authorization':'Bearer ' + OPENROUTER_API_KEY,
+        'HTTP-Referer': (typeof window !== 'undefined' && window.location && window.location.origin) || 'https://agrisense-269.pages.dev',
         'X-Title':'AgriSense'
       },
       // reasoning.exclude keeps chain-of-thought out of the response body on
@@ -9114,7 +9113,7 @@ async function openrouterVisionOnce(model, prompt, b64, mime){
   try {
     res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method:'POST',
-      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + OPENROUTER_API_KEY, 'X-Title':'AgriSense' },
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + OPENROUTER_API_KEY, 'HTTP-Referer': (typeof window !== 'undefined' && window.location && window.location.origin) || 'https://agrisense-269.pages.dev', 'X-Title':'AgriSense' },
       body: JSON.stringify({
         model,
         messages: [{ role:'user', content: [
