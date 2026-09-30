@@ -16,7 +16,15 @@ class UserProfileOut(BaseModel):
     primary_crop: str
     soil_type: str
     irrigation_system: str
-    points: int
+    points: int = 0
+    login_count: Optional[int] = 0
+    last_login: Optional[str] = "Not done till now"
+    last_ip: Optional[str] = "Not recorded"
+    user_agent: Optional[str] = None
+    device_type: Optional[str] = "Not detected (Not done till now)"
+    active_page: Optional[str] = "Not visited yet"
+    features_used: Optional[str] = None
+    recent_logins: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -34,3 +42,33 @@ class UserProfileUpdate(BaseModel):
     primary_crop: Optional[str] = None
     soil_type: Optional[str] = None
     irrigation_system: Optional[str] = None
+
+class DeviceDetail(BaseModel):
+    device_type: str = "Not detected (Not done till now)"
+    os: str = "Not detected"
+    browser: str = "Not detected"
+    ip_address: str = "Not recorded"
+    user_agent: str = "Not done till now — No device detected yet"
+    last_active_page: str = "Not visited yet"
+    last_seen: str = "Not done till now"
+    login_count: int = 0
+    last_login: str = "Not done till now"
+    recent_logins: list[dict] = []
+
+class WebsiteUsage(BaseModel):
+    features_used: list[str] = []
+    total_sessions: int = 0
+    total_activity_events: int = 0
+    preferred_theme: str = "Greenery Dark Mode"
+
+class MessagesAndPosts(BaseModel):
+    community_posts: list[dict] = []
+    direct_messages: list[dict] = []
+    ai_queries: list[str] = []
+
+class UserInspectionOut(BaseModel):
+    user_profile: UserProfileOut
+    device_info: DeviceDetail
+    website_usage: WebsiteUsage
+    messages: MessagesAndPosts
+

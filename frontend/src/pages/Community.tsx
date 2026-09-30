@@ -4,6 +4,8 @@ import { CommunityPost, DirectMessage } from '../types';
 import { LoadingState, ErrorState } from '../components/common/UIStates';
 import { ThumbsUp, MessageSquare, Plus, Send, Mail, MapPin } from 'lucide-react';
 
+import { UserInspectModal } from '../components/common/UserInspectModal';
+
 export const CommunityPage: React.FC = () => {
   const [tab, setTab] = useState<'feed' | 'messages'>('feed');
   const [posts, setPosts] = useState<CommunityPost[]>([]);
@@ -11,6 +13,7 @@ export const CommunityPage: React.FC = () => {
   const [channel, setChannel] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [inspectingUser, setInspectingUser] = useState<string | null>(null);
 
   // Post form
   const [showPostModal, setShowPostModal] = useState(false);
@@ -154,12 +157,28 @@ export const CommunityPage: React.FC = () => {
             {posts.map((p) => (
               <div key={p.id} className="agri-card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#1c2820', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.8rem' }}>
+                  <div
+                    onClick={() => setInspectingUser(p.author_name)}
+                    title="🔍 Click to inspect device, IP, features used & message history"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      cursor: 'pointer',
+                      padding: '4px 8px',
+                      borderRadius: '8px',
+                      transition: 'background 0.2s',
+                      backgroundColor: 'rgba(16, 185, 129, 0.05)'
+                    }}
+                  >
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#1c2820', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.8rem', border: '1px solid #10b981' }}>
                       {p.author_name[0]}
                     </div>
                     <div>
-                      <h5 style={{ fontSize: '0.9rem', fontWeight: 600 }}>{p.author_name}</h5>
+                      <h5 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#34d399', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {p.author_name}
+                        <span style={{ fontSize: '10px', opacity: 0.8, border: '1px solid rgba(52,211,153,0.3)', padding: '1px 5px', borderRadius: '4px' }}>Inspect User</span>
+                      </h5>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <MapPin size={12} color="#10b981" /> {p.author_location}
                       </span>
@@ -273,6 +292,12 @@ export const CommunityPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* User Inspection Modal (Hover/Click Triggered) */}
+      <UserInspectModal
+        userIdentifier={inspectingUser}
+        onClose={() => setInspectingUser(null)}
+      />
     </div>
   );
 };

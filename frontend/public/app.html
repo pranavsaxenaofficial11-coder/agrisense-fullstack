@@ -10390,7 +10390,8 @@ function wobble(){
 }
 function pumpTick(){
   if (!state.pump.on){
-    // AUTO & ADVANCED both auto-irrigate. Advanced uses the user's own thresholds.
+    // AUTO & ADVANCED both auto-irrigate with a 2-minute minimum cooldown
+    if (state._lastPumpStop && (Date.now() - state._lastPumpStop < 120000)) return;
     if (state.mode === 'auto' || state.mode === 'advanced'){
       const cd = activeAgro();
       const adv = state.mode === 'advanced';
@@ -10414,8 +10415,9 @@ function pumpTick(){
   const stopAt = state.pump._target != null ? state.pump._target : activeAgro().targ;
   if (elapsed >= state.pump.durMin || state.sensors.soilB >= stopAt){
     state.pump.on = false;
+    state._lastPumpStop = Date.now();
     addLog({ source:'ai', what:`Stopped irrigation Zone ${state.pump.zone} (target moisture reached)`, notes:`Final moisture: ${fmt(state.sensors.soilB,0)}% · ~${Math.round(elapsed*18)} L used · duration ${Math.floor(elapsed)} min` });
-    toast('Pump auto-stopped · target reached'); renderStatus();
+    renderStatus();
   }
   if (state.current==='home') renderAction();
   if (state.current==='controls') renderControls();
@@ -10724,8 +10726,8 @@ wireGlobalSearch();
   var vb=document.getElementById('viewPrivacyBtn');
   if(vb) vb.addEventListener('click', function(){ if(msg) msg.style.display='none'; ov.style.display='flex'; });
 })();
-setInterval(askTick, 20000);
-setInterval(soilAdvisor, 30000);
+// timely asks triggered only on demand
+setInterval(soilAdvisor, 60000);
 function weatherSuggest(){
   if (!WX) WX = makeForecast(state.wxRegion||state.user.loc||'your area');
   if (state._wxSuggested) return;

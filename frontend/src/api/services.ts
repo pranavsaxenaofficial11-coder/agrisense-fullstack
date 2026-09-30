@@ -15,6 +15,7 @@ import {
   GovtScheme,
   ActivityLog,
   UserProfile,
+  UserInspectionData,
   WeatherData,
   FarmReport,
   CropScanResult
@@ -112,6 +113,8 @@ export const userApi = {
       method: 'PUT',
       body: JSON.stringify(data)
     }),
+  inspectUser: (identifier: string) =>
+    apiFetch<UserInspectionData>(`/api/user/inspect/${encodeURIComponent(identifier)}`),
 };
 
 export const weatherApi = {

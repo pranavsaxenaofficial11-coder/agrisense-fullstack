@@ -164,6 +164,8 @@ export interface UserProfile {
   id: number;
   uid: string;
   name: string;
+  role?: string;
+  business_name?: string;
   email: string;
   phone: string;
   state: string;
@@ -211,4 +213,28 @@ export interface CropScanResult {
   confidence: number;
   recommended_action: string;
   preventive_measures: string[];
+}
+
+export interface UserInspectionData {
+  user_profile: UserProfile;
+  device_info: {
+    device_type: string;
+    os: string;
+    browser: string;
+    ip_address: string;
+    user_agent: string;
+    last_active_page: string;
+    last_seen: string;
+  };
+  website_usage: {
+    features_used: string[];
+    total_sessions: number;
+    total_activity_events: number;
+    preferred_theme: string;
+  };
+  messages: {
+    community_posts: any[];
+    direct_messages: any[];
+    ai_queries: string[];
+  };
 }

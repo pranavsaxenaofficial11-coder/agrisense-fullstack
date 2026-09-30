@@ -126,10 +126,50 @@ def root_dashboard(request: Request, db: Session = Depends(get_db)):
             "redoc": "/redoc"
         })
 
-    # Fetch all users from database
+    # Fetch all users, messages, and community posts from database
     db_users = db.query(models.User).all()
+    all_dms = db.query(models.DirectMessage).all()
+    all_posts = db.query(models.CommunityPost).all()
+
     user_dicts = []
     for u in db_users:
+        # Match user's direct messages
+        u_dms = [
+            {
+                "sender_name": d.sender_name,
+                "sender_email": d.sender_email,
+                "recipient_email": d.recipient_email,
+                "message": d.message,
+                "created_at": str(d.created_at)
+            }
+            for d in all_dms
+            if (d.sender_email == u.email or d.recipient_email == u.email)
+        ]
+
+        # Match user's community posts
+        u_posts = [
+            {
+                "title": p.title,
+                "content": p.content,
+                "channel": p.channel,
+                "upvotes": p.upvotes,
+                "created_at": str(p.created_at)
+            }
+            for p in all_posts
+            if u.name and (u.name.lower() in (p.author_name or '').lower())
+        ]
+
+        # Parse recent logins
+        try:
+            r_logins = json.loads(u.recent_logins) if u.recent_logins else []
+        except Exception:
+            r_logins = []
+
+        try:
+            feats = json.loads(u.features_used) if u.features_used else []
+        except Exception:
+            feats = []
+
         user_dicts.append({
             "id": u.id,
             "uid": u.uid,
@@ -145,7 +185,17 @@ def root_dashboard(request: Request, db: Session = Depends(get_db)):
             "primary_crop": u.primary_crop,
             "soil_type": u.soil_type,
             "irrigation_system": u.irrigation_system,
-            "points": u.points
+            "points": u.points or 0,
+            "login_count": u.login_count or 0,
+            "last_login": u.last_login or "Not done till now",
+            "last_ip": u.last_ip or "Not recorded",
+            "device_type": u.device_type or "Not detected (Not done till now)",
+            "user_agent": u.user_agent or "Not done till now — No device detected yet",
+            "active_page": u.active_page or "Not visited yet",
+            "features_used": feats,
+            "recent_logins": r_logins,
+            "direct_messages": u_dms,
+            "community_posts": u_posts
         })
 
     mongo_status = "Connected (MongoDB Atlas)" if get_mongodb() is not None else "Standby (Local SQLite Fallback)"

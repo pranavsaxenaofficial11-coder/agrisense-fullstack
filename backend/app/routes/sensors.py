@@ -39,8 +39,11 @@ def get_zones(db: Session = Depends(get_db)):
     return db.query(models.ZoneInfo).all()
 
 @router.get("/history", response_model=List[SensorReadingOut])
-def get_sensor_history(zone: str = "Zone A", limit: int = 50, db: Session = Depends(get_db)):
-    return db.query(models.SensorReading).filter(models.SensorReading.zone == zone).order_by(models.SensorReading.timestamp.desc()).limit(limit).all()
+def get_sensor_history(zone: Optional[str] = None, limit: int = 50, db: Session = Depends(get_db)):
+    query = db.query(models.SensorReading)
+    if zone and zone.lower() != "all":
+        query = query.filter(models.SensorReading.zone == zone)
+    return query.order_by(models.SensorReading.timestamp.desc()).limit(limit).all()
 
 from pydantic import BaseModel
 from typing import Optional
