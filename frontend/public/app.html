@@ -6885,12 +6885,10 @@ function openTripJoin(idx){
     <div class="wa-row"><div><div class="l2">Organiser</div><div class="s2">${escapeHtml(r.name)}</div></div></div>
     <div class="wa-row"><div><div class="l2">Vehicle</div><div class="s2">${escapeHtml(r.vehicle)}</div></div></div>
     <div class="wa-row"><div><div class="l2">Your share</div><div class="s2">${escapeHtml(r.unit)}</div></div>
-      <div class="trip-cost">₹${r.cost.toLocaleString('en-IN')}</div></div>
-    ${r.upi ? `<div class="upi-box"><span>UPI: <b>${escapeHtml(r.upi)}</b></span><button class="btn ghost sm" id="tjCopy">Copy</button></div>
-      <p style="font-family:var(--mono);font-size:11px;color:var(--ink-mute);margin:0 0 12px">Pay directly to this UPI ID in your payment app, or use the demo button below.</p>` : ''}
-    <button class="btn green lg block" id="tjPay">Pay ₹${r.cost.toLocaleString('en-IN')} &amp; join (demo)</button>
-    <button class="btn ghost lg block" id="tjMsg" style="margin-top:8px">Message organiser first</button>
-    <p style="font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);margin-top:10px;text-align:center">Demo payment — no real money is moved. Production connects UPI / Razorpay.</p>`;
+      <div class="trip-cost" style="color:var(--green)">Free Community Sharing</div></div>
+    <button class="btn green lg block" id="tjPay">✓ Join Shared Journey (100% Free)</button>
+    <button class="btn ghost lg block" id="tjMsg" style="margin-top:8px">Message organiser</button>
+    <p style="font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);margin-top:10px;text-align:center">100% Free &amp; Open Source — AgriSense Community Pool</p>`;
   $('#tjClose').addEventListener('click', closeSheet);
   const cp = $('#tjCopy'); if (cp) cp.addEventListener('click', () => { if (navigator.clipboard) navigator.clipboard.writeText(r.upi).catch(()=>{}); toast('UPI ID copied'); });
   $('#tjMsg').addEventListener('click', () => { closeSheet(); messageFarmer(r.name); });
@@ -6899,9 +6897,9 @@ function openTripJoin(idx){
     r.taken = Math.min(r.total, r.taken + 1);
     r.joiners = r.joiners || []; if (!r.joiners.includes(me)) r.joiners.push(me);
     closeSheet(); renderTransport();
-    toast(`✓ Joined — paid ₹${r.cost.toLocaleString('en-IN')} (demo)`);
+    toast(`✓ Joined shared community journey`);
     awardPoints(10, 'Joined a shared journey');
-    addLog({ source:'me', what:`Joined journey ${r.from} → ${r.to} · paid ₹${r.cost} (demo)`, notes:'Transport' });
+    addLog({ source:'me', what:`Joined community journey ${r.from} → ${r.to}`, notes:'Transport' });
     // notify organiser via DM
     messageFarmer(r.name);
     const ch = '@' + r.name;
