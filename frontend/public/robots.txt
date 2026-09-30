@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /app.html
+Allow: /prototype_3d.html
+Allow: /AgriSense_Official_12_Slides.pptx
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1
+
+# Sitemap Location
+Sitemap: https://agrisense.app/sitemap.xml

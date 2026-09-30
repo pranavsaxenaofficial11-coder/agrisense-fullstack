@@ -5,10 +5,36 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriSense — Live Autonomous Precision Farming Dashboard</title>
+<meta name="title" content="AgriSense — Live Autonomous Precision Farming Dashboard" />
+<meta name="description" content="Access live telemetry, 60 FPS oscilloscope waveform graphs, ESP32 Web Serial controls, and automated irrigation diagnostics on the AgriSense farmer dashboard." />
+<meta name="keywords" content="AgriSense dashboard, live soil telemetry, Web Serial ESP32, smart irrigation control, automated pump relay, precision agriculture dashboard" />
+<meta name="author" content="AgriSense Research & Innovation Team" />
+<meta name="robots" content="index, follow" />
+<meta name="theme-color" content="#059669" />
+<link rel="canonical" href="https://agrisense.app/app.html" />
+
+<!-- Open Graph / Social Media -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://agrisense.app/app.html" />
+<meta property="og:title" content="AgriSense — Live Autonomous Precision Farming Dashboard" />
+<meta property="og:description" content="Monitor real-time soil moisture, atmospheric VPD, and control irrigation actuators directly from your browser." />
+<meta property="og:image" content="https://agrisense.app/assets/og-preview.jpg" />
+
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://apis.google.com https://www.google.com https://www.recaptcha.net https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://server.arcgisonline.com https://unpkg.com; connect-src 'self' data: blob: ws: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://*.pages.dev https://*.openrouter.ai https://openrouter.ai https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://generativelanguage.googleapis.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseappcheck.googleapis.com https://content-firebaseappcheck.googleapis.com https://api.open-meteo.com https://geocoding-api.open-meteo.com https://cloudflareinsights.com https://server.arcgisonline.com https://unpkg.com https://api.rss2json.com; worker-src 'self' blob: data:; frame-src https://*.firebaseapp.com https://accounts.google.com https://www.google.com https://recaptcha.google.com https://www.recaptcha.net; base-uri 'self'; form-action 'self'; object-src 'none';">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
-<title>AgriSense — Dashboard</title>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "AgriSense Live Dashboard",
+  "applicationCategory": "AgricultureDashboard",
+  "operatingSystem": "All Web Browsers (Chrome, Edge, Android)",
+  "browserRequirements": "Requires Web Serial API support for direct USB hardware connection",
+  "description": "Real-time edge telemetry monitoring and automated irrigation control interface for the AgriSense precision agriculture system."
+}
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
