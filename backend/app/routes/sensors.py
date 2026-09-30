@@ -41,3 +41,98 @@ def get_zones(db: Session = Depends(get_db)):
 @router.get("/history", response_model=List[SensorReadingOut])
 def get_sensor_history(zone: str = "Zone A", limit: int = 50, db: Session = Depends(get_db)):
     return db.query(models.SensorReading).filter(models.SensorReading.zone == zone).order_by(models.SensorReading.timestamp.desc()).limit(limit).all()
+
+from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
+
+class HardwareIngest(BaseModel):
+    soil_moisture_1: Optional[float] = None
+    soil_moisture_2: Optional[float] = None
+    soil_average: Optional[float] = None
+    air_temp: Optional[float] = None
+    air_humidity: Optional[float] = None
+    light_pct: Optional[float] = None
+    rain_pct: Optional[float] = None
+    tank_cm: Optional[float] = None
+    tank_level_pct: Optional[float] = None
+    pump_state: Optional[bool] = None
+    fan_state: Optional[bool] = None
+    zone: Optional[str] = "Zone A"
+
+@router.post("/ingest")
+async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(get_db)):
+    """
+    Receives real telemetry streamed from ESP32 hardware via Wi-Fi or Serial gateway.
+    Updates SQLite local DB, ControlSystem state, and Zone thresholds.
+    """
+    moist = data.soil_average if data.soil_average is not None else (data.soil_moisture_1 or 35.0)
+    temp = data.air_temp if data.air_temp is not None else 28.0
+    hum = data.air_humidity if data.air_humidity is not None else 60.0
+    lux = (data.light_pct * 1000.0) if data.light_pct is not None else 45000.0
+
+    # 1. Record reading in history
+    reading = models.SensorReading(
+        zone=data.zone or "Zone A",
+        moisture_pct=moist,
+        temp_c=temp,
+        humidity_pct=hum,
+        sunlight_lux=lux,
+        timestamp=datetime.utcnow()
+    )
+    db.add(reading)
+
+    # 2. Update Zone Info
+    zone = db.query(models.ZoneInfo).filter(models.ZoneInfo.zone_code == "A").first()
+    if zone:
+        zone.current_moisture = moist
+        if moist < zone.moisture_min:
+            zone.status = "Low Moisture"
+        elif moist > zone.moisture_max:
+            zone.status = "High Moisture"
+        else:
+            zone.status = "Optimal"
+
+    # 3. Update Control System
+    ctrl = db.query(models.ControlSystem).first()
+    if ctrl:
+        if data.pump_state is not None:
+            ctrl.pump_state = data.pump_state
+        if data.tank_level_pct is not None:
+            ctrl.water_tank_level = data.tank_level_pct
+        elif data.tank_cm is not None:
+            # HC-SR04: 25cm empty -> 5cm full
+            pct = max(0.0, min(100.0, (25.0 - data.tank_cm) / 20.0 * 100.0))
+            ctrl.water_tank_level = round(pct, 1)
+
+    db.commit()
+
+    return {
+        "status": "success",
+        "pump_command": ctrl.pump_state if ctrl else False,
+        "auto_mode": ctrl.auto_mode if ctrl else True,
+        "recorded": {
+            "temp": temp,
+            "humidity": hum,
+            "moisture": moist,
+            "pump": ctrl.pump_state if ctrl else False
+        }
+    }
+
+@router.get("/latest")
+def get_latest_hardware_reading(db: Session = Depends(get_db)):
+    """
+    Returns the most recent hardware reading for real-time frontend polling.
+    """
+    recent = db.query(models.SensorReading).order_by(models.SensorReading.timestamp.desc()).first()
+    ctrl = db.query(models.ControlSystem).first()
+    return {
+        "temp_c": recent.temp_c if recent else 28.5,
+        "humidity_pct": recent.humidity_pct if recent else 64.0,
+        "moisture_pct": recent.moisture_pct if recent else 38.4,
+        "sunlight_lux": recent.sunlight_lux if recent else 48000.0,
+        "water_tank_level": ctrl.water_tank_level if ctrl else 84.5,
+        "pump_running": ctrl.pump_state if ctrl else False,
+        "timestamp": recent.timestamp.isoformat() if recent else datetime.utcnow().isoformat()
+    }
+

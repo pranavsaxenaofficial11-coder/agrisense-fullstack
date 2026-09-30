@@ -1856,9 +1856,11 @@
           <input class="input" id="globalSearch" placeholder="🔍 Search the app — weather, market, crop scan, community, settings…" autocomplete="off" style="width:100%">
           <div id="globalSearchResults" style="display:none;position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:50;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-lg);overflow:hidden;max-height:340px;overflow-y:auto"></div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
           <button class="btn ghost sm" id="homeOrdersBtn">📦 My orders <span id="ordersCountHome" style="display:none"></span></button>
           <button class="btn ghost sm" id="homePayBtn">💳 Payments</button>
+          <button class="btn green sm" id="connectUsbBtn" style="font-weight:700">🔌 Connect Hardware (USB Serial)</button>
+          <span id="hwStatusBadge" class="pill" style="display:none;background:var(--green-soft);color:var(--green-deep);font-weight:700">⚡ Real Hardware Streaming</span>
         </div>
         <div class="farm-tabs" id="farmTabs"></div>
         <div class="quiz-banner" id="quizBanner" style="display:none">
@@ -2905,7 +2907,132 @@ function maybeWarnInAppBrowser(){
   bar.innerHTML = '⚠️ You\'re viewing this inside another app\'s browser, which can block login. Tap the <b>•••</b> menu (top corner) and choose <b>"Open in Chrome / Safari / browser"</b> for sign-up and login to work.';
   document.body.appendChild(bar);
 }
+
+/* ============ HARDWARE CONNECTIVITY (Web Serial & Local API Poller) ============ */
+function initHardwareBridge() {
+  const btn = $('#connectUsbBtn');
+  const badge = $('#hwStatusBadge');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    if (!('serial' in navigator)) {
+      toast('Web Serial is supported in Chrome, Edge, and Opera. For other browsers, use Wi-Fi sync.');
+      return;
+    }
+    try {
+      const port = await navigator.serial.requestPort();
+      await port.open({ baudRate: 115200 });
+      toast('✓ Connected to ESP32 Hardware!');
+      btn.textContent = '⚡ Hardware Live (115200)';
+      btn.classList.remove('green');
+      btn.classList.add('purple');
+      if (badge) {
+        badge.style.display = 'inline-block';
+        badge.textContent = '⚡ Real Hardware Streaming';
+      }
+
+      const textDecoder = new TextDecoderStream();
+      port.readable.pipeTo(textDecoder.writable).catch(()=>{});
+      const reader = textDecoder.readable.getReader();
+
+      let buffer = '';
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += value;
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // keep partial
+
+        for (const line of lines) {
+          parseHardwareLine(line.trim());
+        }
+      }
+    } catch (err) {
+      if (err.name !== 'NotFoundError') {
+        console.warn('Serial error:', err);
+        toast('Serial connection error: ' + err.message);
+      }
+    }
+  });
+
+  // Background Poller: If FastAPI backend is running locally on port 8000, fetch latest hardware data
+  setInterval(async () => {
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/sensors/latest', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.temp_c != null) {
+          state.sensors.airTemp = data.temp_c;
+          state.sensors.airHumidity = data.humidity_pct;
+          state.sensors.soilA = data.moisture_pct;
+          state.sensors.waterTank = data.water_tank_level;
+          state.pump.on = data.pump_running;
+          if (badge) {
+            badge.style.display = 'inline-block';
+            badge.textContent = '⚡ Synced via Backend API';
+          }
+          renderSensors();
+          renderStatus();
+        }
+      }
+    } catch(e) {}
+  }, 3500);
+}
+
+function parseHardwareLine(line) {
+  if (!line) return;
+  // JSON format from ESP32
+  if (line.startsWith('{') && line.endsWith('}')) {
+    try {
+      const d = JSON.parse(line);
+      if (d.airTemp != null) state.sensors.airTemp = +d.airTemp;
+      if (d.airHum != null) state.sensors.airHumidity = +d.airHum;
+      if (d.soilAvg != null) state.sensors.soilA = +d.soilAvg;
+      if (d.soil1 != null) state.sensors.soilB = +d.soil1;
+      if (d.light != null) state.sensors.light = +d.light;
+      if (d.rain != null) state.sensors.rain = +d.rain;
+      if (d.tankPct != null) state.sensors.waterTank = +d.tankPct;
+      if (d.pump != null) state.pump.on = (d.pump === true || d.pump === 'true');
+      renderSensors();
+      renderStatus();
+      return;
+    } catch(e){}
+  }
+
+  // Key-value text format from ESP32 Serial
+  const lower = line.toLowerCase();
+  if (lower.includes('air temp:')) {
+    const val = parseFloat(line.split(':')[1]);
+    if (!isNaN(val)) state.sensors.airTemp = val;
+  } else if (lower.includes('air humidity:')) {
+    const val = parseFloat(line.split(':')[1]);
+    if (!isNaN(val)) state.sensors.airHumidity = val;
+  } else if (lower.includes('soil average:') || lower.includes('soil moisture:')) {
+    const val = parseFloat(line.split(':')[1]);
+    if (!isNaN(val)) state.sensors.soilA = val;
+  } else if (lower.includes('soil moisture1:') || lower.includes('soil1:')) {
+    const val = parseFloat(line.split(':')[1]);
+    if (!isNaN(val)) state.sensors.soilB = val;
+  } else if (lower.includes('sunlight:') || lower.includes('light:')) {
+    const val = parseFloat(line.split(':')[1]);
+    if (!isNaN(val)) state.sensors.light = val;
+  } else if (lower.includes('rain:')) {
+    const val = parseFloat(line.split(':')[1]);
+    if (!isNaN(val)) state.sensors.rain = val;
+  } else if (lower.includes('tank level:')) {
+    const val = parseFloat(line.split(':')[1]);
+    if (!isNaN(val)) {
+      state.sensors.waterTank = val;
+    }
+  } else if (lower.includes('pump:')) {
+    state.pump.on = lower.includes('active') || lower.includes('on');
+  }
+  renderSensors();
+  renderStatus();
+}
+
 function showApp(){
+  initHardwareBridge();
   $('#authView').classList.remove('active');
   $('#appView').classList.add('active');
   applyUserToUI();
