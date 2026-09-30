@@ -24,22 +24,31 @@ async def call_openrouter(messages: list, max_tokens: int = 1200) -> str:
         "X-Title": "AgriSense Dashboard"
     }
 
-    payload = {
-        "model": "meta-llama/llama-3.3-70b-instruct:free",
-        "messages": messages,
-        "max_tokens": max_tokens,
-        "reasoning": {"exclude": True}
-    }
+    models_to_try = [
+        "openrouter/free",
+        "google/gemma-4-31b-it:free",
+        "qwen/qwen3.8-27b:free",
+        "nvidia/nemotron-3.5-lightning:free"
+    ]
 
-    try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
-            if response.status_code == 200:
-                data = response.json()
-                content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                return strip_reasoning(content)
-    except Exception as e:
-        print(f"OpenRouter API error: {e}")
+    for model_name in models_to_try:
+        payload = {
+            "model": model_name,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "reasoning": {"exclude": True}
+        }
+        try:
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                response = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
+                if response.status_code == 200:
+                    data = response.json()
+                    content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                    clean = strip_reasoning(content)
+                    if clean:
+                        return clean
+        except Exception as e:
+            print(f"OpenRouter attempt with {model_name} failed: {e}")
 
     return ""
 
