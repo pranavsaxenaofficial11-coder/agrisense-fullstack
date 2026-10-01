@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from app.database import get_db
 import app.models as models
 from app.schemas.sensor import SensorReadingOut, ZoneInfoOut, FieldOverview
