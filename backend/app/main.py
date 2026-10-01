@@ -72,6 +72,10 @@ async def add_security_and_timing_headers(request: Request, call_next):
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     
+    # Record real HTTP request in Control Plane
+    from app.services.control_plane_service import control_plane
+    control_plane.record_request(request.url.path, request.method, duration_ms, response.status_code)
+    
     return response
 
 # Mount all domain routers
