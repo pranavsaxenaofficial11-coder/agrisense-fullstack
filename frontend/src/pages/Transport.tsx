@@ -11,13 +11,13 @@ export const TransportPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
 
   const [form, setForm] = useState({
-    owner_name: 'Pranav Saxena',
-    vehicle_type: 'Mahindra 575 DI + Trolley',
-    capacity: '6 Ton',
-    rate: '₹600/hour',
-    location: 'Samrala, Punjab',
-    phone: '+91 98765 43210',
-    notes: 'Available for evening harvesting transit.'
+    owner_name: '',
+    vehicle_type: '',
+    capacity: '',
+    rate: '',
+    location: '',
+    phone: '',
+    notes: ''
   });
 
   const fetchListings = async () => {

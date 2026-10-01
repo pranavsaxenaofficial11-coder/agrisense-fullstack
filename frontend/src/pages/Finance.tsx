@@ -93,7 +93,9 @@ export const FinancePage: React.FC = () => {
             <h3 className="mono-val" style={{ fontSize: '1.5rem', fontWeight: 700, color: summary.net_profit >= 0 ? '#10b981' : '#f43f5e' }}>
               ₹{summary.net_profit.toLocaleString('en-IN')}
             </h3>
-            <span className="badge badge-success" style={{ alignSelf: 'flex-start' }}>Positive Cashflow</span>
+            <span className={`badge ${summary.net_profit >= 0 ? 'badge-success' : 'badge-danger'}`} style={{ alignSelf: 'flex-start' }}>
+              {summary.net_profit >= 0 ? 'Positive Cashflow' : 'Operating Deficit'}
+            </span>
           </div>
         </div>
       )}

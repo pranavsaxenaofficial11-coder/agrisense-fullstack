@@ -96,7 +96,7 @@ export const ControlsPage: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Main Irrigation Pump</h3>
               <span className={`badge ${status.pump_state ? 'badge-success' : 'badge-warning'}`}>
-                {status.pump_state ? 'RUNNING (18.5 LPM)' : 'STANDBY'}
+                {status.pump_state ? `RUNNING (${status.flow_rate_lpm.toFixed(1)} LPM)` : 'STANDBY'}
               </span>
             </div>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
