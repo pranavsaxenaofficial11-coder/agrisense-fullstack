@@ -171,6 +171,8 @@ export const aiApi = {
 
 export const analyticsApi = {
   getWaterSavings: () => apiFetch<any>('/api/analytics/water-savings'),
+  getSoilHealthIndex: (lat = 30.83, lon = 76.19) =>
+    apiFetch<any>(`/api/analytics/soil-health-index?lat=${lat}&lon=${lon}`),
   getLiveAgroclimatic: (lat = 30.83, lon = 76.19) =>
     apiFetch<any>(`/api/analytics/live-agroclimatic?lat=${lat}&lon=${lon}`),
   getLiveSoilTaxonomy: (lat = 30.83, lon = 76.19) =>
