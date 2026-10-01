@@ -214,6 +214,7 @@ def root_dashboard(request: Request, db: Session = Depends(get_db)):
 def admin_dashboard(request: Request, db: Session = Depends(get_db)):
     return root_dashboard(request, db)
 
+@app.get("/health")
 @app.get("/api/health")
 def health():
     return {
