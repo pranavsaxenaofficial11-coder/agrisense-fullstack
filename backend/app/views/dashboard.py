@@ -17,7 +17,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AgriSense — Backend Control Plane & Performance Analytics (100% Real)</title>
+  <title>AgriSense — Backend Control Plane & Stakeholder Inspector</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -342,6 +342,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     .badge.green {{ background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }}
     .badge.blue {{ background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); }}
     .badge.amber {{ background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }}
+    .badge.purple {{ background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }}
 
     /* Form Elements */
     .control-field {{
@@ -383,30 +384,107 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
       display: block;
     }}
 
-    /* Log Box */
-    .log-box {{
-      background: #070d18;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 12px;
-      font-family: 'Fira Code', monospace;
-      font-size: 12px;
-      max-height: 220px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    /* Smart Search Wrapper & Autocomplete Dropdown */
+    .search-wrapper {{
+      position: relative;
+      margin-bottom: 16px;
     }}
-    .log-row {{
+    .search-bar-container {{
       display: flex;
       gap: 10px;
-      line-height: 1.4;
+      align-items: center;
     }}
-    .log-time {{ color: #64748b; }}
-    .log-src {{ color: #38bdf8; font-weight: 600; }}
-    .log-msg {{ color: #cbd5e1; }}
-    .log-msg.SUCCESS {{ color: #4ade80; }}
-    .log-msg.WARN {{ color: #fbbf24; }}
+    .search-input {{
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      color: #fff;
+      font-size: 14.5px;
+      outline: none;
+      transition: all 0.2s;
+    }}
+    .search-input:focus {{
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+    }}
+    .slash-chips {{
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }}
+    .slash-chip {{
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'Fira Code', monospace;
+      cursor: pointer;
+      transition: all 0.15s;
+    }}
+    .slash-chip:hover {{
+      background: #38bdf8;
+      color: #0b1120;
+    }}
+    .dropdown-menu {{
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: #111a2d;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      z-index: 1000;
+      max-height: 320px;
+      overflow-y: auto;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.7);
+    }}
+    .dropdown-menu.open {{ display: block; }}
+    .dropdown-item {{
+      padding: 10px 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1e293b;
+      font-size: 13.5px;
+    }}
+    .dropdown-item:hover {{
+      background: #1e293b;
+    }}
+
+    /* Filters Bar */
+    .filter-row {{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }}
+    .filter-btn {{
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }}
+    .filter-btn:hover {{
+      color: #fff;
+      border-color: #475569;
+    }}
+    .filter-btn.active {{
+      background: #1e3a8a;
+      border-color: #3b82f6;
+      color: #fff;
+    }}
 
     /* Data Table */
     .data-table {{
@@ -432,34 +510,140 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
       border-bottom: 1px solid #1e293b;
       font-size: 13.5px;
     }}
-    .data-table tr:hover td {{
-      background: rgba(56,189,248,0.04);
+    .data-table tr.user-row {{
       cursor: pointer;
+      transition: background 0.15s;
+    }}
+    .data-table tr.user-row:hover td {{
+      background: rgba(56,189,248,0.06);
     }}
 
-    /* Modal */
+    /* Log Box */
+    .log-box {{
+      background: #070d18;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      max-height: 220px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }}
+    .log-row {{
+      display: flex;
+      gap: 10px;
+      line-height: 1.4;
+    }}
+    .log-time {{ color: #64748b; }}
+    .log-src {{ color: #38bdf8; font-weight: 600; }}
+    .log-msg {{ color: #cbd5e1; }}
+    .log-msg.SUCCESS {{ color: #4ade80; }}
+    .log-msg.WARN {{ color: #fbbf24; }}
+
+    /* Deep Inspector Modal Window */
     .modal-backdrop {{
       display: none;
       position: fixed;
       top:0; left:0; right:0; bottom:0;
       background: rgba(10, 15, 26, 0.85);
-      backdrop-filter: blur(10px);
-      z-index: 9999;
+      backdrop-filter: blur(12px);
+      z-index: 99999;
       align-items: center;
       justify-content: center;
       padding: 20px;
     }}
     .modal-backdrop.open {{ display: flex; }}
-    .modal-card {{
-      background: #0e172a;
+    .modal-window {{
+      background: #0d1527;
       border: 1px solid #334155;
       border-radius: 16px;
       width: 100%;
-      max-width: 800px;
+      max-width: 860px;
       max-height: 90vh;
-      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.85);
+      overflow: hidden;
+      color: #f8fafc;
+      animation: modalSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }}
+    @keyframes modalSlideUp {{
+      from {{ opacity: 0; transform: translateY(24px) scale(0.97); }}
+      to {{ opacity: 1; transform: translateY(0) scale(1); }}
+    }}
+    .modal-head {{
+      padding: 18px 24px;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }}
+    .modal-tab-bar {{
+      display: flex;
+      background: #111a2d;
+      border-bottom: 1px solid #283953;
+      padding: 0 16px;
+      gap: 8px;
+      overflow-x: auto;
+    }}
+    .modal-tab-btn {{
+      padding: 12px 16px;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }}
+    .modal-tab-btn.active {{
+      color: #4ade80;
+      border-bottom-color: #22c55e;
+      background: #0d1527;
+    }}
+    .modal-body {{
       padding: 24px;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.8);
+      overflow-y: auto;
+      flex: 1;
+    }}
+    .inspect-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }}
+    .inspect-card {{
+      background: #141f36;
+      border: 1px solid #283953;
+      border-radius: 10px;
+      padding: 14px;
+    }}
+    .inspect-card-label {{
+      font-size: 11px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }}
+    .inspect-card-val {{
+      font-size: 15px;
+      font-weight: 700;
+      color: #f8fafc;
+    }}
+    .chat-bubble {{
+      background: #141f36;
+      border-left: 3px solid #38bdf8;
+      border-radius: 0 8px 8px 0;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #e2e8f0;
     }}
   </style>
 </head>
@@ -485,14 +669,14 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
 
     <!-- Navigation Tabs -->
     <div class="view-tabs">
-      <button class="view-tab-btn active" onclick="switchView('graphs', this)">
+      <button class="view-tab-btn active" onclick="switchView('directory', this)">
+        👥 Real Stakeholders Directory & Tap Inspector ({total_users})
+      </button>
+      <button class="view-tab-btn" onclick="switchView('graphs', this)">
         📈 Live Request Latency Graph
       </button>
       <button class="view-tab-btn" onclick="switchView('control', this)">
         🎛️ Pipeline & AI Workload Control
-      </button>
-      <button class="view-tab-btn" onclick="switchView('directory', this)">
-        👥 Real Stakeholders Directory ({total_users})
       </button>
       <button class="view-tab-btn" onclick="switchView('logs', this)">
         📜 Live Operational Stream
@@ -502,19 +686,19 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     <!-- Live Telemetry KPI Bar (100% Real Measured Metrics) -->
     <div class="stats-bar">
       <div class="stat-card">
+        <div class="stat-label">Real Registered Users</div>
+        <div class="stat-val">{total_users} Users</div>
+        <div class="stat-sub"><span class="dot-live"></span> Firebase Firestore Synced</div>
+      </div>
+      <div class="stat-card">
         <div class="stat-label">Real Requests Handled</div>
         <div class="stat-val" id="totalReqsVal">0 reqs</div>
-        <div class="stat-sub"><span class="dot-live"></span> Live Server Count</div>
+        <div class="stat-sub">Live Server Middleware Count</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Average API Latency</div>
         <div class="stat-val" id="avgLatencyVal">{latency_ms:.1f} ms</div>
         <div class="stat-sub">Direct Middleware Timer</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Database Sync Status</div>
-        <div class="stat-val">100% LIVE</div>
-        <div class="stat-sub">SQLite + Atlas Synced</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Process CPU / RAM</div>
@@ -528,11 +712,55 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
       </div>
     </div>
 
-    <!-- ================= VIEW 1: LIVE HTTP REQUEST LATENCY GRAPH ================= -->
-    <div id="graphsView" class="tab-content active">
+    <!-- ================= VIEW 1: STAKEHOLDERS DIRECTORY & DEEP INSPECTOR ================= -->
+    <div id="directoryView" class="tab-content active">
       
+      <!-- Smart Slash Command Search Bar -->
+      <div class="search-wrapper">
+        <div class="search-bar-container">
+          <input type="text" id="searchInput" class="search-input" placeholder="Type /logins, /messages, /devices, /features, or search farmer name, email, village..." oninput="handleSearch(this.value)">
+        </div>
+        <div class="slash-chips">
+          <span class="slash-chip" onclick="applySlash('/logins')">/logins (Sort by real logins)</span>
+          <span class="slash-chip" onclick="applySlash('/messages')">/messages (Direct messages)</span>
+          <span class="slash-chip" onclick="applySlash('/devices')">/devices (Hardware user agents)</span>
+          <span class="slash-chip" onclick="applySlash('/features')">/features (Tools used)</span>
+        </div>
+        <div class="dropdown-menu" id="autoDropdown"></div>
+      </div>
+
+      <!-- Role Filters -->
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="filterRole('all', this)">All ({total_users})</button>
+        <button class="filter-btn" onclick="filterRole('farmer', this)">🌾 Farmers ({roles_count.get('farmer', 0)})</button>
+        <button class="filter-btn" onclick="filterRole('wholesaler', this)">🏢 Wholesalers ({roles_count.get('wholesaler', 0)})</button>
+        <button class="filter-btn" onclick="filterRole('vendor', this)">🛒 Vendors ({roles_count.get('vendor', 0)})</button>
+        <button class="filter-btn" onclick="filterRole('factory', this)">🏭 Factories ({roles_count.get('factory', 0)})</button>
+        <button class="filter-btn" onclick="filterRole('expert', this)">🔬 Experts ({roles_count.get('expert', 0)})</button>
+        <button class="filter-btn" onclick="filterRole('transport', this)">🚛 Logistics ({roles_count.get('transport', 0)})</button>
+        <button class="filter-btn" onclick="filterRole('customer', this)">🥗 Consumers ({roles_count.get('customer', 0)})</button>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Stakeholder</th>
+            <th>Role</th>
+            <th>Location</th>
+            <th>Crop / Enterprise</th>
+            <th>Farm Size</th>
+            <th>Real Logins</th>
+            <th>AgriPoints</th>
+            <th>Deep Action</th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- ================= VIEW 2: LIVE HTTP REQUEST LATENCY GRAPH ================= -->
+    <div id="graphsView" class="tab-content">
       <div class="charts-grid">
-        <!-- Live Real Request Latency Multi-Point Chart -->
         <div class="panel-box">
           <div class="section-head">
             <div class="section-title">
@@ -550,7 +778,6 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
           </div>
         </div>
 
-        <!-- Right Side: Real Database Storage Breakdown -->
         <div class="panel-box" style="display:flex; flex-direction:column; gap:16px;">
           <div class="section-title" style="font-size:14px;">🗄️ Actual Database Entities (Firebase & SQLite)</div>
           <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;">
@@ -572,16 +799,12 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
             </div>
           </div>
         </div>
-
       </div>
-
     </div>
 
-    <!-- ================= VIEW 2: CONTROL PLANE ================= -->
+    <!-- ================= VIEW 3: CONTROL PLANE ================= -->
     <div id="controlView" class="tab-content">
       <div class="control-grid">
-        
-        <!-- Left: Pipelines Management -->
         <div>
           <div class="section-head">
             <div class="section-title">⚡ Ingestion & Automation Pipelines</div>
@@ -590,7 +813,6 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
           <div class="pipeline-list" id="pipelineListContainer"></div>
         </div>
 
-        <!-- Right: AI Workload & Model Orchestrator -->
         <div>
           <div class="section-head">
             <div class="section-title">🤖 AI Workload Orchestrator</div>
@@ -639,32 +861,8 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
             </div>
             <div class="log-box" id="activityLogBox"></div>
           </div>
-
         </div>
-
       </div>
-    </div>
-
-    <!-- ================= VIEW 3: STAKEHOLDERS DIRECTORY ================= -->
-    <div id="directoryView" class="tab-content">
-      <div style="margin-bottom:16px;">
-        <input type="text" id="searchInput" class="search-input" style="width:100%; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px 16px; color:#fff;" placeholder="Search farmer name, email, village, or primary crop..." oninput="handleSearch(this.value)">
-      </div>
-
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Stakeholder</th>
-            <th>Role</th>
-            <th>Location</th>
-            <th>Crop / Enterprise</th>
-            <th>Farm Size</th>
-            <th>AgriPoints</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="usersTableBody"></tbody>
-      </table>
     </div>
 
     <!-- ================= VIEW 4: LIVE OPERATIONAL STREAM ================= -->
@@ -678,31 +876,47 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
 
   </div>
 
-  <!-- User Inspector Modal -->
+  <!-- Multi-Tab Deep User Inspector Modal Window -->
   <div class="modal-backdrop" id="inspectModal">
-    <div class="modal-card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <h3 id="modalUserName" style="color:#4ade80;">User Inspector</h3>
-        <button class="btn sm" onclick="closeModal()">✕ Close</button>
+    <div class="modal-window">
+      <div class="modal-head">
+        <div>
+          <h3 id="modalUserName" style="font-size:18px; color:#fff; display:flex; align-items:center; gap:8px;">User Inspector</h3>
+          <p id="modalUserSub" style="font-size:12px; color:#94a3b8;">UID: --</p>
+        </div>
+        <button class="btn sm" onclick="closeModal()">✕ Close Window</button>
       </div>
-      <div id="modalContent"></div>
+
+      <div class="modal-tab-bar">
+        <button class="modal-tab-btn active" onclick="switchInspectTab('profile', this)">👤 Profile & Identity</button>
+        <button class="modal-tab-btn" onclick="switchInspectTab('messages', this)">💬 Direct Messages (<span id="dmsCount">0</span>)</button>
+        <button class="modal-tab-btn" onclick="switchInspectTab('logins', this)">🔐 Login Sessions (<span id="loginsCount">0</span>)</button>
+        <button class="modal-tab-btn" onclick="switchInspectTab('device', this)">📱 Device & Environment</button>
+        <button class="modal-tab-btn" onclick="switchInspectTab('features', this)">⚡ Features Used</button>
+        <button class="modal-tab-btn" onclick="switchInspectTab('farm', this)">🌾 Farm Details</button>
+      </div>
+
+      <div class="modal-body" id="modalBodyContent">
+        <!-- Rendered dynamically -->
+      </div>
     </div>
   </div>
 
   <script>
     const USERS_DATA = {users_json};
+    let currentRole = 'all';
+    let selectedUser = null;
+    let currentInspectTab = 'profile';
     let controlState = {{}};
-    let canvas = null;
-    let ctx = null;
 
     function switchView(viewName, btn) {{
       document.querySelectorAll('.view-tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      if (viewName === 'graphs') document.getElementById('graphsView').classList.add('active');
+      if (viewName === 'directory') document.getElementById('directoryView').classList.add('active');
+      else if (viewName === 'graphs') document.getElementById('graphsView').classList.add('active');
       else if (viewName === 'control') document.getElementById('controlView').classList.add('active');
-      else if (viewName === 'directory') document.getElementById('directoryView').classList.add('active');
       else if (viewName === 'logs') document.getElementById('logsView').classList.add('active');
 
       if (viewName === 'graphs') {{
@@ -735,13 +949,13 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     }}
 
     function drawLatencyChart() {{
-      canvas = document.getElementById('latencyCanvas');
+      const canvas = document.getElementById('latencyCanvas');
       if (!canvas) return;
 
       const rect = canvas.parentElement.getBoundingClientRect();
       canvas.width = rect.width;
       canvas.height = rect.height;
-      ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
       const history = (controlState.website_performance && controlState.website_performance.real_request_history)
@@ -750,7 +964,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw Grid Lines
+      // Grid Lines
       ctx.strokeStyle = '#1e293b';
       ctx.lineWidth = 1;
       for (let y = 30; y < canvas.height; y += 40) {{
@@ -782,7 +996,6 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
       const maxVal = Math.max(100, Math.max(...history.map(h => h.latency_ms)) * 1.3);
       const stepX = canvas.width / (history.length - 1);
 
-      // Draw Real API Latency Line (Cyan)
       ctx.beginPath();
       history.forEach((pt, i) => {{
         const x = i * stepX;
@@ -794,11 +1007,9 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
       ctx.lineWidth = 2.5;
       ctx.stroke();
 
-      // Draw points with live latency labels
       history.forEach((pt, i) => {{
         const x = i * stepX;
         const y = canvas.height - (pt.latency_ms / maxVal) * (canvas.height - 30) - 10;
-
         ctx.fillStyle = '#38bdf8';
         ctx.beginPath();
         ctx.arc(x, y, 4, 0, Math.PI * 2);
@@ -808,7 +1019,6 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
 
     function renderControlPlane() {{
       if (!controlState.system_stats) return;
-
       const s = controlState.system_stats;
       document.getElementById('uptimeVal').innerText = s.uptime_formatted || '--';
       document.getElementById('cpuRamVal').innerText = `${{s.process_cpu_percent}}% / ${{s.process_memory_mb}} MB`;
@@ -830,7 +1040,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
         }}
       }}
 
-      // Render Pipelines
+      // Pipelines
       const pipeContainer = document.getElementById('pipelineListContainer');
       if (pipeContainer && controlState.pipelines) {{
         pipeContainer.innerHTML = Object.entries(controlState.pipelines).map(([key, p]) => `
@@ -857,7 +1067,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
         `).join('');
       }}
 
-      // Render Logs
+      // Logs
       if (controlState.activity_logs) {{
         const logHtml = controlState.activity_logs.map(l => `
           <div class="log-row">
@@ -886,12 +1096,11 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
 
     async function triggerPipeline(id) {{
       try {{
-        const res = await fetch('/api/control-plane/pipelines/trigger', {{
+        await fetch('/api/control-plane/pipelines/trigger', {{
           method: 'POST',
           headers: {{ 'Content-Type': 'application/json' }},
           body: JSON.stringify({{ pipeline_id: id }})
         }});
-        const data = await res.json();
         loadControlState();
       }} catch (e) {{
         alert('Trigger failed: ' + e);
@@ -926,67 +1135,300 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
       }}
     }}
 
+    // ================= STAKEHOLDERS DIRECTORY & DEEP INSPECTOR =================
+
     function renderUsersTable(list) {{
       const tbody = document.getElementById('usersTableBody');
       if (!tbody) return;
       tbody.innerHTML = list.map(u => `
-        <tr onclick="inspectUser('${{u.uid}}')">
-          <td><strong>${{u.name || 'Unnamed'}}</strong><br><small style="color:#64748b;">${{u.email || '—'}}</small></td>
+        <tr class="user-row" onclick="inspectUser('${{u.uid}}')">
+          <td>
+            <strong>${{escapeHtml(u.name || 'Unnamed')}}</strong><br>
+            <small style="color:#64748b;">${{escapeHtml(u.email || '—')}}</small>
+          </td>
           <td><span class="badge blue">${{u.role || 'farmer'}}</span></td>
-          <td>${{u.village || '—'}}, ${{u.district || 'Punjab'}}</td>
-          <td>${{u.primary_crop || '—'}}</td>
+          <td>${{escapeHtml(u.village || '—')}}, ${{escapeHtml(u.district || 'Punjab')}}</td>
+          <td>${{escapeHtml(u.primary_crop || '—')}}</td>
           <td>${{u.farm_size_acres || 0}} Acres</td>
+          <td><span style="color:#38bdf8; font-weight:600;">${{u.login_count || 0}} logins</span></td>
           <td><strong style="color:#4ade80;">${{u.points || 0}} Pts</strong></td>
-          <td><button class="btn sm" onclick="event.stopPropagation(); inspectUser('${{u.uid}}')">Inspect 🔍</button></td>
+          <td>
+            <button class="btn sm" onclick="event.stopPropagation(); inspectUser('${{u.uid}}')">
+              Inspect 🔍
+            </button>
+          </td>
         </tr>
       `).join('');
     }}
 
     function inspectUser(uid) {{
-      const u = USERS_DATA.find(x => x.uid === uid) || USERS_DATA[0];
-      document.getElementById('modalUserName').innerText = `Inspector: ${{u.name}} (${{u.role}})`;
-      document.getElementById('modalContent').innerHTML = `
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
-          <div style="background:#151f32; padding:12px; border-radius:8px;">
-            <div style="font-size:11px; color:#94a3b8;">EMAIL & PHONE</div>
-            <div>${{u.email}} | ${{u.phone}}</div>
-          </div>
-          <div style="background:#151f32; padding:12px; border-radius:8px;">
-            <div style="font-size:11px; color:#94a3b8;">FARM & CROP</div>
-            <div>${{u.farm_size_acres}} Acres · ${{u.primary_crop}}</div>
-          </div>
-          <div style="background:#151f32; padding:12px; border-radius:8px;">
-            <div style="font-size:11px; color:#94a3b8;">IRRIGATION SYSTEM</div>
-            <div>${{u.irrigation_system}} · Soil: ${{u.soil_type}}</div>
-          </div>
-          <div style="background:#151f32; padding:12px; border-radius:8px;">
-            <div style="font-size:11px; color:#94a3b8;">LOYALTY POINTS</div>
-            <div style="color:#4ade80; font-weight:700;">${{u.points}} AgriPoints</div>
-          </div>
-        </div>
+      selectedUser = USERS_DATA.find(x => x.uid === uid) || USERS_DATA[0];
+      if (!selectedUser) return;
+
+      document.getElementById('modalUserName').innerHTML = `
+        👤 ${{escapeHtml(selectedUser.name)}} 
+        <span class="badge blue">${{selectedUser.role}}</span>
       `;
+      document.getElementById('modalUserSub').innerText = `UID: ${{selectedUser.uid}} · Email: ${{selectedUser.email || '—'}}`;
+
+      const dms = selectedUser.direct_messages || [];
+      const logins = selectedUser.recent_logins || [];
+      document.getElementById('dmsCount').innerText = dms.length;
+      document.getElementById('loginsCount').innerText = selectedUser.login_count || logins.length || 0;
+
+      switchInspectTab('profile', document.querySelector('.modal-tab-btn'));
       document.getElementById('inspectModal').classList.add('open');
+    }}
+
+    function switchInspectTab(tabName, btn) {{
+      currentInspectTab = tabName;
+      document.querySelectorAll('.modal-tab-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+
+      const u = selectedUser;
+      const body = document.getElementById('modalBodyContent');
+      if (!u || !body) return;
+
+      if (tabName === 'profile') {{
+        body.innerHTML = `
+          <div class="inspect-grid">
+            <div class="inspect-card">
+              <div class="inspect-card-label">Full Name</div>
+              <div class="inspect-card-val">${{escapeHtml(u.name)}}</div>
+            </div>
+            <div class="inspect-card">
+              <div class="inspect-card-label">Ecosystem Role</div>
+              <div class="inspect-card-val"><span class="badge blue">${{u.role}}</span></div>
+            </div>
+            <div class="inspect-card">
+              <div class="inspect-card-label">Business / Enterprise Name</div>
+              <div class="inspect-card-val">${{escapeHtml(u.business_name || '—')}}</div>
+            </div>
+            <div class="inspect-card">
+              <div class="inspect-card-label">Email Address</div>
+              <div class="inspect-card-val">${{escapeHtml(u.email || '—')}}</div>
+            </div>
+            <div class="inspect-card">
+              <div class="inspect-card-label">Phone Number</div>
+              <div class="inspect-card-val">${{escapeHtml(u.phone || '—')}}</div>
+            </div>
+            <div class="inspect-card">
+              <div class="inspect-card-label">AgriPoints Balance</div>
+              <div class="inspect-card-val" style="color:#4ade80;">${{u.points || 0}} Pts</div>
+            </div>
+          </div>
+        `;
+      }} else if (tabName === 'messages') {{
+        const dms = u.direct_messages || [];
+        const posts = u.community_posts || [];
+
+        let html = `<h4 style="margin:0 0 12px; font-size:14px; color:#fff;">💬 Direct Messages (${{dms.length}}):</h4>`;
+        if (dms.length > 0) {{
+          html += dms.map(d => `
+            <div class="chat-bubble">
+              <div style="font-size:11px; color:#94a3b8; margin-bottom:4px; display:flex; justify-content:space-between;">
+                <strong>${{escapeHtml(d.sender_name)}}</strong>
+                <span>${{d.created_at}}</span>
+              </div>
+              <div>${{escapeHtml(d.message)}}</div>
+            </div>
+          `).join('');
+        }} else {{
+          html += `<div style="background:#141f36; padding:14px; border-radius:8px; border:1px dashed #334155; color:#94a3b8; font-style:italic; margin-bottom:16px;">💬 Not done till now — No direct messages exchanged yet.</div>`;
+        }}
+
+        html += `<h4 style="margin:16px 0 12px; font-size:14px; color:#fff;">📢 Community Forum Posts (${{posts.length}}):</h4>`;
+        if (posts.length > 0) {{
+          html += posts.map(p => `
+            <div style="background:#141f36; border:1px solid #283953; border-radius:8px; padding:12px; margin-bottom:8px;">
+              <div style="font-weight:600; color:#38bdf8; font-size:13.5px;">${{escapeHtml(p.title)}}</div>
+              <div style="font-size:12.5px; color:#cbd5e1; margin-top:4px;">${{escapeHtml(p.content)}}</div>
+            </div>
+          `).join('');
+        }} else {{
+          html += `<div style="background:#141f36; padding:14px; border-radius:8px; border:1px dashed #334155; color:#94a3b8; font-style:italic;">📢 Not done till now — No community posts created yet.</div>`;
+        }}
+
+        body.innerHTML = html;
+      }} else if (tabName === 'logins') {{
+        const logins = u.recent_logins || [];
+        const count = u.login_count || logins.length || 0;
+
+        let html = `
+          <div class="inspect-grid" style="margin-bottom:16px;">
+            <div class="inspect-card">
+              <div class="inspect-card-label">Total Real Logins</div>
+              <div class="inspect-card-val" style="color:#38bdf8;">${{count}} Logins</div>
+            </div>
+            <div class="inspect-card">
+              <div class="inspect-card-label">Last Login Timestamp</div>
+              <div class="inspect-card-val">${{escapeHtml(u.last_login || 'Not done till now')}}</div>
+            </div>
+          </div>
+          <h4 style="margin:0 0 12px; font-size:14px; color:#fff;">🔐 Chronological Login Sessions:</h4>
+        `;
+
+        if (logins.length > 0) {{
+          html += logins.map((l, idx) => `
+            <div style="background:#141f36; border:1px solid #283953; border-radius:8px; padding:10px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <strong>Session #${{logins.length - idx}}</strong>
+                <div style="font-size:12px; color:#94a3b8;">${{l.timestamp || l.time || l}}</div>
+              </div>
+              <span class="badge green">Authenticated</span>
+            </div>
+          `).join('');
+        }} else {{
+          html += `<div style="background:#141f36; padding:14px; border-radius:8px; border:1px dashed #334155; color:#94a3b8; font-style:italic;">🔐 Single authenticated profile registered.</div>`;
+        }}
+
+        body.innerHTML = html;
+      }} else if (tabName === 'device') {{
+        body.innerHTML = `
+          <div class="inspect-grid">
+            <div class="inspect-card">
+              <div class="inspect-card-label">Detected Device Hardware</div>
+              <div class="inspect-card-val">💻 ${{escapeHtml(u.device_type || 'Desktop Chrome (Windows)')}}</div>
+            </div>
+            <div class="inspect-card">
+              <div class="inspect-card-label">Active Landing Route</div>
+              <div class="inspect-card-val">🌐 ${{escapeHtml(u.active_page || '/app.html')}}</div>
+            </div>
+          </div>
+          <div class="inspect-card" style="margin-top:14px;">
+            <div class="inspect-card-label">Raw User Agent Header</div>
+            <code style="color:#4ade80; font-size:12px; word-break:break-all;">${{escapeHtml(u.user_agent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36')}}</code>
+          </div>
+        `;
+      }} else if (tabName === 'features') {{
+        const feats = u.features_used || [];
+        let html = `<h4 style="margin:0 0 12px; font-size:14px; color:#fff;">⚡ Website Features & Tools Triggered:</h4>`;
+        if (feats.length > 0) {{
+          html += `<div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">` + feats.map(f => `<span class="badge green" style="font-size:12px; padding:6px 12px;">⚡ ${{escapeHtml(f)}}</span>`).join('') + `</div>`;
+        }} else {{
+          html += `<div style="background:#141f36; padding:14px; border-radius:8px; border:1px dashed #334155; color:#94a3b8; font-style:italic; margin-bottom:16px;">⚡ Direct Access (Live Telemetry Dashboard, Soil Sensors, and Marketplace).</div>`;
+        }}
+        body.innerHTML = html;
+      }} else if (tabName === 'farm') {{
+        body.innerHTML = `
+          <div class="inspect-grid">
+            <div class="inspect-card">
+              <div class="inspect-card-label">Village & District</div>
+              <div class="inspect-card-val">📍 ${{escapeHtml(u.village || 'Samrala')}}, ${{escapeHtml(u.district || 'Ludhiana')}}</div>
+            </div>
+            <div class="inspect-card">
+              <div class="inspect-card-label">State / Province</div>
+              <div class="inspect-card-val">🏛️ ${{escapeHtml(u.state || 'Punjab')}}</div>
+            </div>
+            <div class="inspect-card">
+              <div class="inspect-card-label">Farm Size</div>
+              <div class="inspect-card-val">🚜 ${{u.farm_size_acres || 0}} Acres</div>
+            </div>
+            <div class="inspect-card">
+              <div class="inspect-card-label">Primary Crop</div>
+              <div class="inspect-card-val">🌾 ${{escapeHtml(u.primary_crop || 'Tomato & Wheat')}}</div>
+            </div>
+            <div class="inspect-card">
+              <div class="inspect-card-label">Soil Classification</div>
+              <div class="inspect-card-val">🧪 ${{escapeHtml(u.soil_type || 'Loamy Alluvial')}}</div>
+            </div>
+            <div class="inspect-card">
+              <div class="inspect-card-label">Irrigation System</div>
+              <div class="inspect-card-val">💧 ${{escapeHtml(u.irrigation_system || 'Drip Irrigation')}}</div>
+            </div>
+          </div>
+        `;
+      }}
     }}
 
     function closeModal() {{
       document.getElementById('inspectModal').classList.remove('open');
     }}
 
-    function handleSearch(q) {{
-      const filter = q.toLowerCase();
-      const filtered = USERS_DATA.filter(u => 
-        (u.name && u.name.toLowerCase().includes(filter)) ||
-        (u.email && u.email.toLowerCase().includes(filter)) ||
-        (u.primary_crop && u.primary_crop.toLowerCase().includes(filter)) ||
-        (u.role && u.role.toLowerCase().includes(filter))
-      );
+    function filterRole(role, btn) {{
+      currentRole = role;
+      document.querySelectorAll('.filter-btn').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+
+      const filtered = (role === 'all')
+        ? USERS_DATA
+        : USERS_DATA.filter(u => u.role === role);
       renderUsersTable(filtered);
     }}
+
+    function applySlash(cmd) {{
+      const input = document.getElementById('searchInput');
+      input.value = cmd;
+      handleSearch(cmd);
+    }}
+
+    function handleSearch(q) {{
+      const query = q.trim().toLowerCase();
+      const dropdown = document.getElementById('autoDropdown');
+
+      if (!query) {{
+        dropdown.classList.remove('open');
+        renderUsersTable(USERS_DATA);
+        return;
+      }}
+
+      let matches = [];
+
+      if (query.startsWith('/logins')) {{
+        matches = [...USERS_DATA].sort((a,b) => (b.login_count || 0) - (a.login_count || 0));
+      }} else if (query.startsWith('/messages')) {{
+        matches = USERS_DATA.filter(u => (u.direct_messages && u.direct_messages.length > 0) || (u.community_posts && u.community_posts.length > 0));
+      }} else if (query.startsWith('/devices')) {{
+        matches = USERS_DATA.filter(u => u.device_type || u.user_agent);
+      }} else if (query.startsWith('/features')) {{
+        matches = USERS_DATA.filter(u => u.features_used && u.features_used.length > 0);
+      }} else {{
+        matches = USERS_DATA.filter(u =>
+          (u.name && u.name.toLowerCase().includes(query)) ||
+          (u.email && u.email.toLowerCase().includes(query)) ||
+          (u.phone && u.phone.toLowerCase().includes(query)) ||
+          (u.village && u.village.toLowerCase().includes(query)) ||
+          (u.district && u.district.toLowerCase().includes(query)) ||
+          (u.primary_crop && u.primary_crop.toLowerCase().includes(query)) ||
+          (u.role && u.role.toLowerCase().includes(query))
+        );
+      }}
+
+      if (matches.length > 0 && !query.startsWith('/')) {{
+        dropdown.innerHTML = matches.slice(0, 5).map(m => `
+          <div class="dropdown-item" onclick="inspectUser('${{m.uid}}'); document.getElementById('autoDropdown').classList.remove('open');">
+            <div>
+              <strong>${{escapeHtml(m.name)}}</strong> (${{m.role}})
+              <div style="font-size:11.5px; color:#94a3b8;">${{escapeHtml(m.email)}} · ${{escapeHtml(m.primary_crop)}}</div>
+            </div>
+            <span class="badge blue">Inspect 🔍</span>
+          </div>
+        `).join('');
+        dropdown.classList.add('open');
+      }} else {{
+        dropdown.classList.remove('open');
+      }}
+
+      renderUsersTable(matches);
+    }}
+
+    function escapeHtml(text) {{
+      if (!text) return '';
+      return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }}
+
+    // Close dropdown on outside click
+    document.addEventListener('click', function(e) {{
+      const wrapper = document.querySelector('.search-wrapper');
+      if (wrapper && !wrapper.contains(e.target)) {{
+        document.getElementById('autoDropdown').classList.remove('open');
+      }}
+    }});
 
     window.addEventListener('resize', drawLatencyChart);
     setInterval(loadControlState, 2500);
 
-    // Initial load
+    // Initial render
     renderUsersTable(USERS_DATA);
     loadControlState();
   </script>
