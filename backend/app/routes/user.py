@@ -189,7 +189,7 @@ def inspect_user_details(identifier: str, db: Session = Depends(get_db)):
             "role": user.role,
             "business_name": user.business_name or f"{user.name}'s Farm",
             "email": user.email,
-            "phone": user.phone or "+91 98765 00000",
+            "phone": user.phone or "Not provided",
             "state": user.state or "Punjab",
             "district": user.district or "Ludhiana",
             "village": user.village or "Samrala",

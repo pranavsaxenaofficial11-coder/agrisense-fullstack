@@ -21,8 +21,8 @@ export const MarketPage: React.FC = () => {
     unit: 'Quintal',
     price_per_unit: 2000,
     location: 'Samrala, Punjab',
-    seller_name: 'Pranav Saxena',
-    seller_phone: '+91 98765 43210',
+    seller_name: '',
+    seller_phone: '',
     description: ''
   });
 

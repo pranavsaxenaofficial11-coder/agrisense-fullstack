@@ -17,8 +17,8 @@ export const RequirementsPage: React.FC = () => {
     quantity_needed: 100,
     unit: 'Quintal',
     max_budget_per_unit: 2500,
-    delivery_location: 'Ludhiana, Punjab',
-    contact_phone: '+91 98765 43210',
+    delivery_location: '',
+    contact_phone: '',
     urgency: 'Immediate',
     notes: ''
   });

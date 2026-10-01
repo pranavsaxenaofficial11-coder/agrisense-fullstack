@@ -10965,9 +10965,7 @@ if (configured) {
       } catch(e){}
       const matched = inferUserFromEmail(email);
       const finalName = (profData && profData.name) || (uData && uData.name) || u.displayName || (matched && matched.name) || 'Pranav Saxena';
-      const finalFarm = (profData && profData.farm) || (matched && matched.farm) || 'Saxena Family Farm';
-      const finalLoc  = (profData && profData.loc)  || (matched && matched.loc)  || 'Ludhiana, Punjab';
-      const finalPhone= (profData && profData.phone)|| (matched && matched.phone)|| '+91 98765 43210';
+      const finalPhone= (profData && profData.phone)|| (matched && matched.phone)|| '';
       const finalRole = (profData && profData.role) || (matched && matched.role) || 'farmer';
       
       try {
