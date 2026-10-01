@@ -8,6 +8,7 @@ import csv
 from app.database import get_db
 import app.models as models
 from app.services.websocket_manager import telemetry_ws_manager
+from app.services.live_open_data_service import LiveOpenDataService
 
 router = APIRouter(prefix="/api/analytics", tags=["Analytics & Impact"])
 
@@ -49,6 +50,27 @@ def get_water_savings_metrics(db: Session = Depends(get_db)):
             "sdg_13_climate": f"{round(carbon_offset_kg, 2)} kg CO2e emissions avoided"
         }
     }
+
+@router.get("/live-agroclimatic")
+async def get_live_agroclimatic(lat: float = 30.83, lon: float = 76.19):
+    """
+    Fetches real-time live open-access agrometeorological & soil hydrology telemetry from Open-Meteo.
+    """
+    return await LiveOpenDataService.get_live_agrometeo(lat=lat, lon=lon)
+
+@router.get("/live-soil-taxonomy")
+async def get_live_soil_taxonomy(lat: float = 30.83, lon: float = 76.19):
+    """
+    Fetches live chemical taxonomy, nitrogen, and soil organic carbon from ISRIC SoilGrids REST API.
+    """
+    return await LiveOpenDataService.get_live_soil_taxonomy(lat=lat, lon=lon)
+
+@router.get("/live-reservoir-storage")
+def get_live_reservoir_storage():
+    """
+    Fetches live Central Water Commission (CWC) North Basin reservoir levels and irrigation security status.
+    """
+    return LiveOpenDataService.get_live_reservoir_water_storage()
 
 @router.get("/export/csv")
 def export_sensor_history_csv(zone: str = "Zone A", limit: int = 500, db: Session = Depends(get_db)):

@@ -45,7 +45,28 @@ def test_endpoints():
     assert r.status_code == 200, f"MongoDB status failed: {r.status_code}"
     print(" -> MongoDB status endpoint OK:", r.json())
 
-    print("\nALL BACKEND API TESTS (SQLITE + MONGODB HYBRID) PASSED SUCCESSFULLY! [OK]")
+    print("Testing /api/analytics/live-agroclimatic ...")
+    r = client.get("/api/analytics/live-agroclimatic")
+    assert r.status_code == 200, f"Agroclimatic failed: {r.status_code}"
+    print(" -> Agroclimatic OK. Source:", r.json().get("source"))
+
+    print("Testing /api/analytics/live-soil-taxonomy ...")
+    r = client.get("/api/analytics/live-soil-taxonomy")
+    assert r.status_code == 200, f"Soil taxonomy failed: {r.status_code}"
+    print(" -> Soil Taxonomy OK. pH:", r.json().get("ph_water"), "SOC:", r.json().get("organic_carbon_g_kg"))
+
+    print("Testing /api/analytics/live-reservoir-storage ...")
+    r = client.get("/api/analytics/live-reservoir-storage")
+    assert r.status_code == 200, f"Reservoir storage failed: {r.status_code}"
+    print(" -> Reservoir Storage OK. Reservoirs:", len(r.json().get("reservoirs", [])))
+
+    print("Testing /api/market/live-mandi-rates ...")
+    r = client.get("/api/market/live-mandi-rates")
+    assert r.status_code == 200, f"Mandi rates failed: {r.status_code}"
+    print(" -> Live Mandi Rates OK. Count:", len(r.json().get("live_mandi_rates", [])))
+
+    print("\nALL BACKEND API TESTS (SQLITE + MONGODB + LIVE OPEN DATASETS) PASSED SUCCESSFULLY! [OK]")
 
 if __name__ == "__main__":
     test_endpoints()
+

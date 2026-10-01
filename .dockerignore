@@ -1,0 +1,12 @@
+**/.git
+**/.github
+**/node_modules
+**/dist
+**/__pycache__
+**/*.pyc
+**/.env.local
+**/.vscode
+**/.idea
+*.log
+backend/agrisense.db-shm
+backend/agrisense.db-wal
