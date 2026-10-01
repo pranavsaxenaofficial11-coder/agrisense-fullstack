@@ -578,12 +578,12 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
 
   <!-- Main Navigation Tabs -->
   <div class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('tab-stakeholders')">👥 Stakeholders ({total_users})</button>
-    <button class="tab-btn" onclick="switchTab('tab-db-explorer')">🗄️ Database & SQL Console</button>
-    <button class="tab-btn" onclick="switchTab('tab-api-matrix')">⚡ REST API Health Matrix</button>
-    <button class="tab-btn" onclick="switchTab('tab-open-data')">🌐 Open-Data Telemetry Feeds</button>
-    <button class="tab-btn" onclick="switchTab('tab-control-plane')">🎛️ Pipelines & AI Orchestration</button>
-    <button class="tab-btn" onclick="switchTab('tab-oscilloscope')">📈 Latency Oscilloscope</button>
+    <button class="tab-btn active" onclick="switchTab('tab-stakeholders', this)">👥 Stakeholders ({total_users})</button>
+    <button class="tab-btn" onclick="switchTab('tab-db-explorer', this)">🗄️ Database & SQL Console</button>
+    <button class="tab-btn" onclick="switchTab('tab-api-matrix', this)">⚡ REST API Health Matrix</button>
+    <button class="tab-btn" onclick="switchTab('tab-open-data', this)">🌐 Open-Data Telemetry Feeds</button>
+    <button class="tab-btn" onclick="switchTab('tab-control-plane', this)">🎛️ Pipelines & AI Orchestration</button>
+    <button class="tab-btn" onclick="switchTab('tab-oscilloscope', this)">📈 Latency Oscilloscope</button>
   </div>
 
   <!-- TAB 1: STAKEHOLDERS & ACTIVE AUTOCOMPLETE SEARCH -->
@@ -641,34 +641,60 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     <div class="agri-card">
       <div class="card-header">
         <div class="card-title">🗄️ Database Tables & Fast Schema Inspector</div>
-        <div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <select id="db-table-select" class="btn" onchange="loadTableData(this.value)">
             <!-- Options populated dynamically -->
           </select>
           <button class="btn primary" onclick="reloadCurrentTable()">Query Table</button>
         </div>
       </div>
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-        Direct relational inspector connected to SQLite with WAL (Write-Ahead Logging) & MongoDB collection fallbacks.
-      </p>
 
-      <div id="table-schema-info" style="margin-bottom: 16px; font-size: 13px; color: var(--text-dim);"></div>
+      <!-- Quick Switch Table Chips -->
+      <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;">
+        <span class="slash-chip" onclick="quickSelectTable('users')">users</span>
+        <span class="slash-chip" onclick="quickSelectTable('sensor_readings')">sensor_readings</span>
+        <span class="slash-chip" onclick="quickSelectTable('zones')">zones</span>
+        <span class="slash-chip" onclick="quickSelectTable('controls')">controls</span>
+        <span class="slash-chip" onclick="quickSelectTable('market_listings')">market_listings</span>
+        <span class="slash-chip" onclick="quickSelectTable('buyer_requirements')">buyer_requirements</span>
+        <span class="slash-chip" onclick="quickSelectTable('community_posts')">community_posts</span>
+        <span class="slash-chip" onclick="quickSelectTable('direct_messages')">direct_messages</span>
+        <span class="slash-chip" onclick="quickSelectTable('finance_records')">finance_records</span>
+        <span class="slash-chip" onclick="quickSelectTable('activity_logs')">activity_logs</span>
+      </div>
 
-      <div class="data-table-container" style="max-height: 360px; margin-bottom: 20px;">
+      <div id="table-schema-info" style="margin-bottom: 12px; font-size: 13px; color: var(--text-dim);"></div>
+
+      <div class="data-table-container" style="max-height: 380px; margin-bottom: 24px;">
         <table class="data-table" id="raw-db-table">
-          <thead id="raw-db-thead"></thead>
-          <tbody id="raw-db-tbody"></tbody>
+          <thead id="raw-db-thead">
+            <tr><th>Columns</th></tr>
+          </thead>
+          <tbody id="raw-db-tbody">
+            <tr><td style="text-align: center; color: var(--text-dim); padding: 24px;">Select a table or execute a query above to view rows.</td></tr>
+          </tbody>
         </table>
       </div>
 
       <!-- Interactive Custom Read-Only SQL Console -->
-      <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
           <strong style="font-size: 14px; color: #fff; display: flex; align-items: center; gap: 6px;">
             ⚡ Custom Read-Only SQL Query Console
           </strong>
           <span class="badge badge-blue mono">Safe Transaction (SELECT Only)</span>
         </div>
+
+        <!-- Quick Query Templates -->
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;">
+          <span class="slash-chip" onclick="setSqlQuery('SELECT id, name, role, email, points FROM users LIMIT 10')">Top Users</span>
+          <span class="slash-chip" onclick="setSqlQuery('SELECT id, zone, moisture_pct, temp_c, timestamp FROM sensor_readings ORDER BY id DESC LIMIT 10')">Latest Readings</span>
+          <span class="slash-chip" onclick="setSqlQuery('SELECT id, zone_code, name, crop, current_moisture, status FROM zones')">Farm Zones</span>
+          <span class="slash-chip" onclick="setSqlQuery('SELECT id, pump_state, auto_mode, flow_rate_lpm, water_tank_level FROM controls')">Controls</span>
+          <span class="slash-chip" onclick="setSqlQuery('SELECT id, crop_name, quantity, price_per_unit, location FROM market_listings')">Market</span>
+          <span class="slash-chip" onclick="setSqlQuery('SELECT id, author_name, channel, title, upvotes FROM community_posts')">Posts</span>
+        </div>
+
         <div style="display: flex; gap: 8px; margin-bottom: 10px;">
           <input 
             type="text" 
@@ -894,12 +920,20 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     }});
   }});
 
-  function switchTab(tabId) {{
+  function switchTab(tabId, btnElem) {{
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     
-    event.target.classList.add('active');
-    document.getElementById(tabId).classList.add('active');
+    const btn = btnElem || (event && (event.currentTarget || event.target));
+    if (btn) btn.classList.add('active');
+    const pane = document.getElementById(tabId);
+    if (pane) pane.classList.add('active');
+
+    if (tabId === 'tab-db-explorer') {{
+      const sel = document.getElementById('db-table-select');
+      if (sel && sel.value) loadTableData(sel.value);
+      else loadDbTablesList();
+    }}
   }}
 
   function getUserLocation(u) {{
@@ -1075,25 +1109,53 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     }}
   }}
 
+  function quickSelectTable(tableName) {{
+    const sel = document.getElementById('db-table-select');
+    if (sel) {{
+      sel.value = tableName;
+      loadTableData(tableName);
+    }}
+  }}
+
   async function loadTableData(tableName) {{
+    const thead = document.getElementById('raw-db-thead');
+    const tbody = document.getElementById('raw-db-tbody');
+    const schemaInfo = document.getElementById('table-schema-info');
+
+    if (schemaInfo) schemaInfo.innerHTML = `<span style="color:var(--blue)">Querying '${{tableName}}' records...</span>`;
+    if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px; color:var(--text-dim);">Fetching live table rows...</td></tr>';
+
     try {{
       const res = await fetch(`/api/control-plane/db/query?table=${{encodeURIComponent(tableName)}}&limit=50`);
       if (res.ok) {{
         const data = await res.json();
-        document.getElementById('table-schema-info').textContent = `Showing ${{data.rows.length}} of ${{data.total_count}} records in '${{data.table}}' table.`;
+        if (schemaInfo) {{
+          schemaInfo.innerHTML = `Displaying <strong style="color:#fff">${{data.rows.length}}</strong> of <strong style="color:#fff">${{data.total_count}}</strong> records in table <strong style="color:var(--accent-light)">'${{data.table}}'</strong> (sorted by primary key desc).`;
+        }}
         
-        const thead = document.getElementById('raw-db-thead');
-        const tbody = document.getElementById('raw-db-tbody');
-
-        thead.innerHTML = `<tr>${{data.columns.map(c => `<th>${{c}}</th>`).join('')}}</tr>`;
-        tbody.innerHTML = data.rows.map(r => `
-          <tr>
-            ${{data.columns.map(c => `<td class="mono">${{typeof r[c] === 'object' ? JSON.stringify(r[c]) : (r[c] !== null ? r[c] : '<span style="color:var(--text-dim);">NULL</span>')}}</td>`).join('')}}
-          </tr>
-        `).join('');
+        if (data.columns && data.columns.length > 0) {{
+          thead.innerHTML = `<tr>${{data.columns.map(c => `<th>${{c}}</th>`).join('')}}</tr>`;
+          if (data.rows.length > 0) {{
+            tbody.innerHTML = data.rows.map(r => `
+              <tr>
+                ${{data.columns.map(c => {{
+                  let val = r[c];
+                  if (val === null || val === undefined) return '<td class="mono" style="color:var(--text-dim);">NULL</td>';
+                  if (typeof val === 'object') return `<td class="mono" style="max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${{JSON.stringify(val).replace(/"/g, '&quot;')}}">${{JSON.stringify(val)}}</td>`;
+                  return `<td class="mono">${{val}}</td>`;
+                }}).join('')}}
+              </tr>
+            `).join('');
+          }} else {{
+            tbody.innerHTML = `<tr><td colspan="${{data.columns.length}}" style="text-align:center; padding:24px; color:var(--text-dim);">No records exist in table '${{data.table}}'.</td></tr>`;
+          }}
+        }}
+      }} else {{
+        const err = await res.json();
+        if (schemaInfo) schemaInfo.innerHTML = `<span style="color:#f43f5e;">✕ Error querying '${{tableName}}': ${{err.detail || 'Query failed'}}</span>`;
       }}
     }} catch (e) {{
-      console.error(e);
+      if (schemaInfo) schemaInfo.innerHTML = `<span style="color:#f43f5e;">✕ Network error loading '${{tableName}}': ${{e.message}}</span>`;
     }}
   }}
 
@@ -1102,15 +1164,24 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     if (val) loadTableData(val);
   }}
 
+  function setSqlQuery(sql) {{
+    const input = document.getElementById('custom-sql-input');
+    if (input) {{
+      input.value = sql;
+      executeCustomSql();
+    }}
+  }}
+
   async function executeCustomSql() {{
-    const sql = document.getElementById('custom-sql-input').value.trim();
+    const input = document.getElementById('custom-sql-input');
+    const sql = input ? input.value.trim() : '';
     const statusDiv = document.getElementById('sql-exec-status');
     const container = document.getElementById('sql-results-container');
     const thead = document.getElementById('sql-results-thead');
     const tbody = document.getElementById('sql-results-tbody');
 
     if (!sql) return;
-    statusDiv.innerHTML = `<span style="color:var(--blue)">Executing query...</span>`;
+    statusDiv.innerHTML = `<span style="color:var(--blue)">⚡ Executing SQL query...</span>`;
 
     try {{
       const res = await fetch('/api/control-plane/db/execute-sql', {{
@@ -1120,20 +1191,29 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
       }});
       const data = await res.json();
       if (res.ok) {{
-        statusDiv.innerHTML = `<span style="color:#34d399;">✓ Executed in ${{data.execution_time_ms}} ms • Returned ${{data.row_count}} row(s)</span>`;
+        statusDiv.innerHTML = `<span style="color:#34d399; font-weight:600;">✓ Query OK: ${{data.row_count}} row(s) returned in ${{data.execution_time_ms}} ms</span>`;
         if (data.columns && data.columns.length > 0) {{
           thead.innerHTML = `<tr>${{data.columns.map(c => `<th>${{c}}</th>`).join('')}}</tr>`;
-          tbody.innerHTML = data.rows.map(r => `
-            <tr>
-              ${{data.columns.map(c => `<td class="mono">${{typeof r[c] === 'object' ? JSON.stringify(r[c]) : (r[c] !== null ? r[c] : '<span style="color:var(--text-dim);">NULL</span>')}}</td>`).join('')}}
-            </tr>
-          `).join('');
+          if (data.rows.length > 0) {{
+            tbody.innerHTML = data.rows.map(r => `
+              <tr>
+                ${{data.columns.map(c => {{
+                  let val = r[c];
+                  if (val === null || val === undefined) return '<td class="mono" style="color:var(--text-dim);">NULL</td>';
+                  if (typeof val === 'object') return `<td class="mono" style="max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${{JSON.stringify(val).replace(/"/g, '&quot;')}}">${{JSON.stringify(val)}}</td>`;
+                  return `<td class="mono">${{val}}</td>`;
+                }}).join('')}}
+              </tr>
+            `).join('');
+          }} else {{
+            tbody.innerHTML = `<tr><td colspan="${{data.columns.length}}" style="text-align:center; padding:20px; color:var(--text-dim);">Query executed successfully, 0 rows returned.</td></tr>`;
+          }}
           container.style.display = 'block';
         }} else {{
           container.style.display = 'none';
         }}
       }} else {{
-        statusDiv.innerHTML = `<span style="color:#f43f5e;">✕ ${{data.detail || 'SQL Execution failed'}}</span>`;
+        statusDiv.innerHTML = `<span style="color:#f43f5e; font-weight:600;">✕ ${{data.detail || 'SQL Execution failed'}}</span>`;
         container.style.display = 'none';
       }}
     }} catch (e) {{
