@@ -3488,7 +3488,32 @@ function initHardwareBridge() {
     }
   });
 
-  // Background Poller: Fetch latest hardware data from backend
+  // Background Poller: Fetch latest hardware data from backend and manage Live vs Demo mode
+  window._lastHardwareTime = 0;
+  window._isHardwareLive = false;
+
+  const updateHwBadge = () => {
+    if (!badge) return;
+    const isLive = window._isHardwareLive && (Date.now() - window._lastHardwareTime < 15000);
+    badge.style.display = 'inline-flex';
+    badge.style.alignItems = 'center';
+    badge.style.gap = '6px';
+    if (isLive) {
+      badge.style.background = 'rgba(16,185,129,0.18)';
+      badge.style.color = '#059669';
+      badge.style.border = '1px solid #10b981';
+      badge.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;display:inline-block"></span> ⚡ LIVE ESP32 HARDWARE STREAMING';
+    } else {
+      window._isHardwareLive = false;
+      badge.style.background = 'rgba(245,158,11,0.15)';
+      badge.style.color = '#d97706';
+      badge.style.border = '1px solid #f59e0b';
+      badge.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block"></span> 🌱 DEMO SIMULATION (Hardware Standby)';
+    }
+  };
+
+  setInterval(updateHwBadge, 2000);
+
   setInterval(async () => {
     try {
       const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : 'https://agrisense-backend-kb22.onrender.com';
@@ -3496,21 +3521,21 @@ function initHardwareBridge() {
       if (res.ok) {
         const data = await res.json();
         if (data && data.temp_c != null) {
+          // Check if data is actively updating
+          window._lastHardwareTime = Date.now();
+          window._isHardwareLive = true;
           state.sensors.airTemp = data.temp_c;
           state.sensors.airHumidity = data.humidity_pct;
           state.sensors.soilA = data.moisture_pct;
-          state.sensors.waterTank = data.water_tank_level;
-          state.pump.on = data.pump_running;
-          if (badge) {
-            badge.style.display = 'inline-block';
-            badge.textContent = '⚡ Synced via Backend API';
-          }
+          if (data.water_tank_level != null) state.sensors.waterTank = data.water_tank_level;
+          if (data.pump_running != null) state.pump.on = data.pump_running;
+          updateHwBadge();
           renderSensors();
           renderStatus();
         }
       }
     } catch(e) {}
-  }, 3500);
+  }, 2500);
 }
 
 function parseHardwareLine(line) {
@@ -10346,10 +10371,17 @@ function wobble(){
   if (state._liveOff) return;
   learnTick();
   const s = state.sensors;
-  s.airTemp = clamp(s.airTemp + (Math.random()-0.5)*0.3, 25, 38);
-  s.airHumidity = clamp(s.airHumidity + (Math.random()-0.5)*1.2, 25, 70);
+  const isLiveHardware = window._isHardwareLive && (Date.now() - (window._lastHardwareTime || 0) < 15000);
+
+  // If live ESP32 is actively streaming, preserve exact hardware readings
+  if (!isLiveHardware) {
+    s.airTemp = clamp(s.airTemp + (Math.random()-0.5)*0.3, 25, 38);
+    s.airHumidity = clamp(s.airHumidity + (Math.random()-0.5)*1.2, 25, 70);
+    s.soilA = clamp(s.soilA + (state.pump.on ? 0.35 : -0.08) + (Math.random()-0.5)*0.1, 10, 95);
+    s.light = clamp(s.light + (Math.random()-0.5)*3, 30, 95);
+  }
+
   s.soilTemp = clamp(s.soilTemp + (Math.random()-0.5)*0.15, 18, 32);
-  s.light = clamp(s.light + (Math.random()-0.5)*3, 30, 95);
   s.pressure = clamp(s.pressure + (Math.random()-0.5)*0.6, 1000, 1020);
   s.airQuality = clamp(s.airQuality + (Math.random()-0.5)*1.8, 10, 65);
   s.waterTemp = clamp(s.waterTemp + (Math.random()-0.5)*0.12, 15, 32);
