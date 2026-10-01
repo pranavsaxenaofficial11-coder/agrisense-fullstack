@@ -392,27 +392,33 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     table.data-table {{
       width: 100%;
       border-collapse: collapse;
-      font-size: 13px;
+      font-size: 12.5px;
       text-align: left;
     }}
     table.data-table th {{
-      background: rgba(255,255,255,0.02);
+      background: rgba(255,255,255,0.03);
       color: var(--text-muted);
       font-weight: 600;
-      padding: 12px 16px;
+      padding: 8px 12px;
       border-bottom: 1px solid var(--border);
       white-space: nowrap;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
+      font-size: 11.5px;
       text-transform: uppercase;
+      letter-spacing: 0.3px;
     }}
     table.data-table td {{
-      padding: 12px 16px;
+      padding: 8px 12px;
       border-bottom: 1px solid var(--border-subtle);
       color: var(--text);
+      white-space: nowrap;
+      max-width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: middle;
     }}
     table.data-table tr:hover td {{
-      background: rgba(255,255,255,0.02);
+      background: rgba(255,255,255,0.03);
     }}
     .mono {{
       font-family: 'JetBrains Mono', monospace;
@@ -1117,13 +1123,34 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     }}
   }}
 
+  function formatCellContent(val) {{
+    if (val === null || val === undefined) {{
+      return '<span style="color:var(--text-dim); font-style:italic;">NULL</span>';
+    }}
+    if (typeof val === 'boolean') {{
+      return val ? '<span class="badge badge-success" style="font-size:10px; padding:1px 5px;">TRUE</span>' : '<span class="badge badge-rose" style="font-size:10px; padding:1px 5px;">FALSE</span>';
+    }}
+    if (typeof val === 'object') {{
+      const str = JSON.stringify(val);
+      const safe = str.replace(/"/g, '&quot;');
+      const preview = str.length > 28 ? str.slice(0, 28) + '...' : str;
+      return `<span style="color:var(--blue); cursor:pointer;" title="${{safe}}">${{preview}}</span>`;
+    }}
+    const strVal = String(val).trim();
+    const safeVal = strVal.replace(/"/g, '&quot;');
+    if (strVal.length > 32) {{
+      return `<span title="${{safeVal}}" style="cursor:help;">${{strVal.slice(0, 32)}}...</span>`;
+    }}
+    return safeVal;
+  }}
+
   async function loadTableData(tableName) {{
     const thead = document.getElementById('raw-db-thead');
     const tbody = document.getElementById('raw-db-tbody');
     const schemaInfo = document.getElementById('table-schema-info');
 
     if (schemaInfo) schemaInfo.innerHTML = `<span style="color:var(--blue)">Querying '${{tableName}}' records...</span>`;
-    if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px; color:var(--text-dim);">Fetching live table rows...</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:14px; color:var(--text-dim);">Fetching live table rows...</td></tr>';
 
     try {{
       const res = await fetch(`/api/control-plane/db/query?table=${{encodeURIComponent(tableName)}}&limit=50`);
@@ -1138,16 +1165,11 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
           if (data.rows.length > 0) {{
             tbody.innerHTML = data.rows.map(r => `
               <tr>
-                ${{data.columns.map(c => {{
-                  let val = r[c];
-                  if (val === null || val === undefined) return '<td class="mono" style="color:var(--text-dim);">NULL</td>';
-                  if (typeof val === 'object') return `<td class="mono" style="max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${{JSON.stringify(val).replace(/"/g, '&quot;')}}">${{JSON.stringify(val)}}</td>`;
-                  return `<td class="mono">${{val}}</td>`;
-                }}).join('')}}
+                ${{data.columns.map(c => `<td class="mono">${{formatCellContent(r[c])}}</td>`).join('')}}
               </tr>
             `).join('');
           }} else {{
-            tbody.innerHTML = `<tr><td colspan="${{data.columns.length}}" style="text-align:center; padding:24px; color:var(--text-dim);">No records exist in table '${{data.table}}'.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="${{data.columns.length}}" style="text-align:center; padding:18px; color:var(--text-dim);">No records exist in table '${{data.table}}'.</td></tr>`;
           }}
         }}
       }} else {{
@@ -1197,16 +1219,11 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
           if (data.rows.length > 0) {{
             tbody.innerHTML = data.rows.map(r => `
               <tr>
-                ${{data.columns.map(c => {{
-                  let val = r[c];
-                  if (val === null || val === undefined) return '<td class="mono" style="color:var(--text-dim);">NULL</td>';
-                  if (typeof val === 'object') return `<td class="mono" style="max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${{JSON.stringify(val).replace(/"/g, '&quot;')}}">${{JSON.stringify(val)}}</td>`;
-                  return `<td class="mono">${{val}}</td>`;
-                }}).join('')}}
+                ${{data.columns.map(c => `<td class="mono">${{formatCellContent(r[c])}}</td>`).join('')}}
               </tr>
             `).join('');
           }} else {{
-            tbody.innerHTML = `<tr><td colspan="${{data.columns.length}}" style="text-align:center; padding:20px; color:var(--text-dim);">Query executed successfully, 0 rows returned.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="${{data.columns.length}}" style="text-align:center; padding:18px; color:var(--text-dim);">Query executed successfully, 0 rows returned.</td></tr>`;
           }}
           container.style.display = 'block';
         }} else {{
