@@ -11,9 +11,19 @@ router = APIRouter(prefix="/api/sensors", tags=["Sensors"])
 def get_field_overview(db: Session = Depends(get_db)):
     ctrl = db.query(models.ControlSystem).first()
     zones = db.query(models.ZoneInfo).all()
+    if not zones:
+        default_zones = [
+            models.ZoneInfo(zone_code="A", name="Polyhouse - Tomato", crop="Tomato (Hybrid)", current_moisture=42.0, moisture_min=35.0, moisture_max=65.0, status="Optimal"),
+            models.ZoneInfo(zone_code="B", name="East Field - Wheat", crop="Wheat (HD-2967)", current_moisture=38.5, moisture_min=30.0, moisture_max=60.0, status="Optimal"),
+            models.ZoneInfo(zone_code="C", name="North Plot - Mustard", crop="Mustard (Pusa Bold)", current_moisture=34.0, moisture_min=30.0, moisture_max=55.0, status="Optimal"),
+            models.ZoneInfo(zone_code="D", name="South Ridge - Potato", crop="Potato (Kufri Jyoti)", current_moisture=41.5, moisture_min=35.0, moisture_max=65.0, status="Optimal"),
+        ]
+        db.add_all(default_zones)
+        db.commit()
+        zones = db.query(models.ZoneInfo).all()
+
     recent = db.query(models.SensorReading).order_by(models.SensorReading.timestamp.desc()).limit(15).all()
 
-    # Generate sparkline list from recent Zone A moisture readings
     sparkline = [r.moisture_pct for r in reversed(recent)] if recent else [38.0, 39.5, 41.0, 40.2, 38.4]
 
     latest_reading = recent[0] if recent else None
@@ -36,7 +46,18 @@ def get_field_overview(db: Session = Depends(get_db)):
 
 @router.get("/zones", response_model=List[ZoneInfoOut])
 def get_zones(db: Session = Depends(get_db)):
-    return db.query(models.ZoneInfo).all()
+    zones = db.query(models.ZoneInfo).all()
+    if not zones:
+        default_zones = [
+            models.ZoneInfo(zone_code="A", name="Polyhouse - Tomato", crop="Tomato (Hybrid)", current_moisture=42.0, moisture_min=35.0, moisture_max=65.0, status="Optimal"),
+            models.ZoneInfo(zone_code="B", name="East Field - Wheat", crop="Wheat (HD-2967)", current_moisture=38.5, moisture_min=30.0, moisture_max=60.0, status="Optimal"),
+            models.ZoneInfo(zone_code="C", name="North Plot - Mustard", crop="Mustard (Pusa Bold)", current_moisture=34.0, moisture_min=30.0, moisture_max=55.0, status="Optimal"),
+            models.ZoneInfo(zone_code="D", name="South Ridge - Potato", crop="Potato (Kufri Jyoti)", current_moisture=41.5, moisture_min=35.0, moisture_max=65.0, status="Optimal"),
+        ]
+        db.add_all(default_zones)
+        db.commit()
+        zones = db.query(models.ZoneInfo).all()
+    return zones
 
 @router.get("/history", response_model=List[SensorReadingOut])
 def get_sensor_history(zone: Optional[str] = None, limit: int = 50, db: Session = Depends(get_db)):

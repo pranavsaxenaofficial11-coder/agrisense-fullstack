@@ -59,19 +59,9 @@ export const ScanPage: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
           <label className="agri-btn-outline" style={{ cursor: 'pointer' }}>
-            <Upload size={16} /> Choose Leaf Image
+            <Upload size={16} /> Upload Crop Leaf Image
             <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
           </label>
-
-          <button
-            onClick={() => {
-              // Sample tomato leaf simulation
-              setImage('https://images.unsplash.com/photo-1592417817098-8f3d6910985b?auto=format&fit=crop&w=400&q=80');
-            }}
-            className="agri-btn-outline"
-          >
-            Load Demo Leaf Image
-          </button>
         </div>
 
         {image && (

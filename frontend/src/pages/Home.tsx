@@ -35,31 +35,34 @@ export const HomePage: React.FC<{ onNavigate: (screen: any) => void }> = ({ onNa
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Top Banner Alert if any zone is low */}
-      {data.zones.some(z => z.current_moisture < z.moisture_min) && (
-        <div style={{
-          background: 'rgba(245, 158, 11, 0.12)',
-          border: '1px solid rgba(245, 158, 11, 0.3)',
-          borderRadius: '12px',
-          padding: '16px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '16px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <AlertTriangle color="#fbbf24" size={24} />
-            <div>
-              <p style={{ fontWeight: 600, color: '#fbbf24' }}>Irrigation Attention Required</p>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                Zone C (Mustard) is at 29.1% moisture, below the minimum 30% threshold.
-              </p>
+      {(() => {
+        const lowZone = data.zones.find(z => z.current_moisture < z.moisture_min);
+        return lowZone ? (
+          <div style={{
+            background: 'rgba(245, 158, 11, 0.12)',
+            border: '1px solid rgba(245, 158, 11, 0.3)',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '16px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <AlertTriangle color="#fbbf24" size={24} />
+              <div>
+                <p style={{ fontWeight: 600, color: '#fbbf24' }}>Irrigation Attention Required</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  Zone {lowZone.zone_code} ({lowZone.crop}) is at {lowZone.current_moisture.toFixed(1)}% moisture, below the minimum {lowZone.moisture_min}% threshold.
+                </p>
+              </div>
             </div>
+            <button onClick={() => onNavigate('controls')} className="agri-btn-primary" style={{ fontSize: '0.82rem', padding: '6px 14px' }}>
+              Open Controls <ArrowRight size={14} />
+            </button>
           </div>
-          <button onClick={() => onNavigate('controls')} className="agri-btn-primary" style={{ fontSize: '0.82rem', padding: '6px 14px' }}>
-            Open Controls <ArrowRight size={14} />
-          </button>
-        </div>
-      )}
+        ) : null;
+      })()}
 
       {/* Environmental Metric Tiles */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
@@ -167,7 +170,11 @@ export const HomePage: React.FC<{ onNavigate: (screen: any) => void }> = ({ onNa
           <Sparkline data={data.sparkline_moisture} height={42} color="#10b981" />
           <div style={{ textAlign: 'right' }}>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', display: 'block' }}>Avg Moisture</span>
-            <span className="mono-val" style={{ fontWeight: 700, color: '#10b981' }}>38.4%</span>
+            <span className="mono-val" style={{ fontWeight: 700, color: '#10b981' }}>
+              {(data.sparkline_moisture && data.sparkline_moisture.length > 0 
+                ? (data.sparkline_moisture.reduce((a, b) => a + b, 0) / data.sparkline_moisture.length).toFixed(1)
+                : data.zones[0]?.current_moisture?.toFixed(1) || '38.0')}%
+            </span>
           </div>
         </div>
       </div>
