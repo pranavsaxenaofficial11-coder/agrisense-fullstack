@@ -65,8 +65,25 @@ def test_endpoints():
     assert r.status_code == 200, f"Mandi rates failed: {r.status_code}"
     print(" -> Live Mandi Rates OK. Count:", len(r.json().get("live_mandi_rates", [])))
 
-    print("\nALL BACKEND API TESTS (SQLITE + MONGODB + LIVE OPEN DATASETS) PASSED SUCCESSFULLY! [OK]")
+    print("Testing /api/control-plane/state ...")
+    r = client.get("/api/control-plane/state")
+    assert r.status_code == 200, f"Control plane state failed: {r.status_code}"
+    state = r.json()
+    print(" -> Control Plane State OK. Total Pipelines:", len(state.get("pipelines", {})))
+
+    print("Testing /api/control-plane/ai-workload ...")
+    r = client.get("/api/control-plane/ai-workload")
+    assert r.status_code == 200, f"AI workload failed: {r.status_code}"
+    print(" -> AI Workload OK. Active Engine:", r.json().get("active_engine"))
+
+    print("Testing /api/control-plane/pipelines/trigger ...")
+    r = client.post("/api/control-plane/pipelines/trigger", json={"pipeline_id": "telemetry_ingest"})
+    assert r.status_code == 200, f"Pipeline trigger failed: {r.status_code}"
+    print(" -> Pipeline Trigger OK:", r.json().get("message"))
+
+    print("\nALL BACKEND API TESTS (SQLITE + MONGODB + LIVE OPEN DATASETS + CONTROL PLANE) PASSED SUCCESSFULLY! [OK]")
 
 if __name__ == "__main__":
     test_endpoints()
+
 

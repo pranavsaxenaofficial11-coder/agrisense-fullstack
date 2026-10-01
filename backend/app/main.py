@@ -24,7 +24,8 @@ from app.routes import (
     weather,
     logs,
     mongodb,
-    analytics
+    analytics,
+    control_plane
 )
 from app.middleware import RateLimiterMiddleware
 from app.mongodb import connect_to_mongodb, close_mongodb_connection, get_mongodb
@@ -88,6 +89,7 @@ app.include_router(user.router)
 app.include_router(weather.router)
 app.include_router(logs.router)
 app.include_router(mongodb.router)
+app.include_router(control_plane.router)
 
 @app.on_event("startup")
 async def on_startup():
