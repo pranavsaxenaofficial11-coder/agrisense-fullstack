@@ -26,16 +26,23 @@ export const ReportPage: React.FC = () => {
     fetchReport();
   }, []);
 
-  if (loading) return <LoadingState message="AgriSense AI is synthesizing weekly sensor logs..." />;
+  if (loading) return <LoadingState message="AgriSense AI is synthesizing weekly sensor logs & telemetry..." />;
   if (error) return <ErrorState message={error} onRetry={fetchReport} />;
   if (!report) return null;
+
+  const today = new Date();
+  const pastWeek = new Date();
+  pastWeek.setDate(today.getDate() - 7);
+  const formatDate = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '850px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Weekly Farm Agronomy Intelligence</h3>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Period: 20 Sep 2026 – 27 Sep 2026 • Samrala North Zone</p>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            Period: {formatDate(pastWeek)} – {formatDate(today)} • Samrala Farm (Ludhiana)
+          </p>
         </div>
         <button onClick={fetchReport} className="agri-btn-primary">
           <Sparkles size={16} /> Regenerate Report

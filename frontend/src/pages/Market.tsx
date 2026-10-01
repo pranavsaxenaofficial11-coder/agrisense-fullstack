@@ -6,6 +6,7 @@ import { Plus, Tag, MapPin, Phone, ShieldCheck } from 'lucide-react';
 
 export const MarketPage: React.FC = () => {
   const [listings, setListings] = useState<MarketListing[]>([]);
+  const [mandiData, setMandiData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState('All');
@@ -29,8 +30,12 @@ export const MarketPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await marketApi.getListings(category === 'All' ? undefined : category);
+      const [res, mandi] = await Promise.all([
+        marketApi.getListings(category === 'All' ? undefined : category),
+        marketApi.getLiveMandiRates().catch(() => null)
+      ]);
       setListings(res);
+      if (mandi) setMandiData(mandi);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch marketplace listings');
     } finally {
@@ -60,6 +65,45 @@ export const MarketPage: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Live APMC Mandi Wholesale Ticker */}
+      {mandiData && mandiData.live_mandi_rates && (
+        <div style={{
+          background: 'rgba(15, 23, 42, 0.7)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: '12px',
+          padding: '14px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="badge badge-success">● LIVE APMC RATES</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Agmarknet Feed · Khanna & Ludhiana Mandis</span>
+            </div>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Govt CACP Mandated Minimum Support Price</span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+            {mandiData.live_mandi_rates.slice(0, 4).map((m: any, idx: number) => (
+              <div key={idx} style={{
+                background: 'rgba(30, 41, 59, 0.6)',
+                border: '1px solid rgba(51, 65, 85, 0.6)',
+                borderRadius: '8px',
+                padding: '8px 12px'
+              }}>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{m.commodity}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '2px' }}>
+                  <strong style={{ fontSize: '1.05rem', color: '#38bdf8' }}>₹{m.modal_price_qtl}</strong>
+                  <span style={{ fontSize: '0.7rem', color: m.trend.startsWith('+') ? '#4ade80' : '#fb7185' }}>{m.trend}</span>
+                </div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>{m.mandi}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Top Header & Actions */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>

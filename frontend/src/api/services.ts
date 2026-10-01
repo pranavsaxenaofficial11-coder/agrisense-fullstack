@@ -51,6 +51,22 @@ export const marketApi = {
       method: 'POST',
       body: JSON.stringify(data)
     }),
+  getLiveMandiRates: () => apiFetch<{
+    source: string;
+    updated_at: string;
+    msp_benchmark_inr_qtl: Record<string, number>;
+    live_mandi_rates: Array<{
+      commodity: string;
+      mandi: string;
+      district: string;
+      state: string;
+      modal_price_qtl: number;
+      min_price_qtl: number;
+      max_price_qtl: number;
+      daily_arrival_tonnes: number;
+      trend: string;
+    }>;
+  }>('/api/market/live-mandi-rates'),
 };
 
 export const communityApi = {
@@ -143,3 +159,32 @@ export const aiApi = {
       body: JSON.stringify({ image_base64: imageBase64, crop })
     }),
 };
+
+export const analyticsApi = {
+  getWaterSavings: () => apiFetch<any>('/api/analytics/water-savings'),
+  getLiveAgroclimatic: (lat = 30.83, lon = 76.19) =>
+    apiFetch<any>(`/api/analytics/live-agroclimatic?lat=${lat}&lon=${lon}`),
+  getLiveSoilTaxonomy: (lat = 30.83, lon = 76.19) =>
+    apiFetch<any>(`/api/analytics/live-soil-taxonomy?lat=${lat}&lon=${lon}`),
+  getLiveReservoirStorage: () =>
+    apiFetch<any>('/api/analytics/live-reservoir-storage'),
+  getSystemMetrics: () =>
+    apiFetch<any>('/api/analytics/system-metrics'),
+};
+
+export const controlPlaneApi = {
+  getState: () => apiFetch<any>('/api/control-plane/state'),
+  togglePipeline: (pipeline_id: string, enabled: boolean) =>
+    apiFetch<any>('/api/control-plane/pipelines/toggle', {
+      method: 'POST',
+      body: JSON.stringify({ pipeline_id, enabled })
+    }),
+  triggerPipeline: (pipeline_id: string) =>
+    apiFetch<any>('/api/control-plane/pipelines/trigger', {
+      method: 'POST',
+      body: JSON.stringify({ pipeline_id })
+    }),
+  triggerBatchAI: () =>
+    apiFetch<any>('/api/control-plane/ai-workload/trigger-batch', { method: 'POST' }),
+};
+
