@@ -19,6 +19,16 @@ class TelemetryPayload(BaseModel):
 @router.get("/status")
 async def get_mongodb_status():
     """Check MongoDB connection status, database name, and collection counts."""
+    if not settings.ENABLE_MONGODB:
+        return {
+            "enabled": False,
+            "configured": bool(settings.MONGODB_URL),
+            "connected": False,
+            "active_db_type": settings.DB_TYPE,
+            "message": "MongoDB is currently disabled. Enable anytime by setting ENABLE_MONGODB=true in .env",
+            "database_name": settings.MONGODB_DB_NAME
+        }
+
     db = get_mongodb()
     
     if db is None:
@@ -27,10 +37,11 @@ async def get_mongodb_status():
         db = get_mongodb()
         if not is_connected or db is None:
             return {
+                "enabled": True,
                 "configured": bool(settings.MONGODB_URL),
                 "connected": False,
                 "active_db_type": settings.DB_TYPE,
-                "message": "MongoDB is not connected. SQLite is currently serving local requests.",
+                "message": "MongoDB is enabled but unreachable. Falling back to primary SQLite database.",
                 "database_name": settings.MONGODB_DB_NAME
             }
 

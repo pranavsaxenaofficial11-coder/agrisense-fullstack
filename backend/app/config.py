@@ -8,9 +8,10 @@ class Settings(BaseModel):
     PROJECT_NAME: str = os.getenv("PROJECT_NAME", "AgriSense API")
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     PORT: int = int(os.getenv("PORT", "8000"))
-    DB_TYPE: str = os.getenv("DB_TYPE", "sqlite")  # "sqlite" for local, "mongodb" for cloud/prod
+    DB_TYPE: str = os.getenv("DB_TYPE", "sqlite")  # "sqlite" for primary storage
+    ENABLE_MONGODB: bool = os.getenv("ENABLE_MONGODB", "false").lower() in ("true", "1", "yes")
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./agrisense.db")
-    MONGODB_URL: str = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+    MONGODB_URL: str = os.getenv("MONGODB_URL", "")
     MONGODB_DB_NAME: str = os.getenv("MONGODB_DB_NAME", "agrisense")
     SECRET_KEY: str = os.getenv("SECRET_KEY", "agrisense_secret_key_2026")
     OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")

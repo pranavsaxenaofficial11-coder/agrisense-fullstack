@@ -11,7 +11,11 @@ class MongoDBManager:
 mongodb_manager = MongoDBManager()
 
 async def connect_to_mongodb() -> bool:
-    """Connect to MongoDB on app startup if DB_TYPE is mongodb or configured."""
+    """Connect to MongoDB on app startup if ENABLE_MONGODB is True and configured."""
+    if not settings.ENABLE_MONGODB:
+        logger.info("MongoDB is disabled by configuration (ENABLE_MONGODB=false).")
+        return False
+
     try:
         if not settings.MONGODB_URL:
             logger.info("MongoDB URL not configured.")

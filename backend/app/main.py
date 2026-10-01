@@ -104,13 +104,14 @@ async def on_startup():
     except Exception as e:
         print(f"SQLite startup seeder warning: {e}")
 
-    # 2. Connect and seed MongoDB (Cloud / IoT DB)
-    try:
-        connected = await connect_to_mongodb()
-        if connected:
-            await seed_mongodb_if_empty()
-    except Exception as e:
-        print(f"MongoDB startup warning: {e}")
+    # 2. Connect and seed MongoDB (if enabled)
+    if settings.ENABLE_MONGODB:
+        try:
+            connected = await connect_to_mongodb()
+            if connected:
+                await seed_mongodb_if_empty()
+        except Exception as e:
+            print(f"MongoDB startup warning: {e}")
 
 @app.on_event("shutdown")
 async def on_shutdown():
@@ -205,7 +206,7 @@ def root_dashboard(request: Request, db: Session = Depends(get_db)):
             "community_posts": u_posts
         })
 
-    mongo_status = "Connected (MongoDB Atlas)" if get_mongodb() is not None else "Standby (Local SQLite Fallback)"
+    mongo_status = "Connected (MongoDB Atlas)" if (settings.ENABLE_MONGODB and get_mongodb() is not None) else "Disabled (Primary SQLite Active)"
     html = render_dashboard_html(user_dicts, mongo_status=mongo_status, sqlite_status="Active & Synced", latency_ms=36.2)
     return HTMLResponse(content=html)
 
@@ -220,7 +221,7 @@ def health():
     return {
         "status": "healthy",
         "database_sqlite": "connected",
-        "database_mongodb": "connected" if get_mongodb() is not None else "fallback_active",
+        "database_mongodb": "connected" if (settings.ENABLE_MONGODB and get_mongodb() is not None) else "disabled",
         "security": "hardened",
         "compression": "gzip_enabled"
     }
