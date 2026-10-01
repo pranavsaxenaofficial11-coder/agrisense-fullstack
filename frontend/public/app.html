@@ -21,7 +21,7 @@
 <meta property="og:description" content="Monitor real-time soil moisture, atmospheric VPD, and control irrigation actuators directly from your browser." />
 <meta property="og:image" content="https://agrisense.app/assets/og-preview.jpg" />
 
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://apis.google.com https://www.google.com https://www.recaptcha.net https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://server.arcgisonline.com https://unpkg.com; connect-src 'self' data: blob: ws: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://*.pages.dev https://*.openrouter.ai https://openrouter.ai https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://generativelanguage.googleapis.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseappcheck.googleapis.com https://content-firebaseappcheck.googleapis.com https://api.open-meteo.com https://geocoding-api.open-meteo.com https://cloudflareinsights.com https://server.arcgisonline.com https://unpkg.com https://api.rss2json.com; worker-src 'self' blob: data:; frame-src https://*.firebaseapp.com https://accounts.google.com https://www.google.com https://recaptcha.google.com https://www.recaptcha.net; base-uri 'self'; form-action 'self'; object-src 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://apis.google.com https://www.google.com https://www.recaptcha.net https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://server.arcgisonline.com https://unpkg.com; connect-src 'self' data: blob: ws: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://*.pages.dev https://*.onrender.com https://agrisense-backend-kb22.onrender.com wss://*.onrender.com wss://agrisense-backend-kb22.onrender.com https://*.openrouter.ai https://openrouter.ai https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://generativelanguage.googleapis.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseappcheck.googleapis.com https://content-firebaseappcheck.googleapis.com https://api.open-meteo.com https://geocoding-api.open-meteo.com https://cloudflareinsights.com https://server.arcgisonline.com https://unpkg.com https://api.rss2json.com; worker-src 'self' blob: data:; frame-src https://*.firebaseapp.com https://accounts.google.com https://www.google.com https://recaptcha.google.com https://www.recaptcha.net; base-uri 'self'; form-action 'self'; object-src 'none';">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <script type="application/ld+json">
@@ -3268,7 +3268,8 @@ function wireMandiArbitrage() {
     mount.innerHTML = '<div style="color:var(--ink-mute);font-size:12px;grid-column:1/-1">Calculating live freight and mandi arbitrage...</div>';
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/market/arbitrage?crop=${encodeURIComponent(crop)}&quantity_qtl=${qty}`);
+      const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : 'https://agrisense-backend-kb22.onrender.com';
+      const res = await fetch(`${apiBase}/api/market/arbitrage?crop=${encodeURIComponent(crop)}&quantity_qtl=${qty}`);
       let data;
       if (res.ok) {
         data = await res.json();
@@ -3403,7 +3404,8 @@ function wireAdvancedHardwareControls() {
     }
     // Also send to backend controls
     try {
-      await fetch('http://127.0.0.1:8000/api/controls/pump/toggle', { method: 'POST' });
+      const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : 'https://agrisense-backend-kb22.onrender.com';
+      await fetch(`${apiBase}/api/controls/pump/toggle`, { method: 'POST' });
     } catch(e){}
   });
 
@@ -3422,7 +3424,8 @@ function wireAdvancedHardwareControls() {
   // Export CSV
   const expBtn = document.getElementById('exportCsvBtn');
   if (expBtn) expBtn.addEventListener('click', () => {
-    window.location.href = 'http://127.0.0.1:8000/api/analytics/export/csv';
+    const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : 'https://agrisense-backend-kb22.onrender.com';
+    window.location.href = `${apiBase}/api/analytics/export/csv`;
   });
 
   // Start Oscilloscope loop (ticks every 1s)
@@ -3485,10 +3488,11 @@ function initHardwareBridge() {
     }
   });
 
-  // Background Poller: If FastAPI backend is running locally on port 8000, fetch latest hardware data
+  // Background Poller: Fetch latest hardware data from backend
   setInterval(async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/sensors/latest', { cache: 'no-store' });
+      const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : 'https://agrisense-backend-kb22.onrender.com';
+      const res = await fetch(`${apiBase}/api/sensors/latest`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         if (data && data.temp_c != null) {
