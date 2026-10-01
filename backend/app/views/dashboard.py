@@ -514,7 +514,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
   <!-- Main Navigation Tabs -->
   <div class="nav-tabs">
     <button class="tab-btn active" onclick="switchTab('tab-stakeholders')">👥 Stakeholders ({total_users})</button>
-    <button class="tab-btn" onclick="switchTab('tab-db-explorer')">🗄️ Database & Schema Explorer</button>
+    <button class="tab-btn" onclick="switchTab('tab-db-explorer')">🗄️ Database & SQL Console</button>
     <button class="tab-btn" onclick="switchTab('tab-api-matrix')">⚡ REST API Health Matrix</button>
     <button class="tab-btn" onclick="switchTab('tab-open-data')">🌐 Open-Data Telemetry Feeds</button>
     <button class="tab-btn" onclick="switchTab('tab-control-plane')">🎛️ Pipelines & AI Orchestration</button>
@@ -565,11 +565,11 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     </div>
   </div>
 
-  <!-- TAB 2: DATABASE & SCHEMA EXPLORER -->
+  <!-- TAB 2: DATABASE & CUSTOM SQL CONSOLE -->
   <div id="tab-db-explorer" class="tab-pane">
     <div class="agri-card">
       <div class="card-header">
-        <div class="card-title">🗄️ Database Tables & Schemas</div>
+        <div class="card-title">🗄️ Database Tables & Fast Schema Inspector</div>
         <div style="display: flex; gap: 8px;">
           <select id="db-table-select" class="btn" onchange="loadTableData(this.value)">
             <!-- Options populated dynamically -->
@@ -583,11 +583,39 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
 
       <div id="table-schema-info" style="margin-bottom: 16px; font-size: 13px; color: var(--text-dim);"></div>
 
-      <div class="data-table-container" style="max-height: 480px;">
+      <div class="data-table-container" style="max-height: 360px; margin-bottom: 20px;">
         <table class="data-table" id="raw-db-table">
           <thead id="raw-db-thead"></thead>
           <tbody id="raw-db-tbody"></tbody>
         </table>
+      </div>
+
+      <!-- Interactive Custom Read-Only SQL Console -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <strong style="font-size: 14px; color: #fff; display: flex; align-items: center; gap: 6px;">
+            ⚡ Custom Read-Only SQL Query Console
+          </strong>
+          <span class="badge badge-blue mono">Safe Transaction (SELECT Only)</span>
+        </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+          <input 
+            type="text" 
+            id="custom-sql-input" 
+            class="slash-input" 
+            style="padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 13px;"
+            value="SELECT id, name, role, email, points FROM users LIMIT 10" 
+            onkeydown="if(event.key==='Enter') executeCustomSql()"
+          />
+          <button class="btn primary" onclick="executeCustomSql()">Execute SQL</button>
+        </div>
+        <div id="sql-exec-status" style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;"></div>
+        <div class="data-table-container" id="sql-results-container" style="display: none; max-height: 280px;">
+          <table class="data-table" id="sql-results-table">
+            <thead id="sql-results-thead"></thead>
+            <tbody id="sql-results-tbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -597,7 +625,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     <div class="agri-card">
       <div class="card-header">
         <div class="card-title">⚡ Core REST API Endpoints Matrix</div>
-        <button class="btn primary" onclick="testAllEndpoints()">⚡ Ping All 12 Endpoints</button>
+        <button class="btn primary" onclick="testAllEndpoints()">⚡ Ping All Endpoints</button>
       </div>
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
         Real-time roundtrip testing of all operational FastAPI routes. Measures genuine client-server latency and HTTP status.
@@ -628,6 +656,14 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px;">
       <div class="agri-card">
         <div class="card-header">
+          <div class="card-title">🌱 Soil Health Index (SHI) & Suitability</div>
+          <button class="btn secondary" onclick="loadOpenDataFeed('shi')">Refresh</button>
+        </div>
+        <pre class="json-viewer" id="json-shi">Loading Soil Health Index...</pre>
+      </div>
+
+      <div class="agri-card">
+        <div class="card-header">
           <div class="card-title">🛰️ ISRIC SoilGrids 2.0 Taxonomy</div>
           <button class="btn secondary" onclick="loadOpenDataFeed('soil')">Refresh</button>
         </div>
@@ -650,7 +686,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
         <pre class="json-viewer" id="json-agro">Loading agrometeorological feed...</pre>
       </div>
 
-      <div class="agri-card">
+      <div class="agri-card" style="grid-column: 1 / -1;">
         <div class="card-header">
           <div class="card-title">🌾 Agmarknet Live Mandi Rates</div>
           <button class="btn secondary" onclick="loadOpenDataFeed('mandi')">Refresh</button>
@@ -767,6 +803,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     fetchSystemInfo();
     loadDbTablesList();
     initApiMatrix();
+    loadOpenDataFeed('shi');
     loadOpenDataFeed('soil');
     loadOpenDataFeed('reservoirs');
     loadOpenDataFeed('agro');
@@ -903,11 +940,52 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     if (val) loadTableData(val);
   }}
 
+  async function executeCustomSql() {{
+    const sql = document.getElementById('custom-sql-input').value.trim();
+    const statusDiv = document.getElementById('sql-exec-status');
+    const container = document.getElementById('sql-results-container');
+    const thead = document.getElementById('sql-results-thead');
+    const tbody = document.getElementById('sql-results-tbody');
+
+    if (!sql) return;
+    statusDiv.innerHTML = `<span style="color:var(--blue)">Executing query...</span>`;
+
+    try {{
+      const res = await fetch('/api/control-plane/db/execute-sql', {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify({{ sql: sql }})
+      }});
+      const data = await res.json();
+      if (res.ok) {{
+        statusDiv.innerHTML = `<span style="color:#34d399;">✓ Executed in ${{data.execution_time_ms}} ms • Returned ${{data.row_count}} row(s)</span>`;
+        if (data.columns && data.columns.length > 0) {{
+          thead.innerHTML = `<tr>${{data.columns.map(c => `<th>${{c}}</th>`).join('')}}</tr>`;
+          tbody.innerHTML = data.rows.map(r => `
+            <tr>
+              ${{data.columns.map(c => `<td class="mono">${{typeof r[c] === 'object' ? JSON.stringify(r[c]) : (r[c] !== null ? r[c] : '<span style="color:var(--text-dim);">NULL</span>')}}</td>`).join('')}}
+            </tr>
+          `).join('');
+          container.style.display = 'block';
+        }} else {{
+          container.style.display = 'none';
+        }}
+      }} else {{
+        statusDiv.innerHTML = `<span style="color:#f43f5e;">✕ ${{data.detail || 'SQL Execution failed'}}</span>`;
+        container.style.display = 'none';
+      }}
+    }} catch (e) {{
+      statusDiv.innerHTML = `<span style="color:#f43f5e;">✕ Error: ${{e.message}}</span>`;
+      container.style.display = 'none';
+    }}
+  }}
+
   // REST API Endpoints Matrix
   const ENDPOINTS = [
     {{ method: 'GET', path: '/api/health', desc: 'System liveness, SQLite WAL, & MongoDB fallback probe' }},
     {{ method: 'GET', path: '/api/sensors/overview', desc: 'Aggregated microclimate & active farm zone telemetry' }},
     {{ method: 'GET', path: '/api/controls', desc: 'Solenoid valve actuators & pump relay state' }},
+    {{ method: 'GET', path: '/api/analytics/soil-health-index', desc: 'Composite Soil Health Index (SHI 0-100) & Suitability' }},
     {{ method: 'GET', path: '/api/analytics/live-agroclimatic', desc: 'Open-Meteo VPD, solar radiation & ET0' }},
     {{ method: 'GET', path: '/api/analytics/live-soil-taxonomy', desc: 'ISRIC SoilGrids 2.0 chemical taxonomy' }},
     {{ method: 'GET', path: '/api/analytics/live-reservoir-storage', desc: 'Central Water Commission (CWC) Dam Bulletins' }},
@@ -966,6 +1044,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
 
   async function loadOpenDataFeed(feedType) {{
     const endpoints = {{
+      shi: '/api/analytics/soil-health-index',
       soil: '/api/analytics/live-soil-taxonomy',
       reservoirs: '/api/analytics/live-reservoir-storage',
       agro: '/api/analytics/live-agroclimatic',

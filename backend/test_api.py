@@ -55,6 +55,11 @@ def test_endpoints():
     assert r.status_code == 200, f"Soil taxonomy failed: {r.status_code}"
     print(" -> Soil Taxonomy OK. pH:", r.json().get("ph_water"), "SOC:", r.json().get("organic_carbon_g_kg"))
 
+    print("Testing /api/analytics/soil-health-index ...")
+    r = client.get("/api/analytics/soil-health-index")
+    assert r.status_code == 200, f"Soil Health Index failed: {r.status_code}"
+    print(" -> Soil Health Index OK. SHI Score:", r.json().get("soil_health_index"), "Rating:", r.json().get("rating"))
+
     print("Testing /api/analytics/live-reservoir-storage ...")
     r = client.get("/api/analytics/live-reservoir-storage")
     assert r.status_code == 200, f"Reservoir storage failed: {r.status_code}"
@@ -86,6 +91,11 @@ def test_endpoints():
     assert r.status_code == 200, f"DB query failed: {r.status_code}"
     print(" -> DB Query OK. Total Users in DB:", r.json().get("total_count"))
 
+    print("Testing /api/control-plane/db/execute-sql (safe read-only) ...")
+    r = client.post("/api/control-plane/db/execute-sql", json={"sql": "SELECT id, name, role, email FROM users LIMIT 3"})
+    assert r.status_code == 200, f"Execute SQL failed: {r.status_code}"
+    print(" -> Execute SQL OK. Returned Rows:", r.json().get("row_count"), "Time:", r.json().get("execution_time_ms"), "ms")
+
     print("Testing /api/control-plane/ai-workload ...")
     r = client.get("/api/control-plane/ai-workload")
     assert r.status_code == 200, f"AI workload failed: {r.status_code}"
@@ -96,7 +106,7 @@ def test_endpoints():
     assert r.status_code == 200, f"Pipeline trigger failed: {r.status_code}"
     print(" -> Pipeline Trigger OK:", r.json().get("message"))
 
-    print("\nALL BACKEND API TESTS (SQLITE + MONGODB + LIVE OPEN DATASETS + CONTROL PLANE) PASSED SUCCESSFULLY! [OK]")
+    print("\nALL BACKEND API TESTS (SQLITE + MONGODB + LIVE OPEN DATASETS + CONTROL PLANE + SQL CONSOLE) PASSED SUCCESSFULLY! [OK]")
 
 if __name__ == "__main__":
     test_endpoints()

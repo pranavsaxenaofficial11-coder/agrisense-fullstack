@@ -182,3 +182,46 @@ def query_db_table(table: str, limit: int = 50, offset: int = 0, db: Session = D
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to query table {table}: {str(e)}")
+
+class SQLExecuteRequest(BaseModel):
+    sql: str
+
+@router.post("/db/execute-sql")
+def execute_custom_sql(req: SQLExecuteRequest, db: Session = Depends(get_db)):
+    """Safely executes a read-only SQL query for administrative data verification."""
+    clean_sql = req.sql.strip().rstrip(";")
+    upper_sql = clean_sql.upper()
+    if not (upper_sql.startswith("SELECT") or upper_sql.startswith("PRAGMA")):
+        raise HTTPException(status_code=400, detail="Only read-only SELECT or PRAGMA queries are permitted.")
+    
+    forbidden = ["DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "TRUNCATE", "CREATE", "REPLACE", "ATTACH", "DETACH", "GRANT", "REVOKE"]
+    for word in forbidden:
+        if f" {word} " in f" {upper_sql} " or upper_sql.startswith(word):
+            raise HTTPException(status_code=400, detail=f"Destructive or mutating SQL keyword '{word}' is strictly forbidden.")
+
+    if "LIMIT" not in upper_sql:
+        clean_sql = f"{clean_sql} LIMIT 100"
+
+    try:
+        start = time.time()
+        res = db.execute(text(clean_sql))
+        dur_ms = round((time.time() - start) * 1000, 2)
+        keys = list(res.keys())
+        rows = [dict(zip(keys, row)) for row in res.fetchall()]
+        
+        for r in rows:
+            for k, v in r.items():
+                if hasattr(v, "isoformat"):
+                    r[k] = v.isoformat()
+                    
+        return {
+            "status": "success",
+            "sql": clean_sql,
+            "execution_time_ms": dur_ms,
+            "row_count": len(rows),
+            "columns": keys,
+            "rows": rows
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"SQL Execution Error: {str(e)}")
+
