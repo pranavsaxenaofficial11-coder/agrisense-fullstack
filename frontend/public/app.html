@@ -4128,7 +4128,57 @@ function renderSensors(){
       grid.appendChild(wrap);
     }
   });
+  if (typeof updateDynamicPlantHealth === 'function') updateDynamicPlantHealth();
   if (typeof updateAgronomyRiskModel === 'function') updateAgronomyRiskModel();
+}
+
+/* Dynamic 0-100 Crop & Soil Health Score computed from live incoming hardware telemetry */
+function updateDynamicPlantHealth() {
+  const s = state.sensors;
+  if (!s) return;
+
+  // 1. Soil Moisture Score (Ideal 35% - 65%)
+  const moist = (s.soilA != null) ? s.soilA : 40;
+  let moistScore = 100;
+  if (moist < 35) moistScore = Math.max(15, 100 - (35 - moist) * 3.8);
+  else if (moist > 65) moistScore = Math.max(30, 100 - (moist - 65) * 2.6);
+
+  // 2. Air Temperature Score (Ideal 22°C - 32°C)
+  const temp = (s.airTemp != null) ? s.airTemp : 28;
+  let tempScore = 100;
+  if (temp < 20) tempScore = Math.max(25, 100 - (20 - temp) * 4.2);
+  else if (temp > 32) tempScore = Math.max(20, 100 - (temp - 32) * 5.0);
+
+  // 3. Air Humidity Score (Ideal 45% - 75%)
+  const hum = (s.airHumidity != null) ? s.airHumidity : 60;
+  let humScore = 100;
+  if (hum < 40) humScore = Math.max(35, 100 - (40 - hum) * 2.2);
+  else if (hum > 80) humScore = Math.max(35, 100 - (hum - 80) * 2.5);
+
+  // 4. Light Level Score (Ideal 40% - 85%)
+  const light = (s.light != null) ? s.light : 65;
+  let lightScore = 100;
+  if (light < 25) lightScore = Math.max(45, 100 - (25 - light) * 2.0);
+
+  // 5. Composite Agronomic Score
+  const finalScore = Math.round(moistScore * 0.35 + tempScore * 0.25 + humScore * 0.2 + lightScore * 0.2);
+  state.health = Math.min(99, Math.max(20, finalScore));
+
+  // Update DOM elements
+  const elStat = document.getElementById('statHealth');
+  if (elStat) elStat.innerHTML = `${state.health}<span class="u">/100</span>`;
+
+  const elNum = document.getElementById('healthNum');
+  if (elNum) elNum.textContent = state.health;
+
+  // Descriptive text
+  const elDesc = document.querySelector('[data-i18n="st_health_d"]');
+  if (elDesc) {
+    if (state.health >= 88) elDesc.textContent = 'Excellent · Prime Fertile';
+    else if (state.health >= 75) elDesc.textContent = 'Good · Balanced Zone';
+    else if (state.health >= 60) elDesc.textContent = 'Fair · Irrigation Needed';
+    else elDesc.textContent = 'Critical · Moisture/Heat Stress';
+  }
 }
 
 /* ============ CROP ENVIRONMENT MATCH + LEARNING UI ============ */
@@ -4199,7 +4249,26 @@ function renderAction(){
     $('#hdrPill2').style.display = 'none';
   }
 }
-function stopPump(){ state.pump.on = false; addLog({ source: 'me', what: `Stopped pump (Zone ${state.pump.zone}) manually`, notes: 'Override from dashboard' }); renderAction(); renderControls(); renderLog(); renderStatus(); toast('Pump stopped · override logged'); }
+async function syncPumpStateToBackend(isOn) {
+  const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : 'https://agrisense-backend-kb22.onrender.com';
+  try {
+    await fetch(`${apiBase}/api/controls`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pump_state: isOn, manual_override: true })
+    });
+  } catch(e) {
+    console.warn('Sync pump error:', e);
+  }
+}
+
+function stopPump(){
+  state.pump.on = false;
+  syncPumpStateToBackend(false);
+  addLog({ source: 'me', what: `Stopped pump (Zone ${state.pump.zone}) manually`, notes: 'Override from dashboard' });
+  renderAction(); renderControls(); renderLog(); renderStatus();
+  toast('Pump stopped · command sent to hardware');
+}
 
 /* ============ SUGGESTIONS ============ */
 function renderSuggestions(){
@@ -4314,15 +4383,23 @@ function renderAdvPanel(){
 }
 $('#pumpStopBtn').addEventListener('click', () => {
   if (state.pump.on){ stopPump(); }
-  else { state.pump.on=true; state.pump.zone='B3'; state.pump.startMs=Date.now(); state.pump.durMin=5; state.pump.reason='Manual: 5-min cycle from controls'; addLog({ source:'me', what:'Started manual irrigation Zone B3 (5 min)', notes:'From controls screen' }); renderControls(); renderAction(); renderLog(); renderStatus(); toast('Pump running · 5 min'); }
+  else {
+    state.pump.on=true; state.pump.zone='B3'; state.pump.startMs=Date.now(); state.pump.durMin=5;
+    state.pump.reason='Manual: 5-min cycle from controls';
+    syncPumpStateToBackend(true);
+    addLog({ source:'me', what:'Started manual irrigation Zone B3 (5 min)', notes:'From controls screen' });
+    renderControls(); renderAction(); renderLog(); renderStatus(); toast('Pump running · 5 min (Signal sent to Hardware)');
+  }
 });
 $$('[data-action^="run-"]').forEach(b => {
   b.addEventListener('click', () => {
     const zone = b.dataset.action.split('-')[1].toUpperCase();
     state.pump.on=true; state.pump.zone=zone; state.pump.startMs=Date.now(); state.pump.durMin=5;
     state.pump.reason=`Manual: 5-min cycle (Zone ${zone})`;
+    syncPumpStateToBackend(true);
     addLog({ source:'me', what:`Started manual irrigation Zone ${zone} (5 min)`, notes:'Quick action' });
     renderControls(); renderAction(); renderLog(); renderStatus(); awardPoints(5, `Manual watering · Zone ${zone}`);
+    toast(`Started 5 min watering Zone ${zone} · hardware active`);
   });
 });
 
