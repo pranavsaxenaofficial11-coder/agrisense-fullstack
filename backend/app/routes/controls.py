@@ -23,6 +23,7 @@ def get_control_status(db: Session = Depends(get_db)):
 def toggle_pump(db: Session = Depends(get_db)):
     ctrl = get_or_create_controls(db)
     ctrl.pump_state = not ctrl.pump_state
+    ctrl.manual_override = True  # Explicit cloud command for hardware
 
     # Log the action
     status_str = "STARTED" if ctrl.pump_state else "STOPPED"

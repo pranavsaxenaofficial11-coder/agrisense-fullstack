@@ -143,8 +143,14 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
     # 3. Update Control System
     ctrl = db.query(models.ControlSystem).first()
     if ctrl:
-        if data.pump_state is not None:
-            ctrl.pump_state = data.pump_state
+        if not ctrl.manual_override:
+            if data.pump_state is not None:
+                ctrl.pump_state = data.pump_state
+        else:
+            # If ESP32 has acknowledged and switched to the desired state, clear the override lock
+            if data.pump_state == ctrl.pump_state:
+                ctrl.manual_override = False
+
         if data.tank_level_pct is not None:
             ctrl.water_tank_level = data.tank_level_pct
         elif data.tank_cm is not None:
@@ -171,8 +177,9 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
 
     return {
         "status": "success",
-        "pump_command": ctrl.pump_state if ctrl else False,
-        "auto_mode": ctrl.auto_mode if ctrl else True,
+        "pump_command": bool(ctrl.pump_state) if ctrl else False,
+        "auto_mode": bool(ctrl.auto_mode) if ctrl else True,
+        "manual_override": bool(ctrl.manual_override) if ctrl else False,
         "recorded": {
             "temp": temp,
             "humidity": hum,
