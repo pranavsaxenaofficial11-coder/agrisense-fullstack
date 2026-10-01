@@ -84,6 +84,15 @@ class HardwareIngest(BaseModel):
     fan_state: Optional[bool] = None
     zone: Optional[str] = "Zone A"
 
+latest_hardware_cache = {
+    "light_pct": 55.0,
+    "rain_pct": 0.0,
+    "soil_moisture_1": 38.4,
+    "soil_moisture_2": 38.4,
+    "soil_average": 38.4,
+    "fan_state": False
+}
+
 @router.post("/ingest")
 async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(get_db)):
     """
@@ -94,6 +103,20 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
     temp = data.air_temp if data.air_temp is not None else 28.0
     hum = data.air_humidity if data.air_humidity is not None else 60.0
     lux = (data.light_pct * 1000.0) if data.light_pct is not None else 45000.0
+
+    # Cache latest live hardware parameters
+    if data.light_pct is not None:
+        latest_hardware_cache["light_pct"] = data.light_pct
+    if data.rain_pct is not None:
+        latest_hardware_cache["rain_pct"] = data.rain_pct
+    if data.soil_moisture_1 is not None:
+        latest_hardware_cache["soil_moisture_1"] = data.soil_moisture_1
+    if data.soil_moisture_2 is not None:
+        latest_hardware_cache["soil_moisture_2"] = data.soil_moisture_2
+    if data.soil_average is not None:
+        latest_hardware_cache["soil_average"] = data.soil_average
+    if data.fan_state is not None:
+        latest_hardware_cache["fan_state"] = data.fan_state
 
     # 1. Record reading in history
     reading = models.SensorReading(
@@ -139,6 +162,8 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
         "humidity_pct": hum,
         "moisture_pct": moist,
         "sunlight_lux": lux,
+        "light_pct": latest_hardware_cache["light_pct"],
+        "rain_pct": latest_hardware_cache["rain_pct"],
         "water_tank_level": ctrl.water_tank_level if ctrl else 80.0,
         "pump_running": ctrl.pump_state if ctrl else False,
         "timestamp": datetime.utcnow().isoformat()
@@ -152,6 +177,8 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
             "temp": temp,
             "humidity": hum,
             "moisture": moist,
+            "light_pct": latest_hardware_cache["light_pct"],
+            "rain_pct": latest_hardware_cache["rain_pct"],
             "pump": ctrl.pump_state if ctrl else False
         }
     }
@@ -167,7 +194,13 @@ def get_latest_hardware_reading(db: Session = Depends(get_db)):
         "temp_c": recent.temp_c if recent else 28.5,
         "humidity_pct": recent.humidity_pct if recent else 64.0,
         "moisture_pct": recent.moisture_pct if recent else 38.4,
+        "soil_moisture_1": latest_hardware_cache.get("soil_moisture_1", 38.4),
+        "soil_moisture_2": latest_hardware_cache.get("soil_moisture_2", 38.4),
+        "soil_average": latest_hardware_cache.get("soil_average", 38.4),
         "sunlight_lux": recent.sunlight_lux if recent else 48000.0,
+        "light_pct": latest_hardware_cache.get("light_pct", 55.0),
+        "rain_pct": latest_hardware_cache.get("rain_pct", 0.0),
+        "fan_state": latest_hardware_cache.get("fan_state", False),
         "water_tank_level": ctrl.water_tank_level if ctrl else 84.5,
         "pump_running": ctrl.pump_state if ctrl else False,
         "timestamp": recent.timestamp.isoformat() if recent else datetime.utcnow().isoformat()

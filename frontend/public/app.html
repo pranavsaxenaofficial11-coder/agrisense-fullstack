@@ -3526,9 +3526,14 @@ function initHardwareBridge() {
           window._isHardwareLive = true;
           state.sensors.airTemp = data.temp_c;
           state.sensors.airHumidity = data.humidity_pct;
-          state.sensors.soilA = data.moisture_pct;
+          state.sensors.soilA = (data.soil_average != null) ? data.soil_average : data.moisture_pct;
+          if (data.soil_moisture_1 != null) state.sensors.soilB = data.soil_moisture_1;
+          if (data.light_pct != null) state.sensors.light = data.light_pct;
+          else if (data.sunlight_lux != null) state.sensors.light = Math.min(100, Math.round(data.sunlight_lux / 1000.0));
+          if (data.rain_pct != null) state.sensors.rain = data.rain_pct;
           if (data.water_tank_level != null) state.sensors.waterTank = data.water_tank_level;
           if (data.pump_running != null) state.pump.on = data.pump_running;
+          if (data.fan_state != null) state.fanOn = data.fan_state;
           updateHwBadge();
           renderSensors();
           renderStatus();
