@@ -46,3 +46,7 @@ def get_collection(name: str):
     if mongodb_manager.db is not None:
         return mongodb_manager.db[name]
     return None
+
+def is_mongo_connected() -> bool:
+    """Check if MongoDB client is initialized and connected."""
+    return mongodb_manager.db is not None

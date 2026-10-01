@@ -71,6 +71,21 @@ def test_endpoints():
     state = r.json()
     print(" -> Control Plane State OK. Total Pipelines:", len(state.get("pipelines", {})))
 
+    print("Testing /api/control-plane/system-info ...")
+    r = client.get("/api/control-plane/system-info")
+    assert r.status_code == 200, f"System info failed: {r.status_code}"
+    print(" -> System Info OK. Host:", r.json().get("hostname"), "PID:", r.json().get("process_pid"))
+
+    print("Testing /api/control-plane/db/tables ...")
+    r = client.get("/api/control-plane/db/tables")
+    assert r.status_code == 200, f"DB tables failed: {r.status_code}"
+    print(" -> DB Tables OK. Count:", len(r.json().get("tables", [])))
+
+    print("Testing /api/control-plane/db/query (table=users) ...")
+    r = client.get("/api/control-plane/db/query?table=users&limit=5")
+    assert r.status_code == 200, f"DB query failed: {r.status_code}"
+    print(" -> DB Query OK. Total Users in DB:", r.json().get("total_count"))
+
     print("Testing /api/control-plane/ai-workload ...")
     r = client.get("/api/control-plane/ai-workload")
     assert r.status_code == 200, f"AI workload failed: {r.status_code}"
@@ -85,5 +100,3 @@ def test_endpoints():
 
 if __name__ == "__main__":
     test_endpoints()
-
-
