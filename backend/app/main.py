@@ -96,6 +96,9 @@ app.include_router(logs.router)
 app.include_router(mongodb.router)
 app.include_router(control_plane.router)
 
+from app.routes.sensors import ingest_hardware_reading
+app.post("/api/telemetry/ingest", tags=["Sensors"])(ingest_hardware_reading)
+
 @app.on_event("startup")
 async def on_startup():
     # 1. Seed SQLite (Local DB)
