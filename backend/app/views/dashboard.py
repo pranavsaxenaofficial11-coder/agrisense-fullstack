@@ -261,10 +261,11 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
       gap: 8px;
     }}
 
-    /* Slash Search Bar */
+    /* Search Container with Active Autocomplete */
     .search-container {{
       position: relative;
       margin-bottom: 20px;
+      z-index: 50;
     }}
     .search-input-wrapper {{
       position: relative;
@@ -276,6 +277,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
       left: 16px;
       color: var(--text-dim);
       font-size: 18px;
+      pointer-events: none;
     }}
     .slash-input {{
       width: 100%;
@@ -305,7 +307,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
       font-size: 11px;
       background: var(--bg-surface);
       border: 1px solid var(--border);
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: 6px;
       color: var(--blue);
       cursor: pointer;
@@ -314,6 +316,69 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     .slash-chip:hover {{
       background: var(--card-hover);
       border-color: var(--blue);
+      color: #fff;
+    }}
+
+    /* Active Suggestions Floating Dropdown */
+    .suggestions-dropdown {{
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: #0f192b;
+      border: 1px solid var(--border-focus);
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+      max-height: 380px;
+      overflow-y: auto;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }}
+    .suggestions-dropdown.open {{
+      display: block;
+    }}
+    .suggestion-header {{
+      padding: 8px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      justify-content: space-between;
+    }}
+    .suggestion-item {{
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: background 0.15s;
+    }}
+    .suggestion-item:last-child {{
+      border-bottom: none;
+    }}
+    .suggestion-item:hover {{
+      background: rgba(56, 189, 248, 0.1);
+    }}
+    .user-avatar-badge {{
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }}
 
     /* Data Grids & Tables */
@@ -521,7 +586,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     <button class="tab-btn" onclick="switchTab('tab-oscilloscope')">📈 Latency Oscilloscope</button>
   </div>
 
-  <!-- TAB 1: STAKEHOLDERS & SLASH SEARCH -->
+  <!-- TAB 1: STAKEHOLDERS & ACTIVE AUTOCOMPLETE SEARCH -->
   <div id="tab-stakeholders" class="tab-pane active">
     <div class="search-container">
       <div class="search-input-wrapper">
@@ -530,9 +595,14 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
           type="text" 
           id="slash-search-input" 
           class="slash-input" 
-          placeholder="Search by name, phone, email, crop, or slash commands (/logins, /messages, /devices, /features, /farmers, /officers)..."
+          placeholder="Type to search (e.g. 'P', 'Pranavi', 'Punjab', 'Wheat') or slash commands (/farmers, /officers, /logins, /messages)..."
           oninput="handleSearch(this.value)"
+          onfocus="handleSearch(this.value)"
+          autocomplete="off"
         />
+        <div class="suggestions-dropdown" id="search-suggestions-dropdown">
+          <!-- Populated in real-time as user types -->
+        </div>
       </div>
       <div class="slash-hints">
         <span class="slash-chip" onclick="setSearchFilter('/farmers')">/farmers</span>
@@ -542,6 +612,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
         <span class="slash-chip" onclick="setSearchFilter('/devices')">/devices</span>
         <span class="slash-chip" onclick="setSearchFilter('/features')">/features</span>
         <span class="slash-chip" onclick="setSearchFilter('')">Clear Filter</span>
+        <span id="search-count-badge" class="badge badge-blue mono" style="margin-left: auto;">Showing {total_users} users</span>
       </div>
     </div>
 
@@ -812,6 +883,15 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     loadAiWorkload();
     initOscilloscope();
     setInterval(fetchSystemInfo, 5000);
+
+    // Close suggestions on outside click
+    document.addEventListener('click', (e) => {{
+      const searchBox = document.querySelector('.search-container');
+      if (searchBox && !searchBox.contains(e.target)) {{
+        const dd = document.getElementById('search-suggestions-dropdown');
+        if (dd) dd.classList.remove('open');
+      }}
+    }});
   }});
 
   function switchTab(tabId) {{
@@ -822,14 +902,23 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     document.getElementById(tabId).classList.add('active');
   }}
 
+  function getUserLocation(u) {{
+    const parts = [u.village, u.district, u.state].filter(Boolean);
+    return parts.length > 0 ? parts.join(', ') : (u.location || 'Punjab, India');
+  }}
+
   function renderStakeholders(users) {{
     const tbody = document.getElementById("stakeholders-tbody");
+    const badge = document.getElementById("search-count-badge");
+    if (badge) badge.textContent = `Showing ${{users.length}} of ${{RAW_USERS.length}} users`;
+
     if (!users || users.length === 0) {{
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-dim); padding: 24px;">No matching stakeholders found.</td></tr>';
       return;
     }}
     tbody.innerHTML = users.map(u => {{
       const roleBadge = u.role === 'farmer' ? 'badge-success' : (u.role === 'officer' ? 'badge-blue' : (u.role === 'admin' ? 'badge-rose' : 'badge-amber'));
+      const loc = getUserLocation(u);
       return `
         <tr>
           <td>
@@ -838,7 +927,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
           </td>
           <td><span class="badge ${{roleBadge}}">${{u.role || 'user'}}</span></td>
           <td class="mono">${{u.phone || 'N/A'}}</td>
-          <td>${{u.location || 'Punjab, India'}}</td>
+          <td>${{loc}}</td>
           <td class="mono">${{u.farm_size_acres ? u.farm_size_acres + ' Acres' : '--'}}</td>
           <td class="mono" style="color: #fbbf24;">${{u.points || 0}} pts</td>
           <td>
@@ -850,34 +939,107 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
   }}
 
   function handleSearch(val) {{
-    const q = val.trim().toLowerCase();
+    const q = (val || '').trim().toLowerCase();
+    const dropdown = document.getElementById('search-suggestions-dropdown');
+
     if (!q) {{
       CURRENT_USERS = [...RAW_USERS];
       renderStakeholders(CURRENT_USERS);
+      if (dropdown) dropdown.classList.remove('open');
       return;
     }}
+
+    // Slash command shortcuts
     if (q === '/farmers') {{
       CURRENT_USERS = RAW_USERS.filter(u => u.role === 'farmer');
     }} else if (q === '/officers') {{
       CURRENT_USERS = RAW_USERS.filter(u => u.role === 'officer' || u.role === 'agronomist');
-    }} else if (q.startsWith('/')) {{
-      CURRENT_USERS = RAW_USERS;
+    }} else if (q === '/logins') {{
+      CURRENT_USERS = RAW_USERS.filter(u => (u.login_count && u.login_count > 0));
+    }} else if (q === '/messages') {{
+      CURRENT_USERS = RAW_USERS.filter(u => (u.direct_messages && u.direct_messages.length > 0));
+    }} else if (q === '/devices') {{
+      CURRENT_USERS = RAW_USERS.filter(u => (u.device_type && !u.device_type.includes('Not detected')));
+    }} else if (q === '/features') {{
+      CURRENT_USERS = RAW_USERS.filter(u => (u.features_used && u.features_used.length > 0));
     }} else {{
-      CURRENT_USERS = RAW_USERS.filter(u => 
-        (u.name && u.name.toLowerCase().includes(q)) ||
-        (u.email && u.email.toLowerCase().includes(q)) ||
-        (u.phone && u.phone.includes(q)) ||
-        (u.location && u.location.toLowerCase().includes(q)) ||
-        (u.crop && u.crop.toLowerCase().includes(q))
-      );
+      // Smart Prefix-first Search
+      const prefixMatches = [];
+      const substringMatches = [];
+
+      RAW_USERS.forEach(u => {{
+        const name = (u.name || '').toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        const phone = (u.phone || '').toLowerCase();
+        const crop = (u.primary_crop || '').toLowerCase();
+        const village = (u.village || '').toLowerCase();
+        const district = (u.district || '').toLowerCase();
+        const role = (u.role || '').toLowerCase();
+
+        const isPrefix = name.startsWith(q) || email.startsWith(q) || phone.startsWith(q) || crop.startsWith(q);
+        const isSub = !isPrefix && (name.includes(q) || email.includes(q) || phone.includes(q) || crop.includes(q) || village.includes(q) || district.includes(q) || role.includes(q));
+
+        if (isPrefix) prefixMatches.push(u);
+        else if (isSub) substringMatches.push(u);
+      }});
+
+      CURRENT_USERS = [...prefixMatches, ...substringMatches];
     }}
+
     renderStakeholders(CURRENT_USERS);
+
+    // Render Active Dropdown Suggestions
+    if (dropdown) {{
+      if (CURRENT_USERS.length > 0) {{
+        const topSuggestions = CURRENT_USERS.slice(0, 6);
+        dropdown.innerHTML = `
+          <div class="suggestion-header">
+            <span>Suggestions matching "${{q}}" (${{CURRENT_USERS.length}} found)</span>
+            <span>Click to Inspect</span>
+          </div>
+          ${{topSuggestions.map(u => {{
+            const initial = (u.name || u.email || 'U')[0].toUpperCase();
+            const roleBadge = u.role === 'farmer' ? 'badge-success' : (u.role === 'officer' ? 'badge-blue' : 'badge-amber');
+            const loc = getUserLocation(u);
+            return `
+              <div class="suggestion-item" onclick="selectSuggestion('${{u.email || u.id}}')">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div class="user-avatar-badge">${{initial}}</div>
+                  <div>
+                    <div style="font-weight: 700; color: #fff; font-size: 13px;">${{u.name || 'Unnamed'}} <span class="badge ${{roleBadge}}" style="font-size: 9px; padding: 2px 6px;">${{u.role}}</span></div>
+                    <div class="mono" style="font-size: 11px; color: var(--text-dim);">${{u.email || u.phone || 'No email'}} • ${{loc}}</div>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="mono" style="font-size: 11px; color: #fbbf24;">${{u.points || 0}} pts</span>
+                  <span class="badge badge-blue mono" style="font-size: 10px;">Inspect ↗</span>
+                </div>
+              </div>
+            `;
+          }}).join('')}}
+        `;
+        dropdown.classList.add('open');
+      }} else {{
+        dropdown.innerHTML = `
+          <div class="suggestion-header"><span>No users matching "${{q}}"</span></div>
+          <div style="padding: 12px; font-size: 12px; color: var(--text-dim); text-align: center;">No registered stakeholders match your search query.</div>
+        `;
+        dropdown.classList.add('open');
+      }}
+    }}
+  }}
+
+  function selectSuggestion(identifier) {{
+    const dd = document.getElementById('search-suggestions-dropdown');
+    if (dd) dd.classList.remove('open');
+    inspectUser(identifier);
   }}
 
   function setSearchFilter(cmd) {{
     const input = document.getElementById("slash-search-input");
     input.value = cmd;
     handleSearch(cmd);
+    input.focus();
   }}
 
   async function fetchSystemInfo() {{
@@ -1223,8 +1385,8 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
       if (res.ok) {{
         const data = await res.json();
         CURRENT_USER_INSPECT = data;
-        document.getElementById('modal-user-name').textContent = data.profile.name || data.profile.email;
-        document.getElementById('modal-user-email').textContent = `Role: ${{data.profile.role}} • Phone: ${{data.profile.phone || 'N/A'}}`;
+        document.getElementById('modal-user-name').textContent = data.user_profile.name || data.user_profile.email;
+        document.getElementById('modal-user-email').textContent = `Role: ${{data.user_profile.role}} • Phone: ${{data.user_profile.phone || 'N/A'}}`;
         document.getElementById('user-inspector-modal').classList.add('open');
         switchModalTab('mod-profile');
       }}
@@ -1245,21 +1407,22 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     const body = document.getElementById('modal-body-content');
     
     if (tabId === 'mod-profile') {{
-      const p = CURRENT_USER_INSPECT.profile;
+      const p = CURRENT_USER_INSPECT.user_profile;
+      const loc = [p.village, p.district, p.state].filter(Boolean).join(', ');
       body.innerHTML = `
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
           <div><strong style="color:var(--text-muted)">Full Name:</strong> <div>${{p.name}}</div></div>
           <div><strong style="color:var(--text-muted)">Email Address:</strong> <div class="mono">${{p.email}}</div></div>
           <div><strong style="color:var(--text-muted)">Phone:</strong> <div class="mono">${{p.phone || 'N/A'}}</div></div>
           <div><strong style="color:var(--text-muted)">Role:</strong> <div><span class="badge badge-success">${{p.role}}</span></div></div>
-          <div><strong style="color:var(--text-muted)">Location:</strong> <div>${{p.location}}</div></div>
+          <div><strong style="color:var(--text-muted)">Location:</strong> <div>${{loc}}</div></div>
           <div><strong style="color:var(--text-muted)">Farm Size:</strong> <div class="mono">${{p.farm_size_acres}} Acres</div></div>
           <div><strong style="color:var(--text-muted)">Primary Crop:</strong> <div>${{p.primary_crop}}</div></div>
           <div><strong style="color:var(--text-muted)">Reputation Points:</strong> <div class="mono" style="color:#fbbf24">${{p.points}}</div></div>
         </div>
       `;
     }} else if (tabId === 'mod-messages') {{
-      const msgs = CURRENT_USER_INSPECT.messages || [];
+      const msgs = CURRENT_USER_INSPECT.messages?.direct_messages || [];
       body.innerHTML = msgs.length === 0 ? '<p style="color:var(--text-dim);">No direct messages recorded.</p>' : `
         <div style="display:flex; flex-direction:column; gap:8px;">
           ${{msgs.map(m => `
@@ -1274,47 +1437,45 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
         </div>
       `;
     }} else if (tabId === 'mod-logins') {{
-      const logins = CURRENT_USER_INSPECT.login_history || [];
+      const logins = CURRENT_USER_INSPECT.device_info?.recent_logins || [];
       body.innerHTML = logins.length === 0 ? '<p style="color:var(--text-dim);">No audit login sessions recorded.</p>' : `
         <div class="data-table-container">
           <table class="data-table">
             <thead><tr><th>Session ID</th><th>Timestamp</th><th>IP Address</th><th>Status</th></tr></thead>
             <tbody>
-              ${{logins.map(l => `<tr><td class="mono">${{l.id}}</td><td class="mono">${{l.timestamp}}</td><td class="mono">${{l.ip_address}}</td><td><span class="badge badge-success">${{l.status}}</span></td></tr>`).join('')}}
+              ${{logins.map(l => `<tr><td class="mono">${{l.id || '--'}}</td><td class="mono">${{l.timestamp || l.time || '--'}}</td><td class="mono">${{l.ip_address || l.ip || '--'}}</td><td><span class="badge badge-success">${{l.status || 'Active'}}</span></td></tr>`).join('')}}
             </tbody>
           </table>
         </div>
       `;
     }} else if (tabId === 'mod-devices') {{
-      const dev = CURRENT_USER_INSPECT.device_node;
+      const dev = CURRENT_USER_INSPECT.device_info;
       body.innerHTML = !dev ? '<p style="color:var(--text-dim);">No hardware node assigned.</p>' : `
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-          <div><strong style="color:var(--text-muted)">Device Node ID:</strong> <div class="mono" style="color:#38bdf8;">${{dev.node_id}}</div></div>
-          <div><strong style="color:var(--text-muted)">Firmware:</strong> <div class="mono">${{dev.firmware_version}}</div></div>
-          <div><strong style="color:var(--text-muted)">Protocol:</strong> <div>${{dev.connection_protocol}}</div></div>
-          <div><strong style="color:var(--text-muted)">Battery:</strong> <div class="mono" style="color:#34d399;">${{dev.battery_percent}}%</div></div>
+          <div><strong style="color:var(--text-muted)">Device Type:</strong> <div>${{dev.device_type}}</div></div>
+          <div><strong style="color:var(--text-muted)">IP Address:</strong> <div class="mono" style="color:#38bdf8;">${{dev.ip_address}}</div></div>
+          <div><strong style="color:var(--text-muted)">Last Active Page:</strong> <div>${{dev.last_active_page}}</div></div>
+          <div><strong style="color:var(--text-muted)">Total Sessions:</strong> <div class="mono" style="color:#34d399;">${{dev.login_count}}</div></div>
         </div>
       `;
     }} else if (tabId === 'mod-features') {{
-      const feats = CURRENT_USER_INSPECT.features || [];
-      body.innerHTML = `
+      const feats = CURRENT_USER_INSPECT.website_usage?.features_used || [];
+      body.innerHTML = feats.length === 0 ? '<p style="color:var(--text-dim);">No specific features recorded.</p>' : `
         <div style="display:flex; flex-wrap:wrap; gap:8px;">
           ${{feats.map(f => `<span class="badge badge-blue" style="font-size:12px; padding:6px 12px;">✓ ${{f}}</span>`).join('')}}
         </div>
       `;
     }} else if (tabId === 'mod-farm') {{
-      const farm = CURRENT_USER_INSPECT.farm_zones || [];
+      const p = CURRENT_USER_INSPECT.user_profile;
       body.innerHTML = `
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-          ${{farm.map(z => `
-            <div style="background:var(--bg-surface); padding:12px; border-radius:8px; border:1px solid var(--border);">
-              <div style="display:flex; justify-content:space-between;">
-                <strong>${{z.zone_name}}</strong>
-                <span class="badge badge-success">${{z.crop}}</span>
-              </div>
-              <div style="margin-top:6px; font-size:12px; color:var(--text-dim);">Irrigation: ${{z.irrigation_type}} • ${{z.area_acres}} Acres</div>
+          <div style="background:var(--bg-surface); padding:12px; border-radius:8px; border:1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between;">
+              <strong>Primary Plot</strong>
+              <span class="badge badge-success">${{p.primary_crop}}</span>
             </div>
-          `).join('')}}
+            <div style="margin-top:6px; font-size:12px; color:var(--text-dim);">Irrigation: ${{p.irrigation_system}} • ${{p.farm_size_acres}} Acres • Soil: ${{p.soil_type}}</div>
+          </div>
         </div>
       `;
     }}

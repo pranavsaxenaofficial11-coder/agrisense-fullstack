@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Settings, Globe, Bell, Shield, Sliders } from 'lucide-react';
+import { userApi } from '../api/services';
+import { Settings, Globe, Bell, Shield, Sliders, Trash2, AlertTriangle } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
   const [lang, setLang] = useState('en');
@@ -9,6 +10,30 @@ export const SettingsPage: React.FC = () => {
     pumpAutoRun: true,
     mandiPriceDrop: false
   });
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteStatus, setDeleteStatus] = useState<string | null>(null);
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') {
+      alert('Please type "DELETE" to confirm account and data deletion.');
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      const res = await userApi.deleteAccount();
+      setDeleteStatus(res.message);
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete account');
+      setDeleting(false);
+    }
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '800px', margin: '0 auto' }}>
@@ -71,6 +96,113 @@ export const SettingsPage: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Danger Zone: Account Deletion & Permanent Data Purge */}
+      <div className="agri-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px', border: '1px solid rgba(244, 63, 94, 0.4)', background: 'linear-gradient(135deg, rgba(244, 63, 94, 0.06) 0%, #131f33 100%)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Trash2 size={20} color="#f43f5e" />
+          <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#fb7185' }}>Danger Zone: Delete Account & Purge Data</h4>
+        </div>
+        <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+          Permanently delete your account and wipe all associated records from AgriSense database (including farm telemetry, direct messages, forum posts, marketplace listings, transport shares, and login sessions). This action is <strong>irreversible</strong>.
+        </p>
+
+        <div>
+          <button 
+            onClick={() => setShowDeleteModal(true)} 
+            className="agri-btn-outline" 
+            style={{ borderColor: '#f43f5e', color: '#fb7185', fontSize: '0.85rem' }}
+          >
+            <Trash2 size={16} /> Delete My Account & All Data
+          </button>
+        </div>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.85)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div className="agri-card" style={{ maxWidth: '480px', width: '100%', border: '1px solid rgba(244, 63, 94, 0.5)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(244, 63, 94, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AlertTriangle size={24} color="#f43f5e" />
+              </div>
+              <div>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>Confirm Account Deletion</h4>
+                <p style={{ fontSize: '0.78rem', color: '#fb7185' }}>Irreversible Data Purge</p>
+              </div>
+            </div>
+
+            {deleteStatus ? (
+              <div style={{ padding: '16px', background: 'rgba(16, 185, 129, 0.15)', borderRadius: '8px', color: '#34d399', fontSize: '0.9rem', textAlign: 'center' }}>
+                ✓ {deleteStatus}
+                <p style={{ fontSize: '0.78rem', marginTop: '6px', color: 'var(--text-muted)' }}>Refreshing app...</p>
+              </div>
+            ) : (
+              <>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
+                  This will permanently erase your profile, sensor readings, messages, marketplace listings, and history. To proceed, please type <strong style={{ color: '#fff' }}>DELETE</strong> in the box below:
+                </p>
+
+                <input
+                  type="text"
+                  placeholder='Type "DELETE"'
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  style={{
+                    width: '100%',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '8px',
+                    padding: '10px 14px',
+                    color: '#fff',
+                    marginBottom: '16px',
+                    fontSize: '0.9rem',
+                    fontFamily: 'monospace'
+                  }}
+                />
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                  <button 
+                    onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(''); }}
+                    disabled={deleting}
+                    className="agri-btn-outline"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleting || deleteConfirmText !== 'DELETE'}
+                    style={{
+                      background: deleteConfirmText === 'DELETE' ? '#f43f5e' : 'rgba(244, 63, 94, 0.3)',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '8px 18px',
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      cursor: deleteConfirmText === 'DELETE' ? 'pointer' : 'not-allowed'
+                    }}
+                  >
+                    {deleting ? 'Purging All Data...' : 'Permanently Delete'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

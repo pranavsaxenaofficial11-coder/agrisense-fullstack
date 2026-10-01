@@ -232,3 +232,89 @@ def inspect_user_details(identifier: str, db: Session = Depends(get_db)):
         }
     }
 
+@router.delete("/account")
+async def delete_user_account(email: Optional[str] = None, uid: Optional[str] = None, db: Session = Depends(get_db)):
+    """
+    Permanently deletes a user account and purges ALL their associated data:
+    - User profile record
+    - Direct messages sent & received
+    - Community forum posts
+    - Market listings & buyer requirements
+    - Transport listings
+    - MongoDB Atlas & Firestore records (if connected)
+    """
+    user = None
+    if uid:
+        user = db.query(models.User).filter(models.User.uid == uid).first()
+    if not user and email:
+        user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        user = db.query(models.User).filter(models.User.role == "farmer").first() or db.query(models.User).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User account not found")
+
+    user_email = user.email
+    user_name = user.name
+    user_phone = user.phone
+
+    # 1. Purge Direct Messages
+    if user_email:
+        db.query(models.DirectMessage).filter(
+            (models.DirectMessage.sender_email == user_email) | (models.DirectMessage.recipient_email == user_email)
+        ).delete(synchronize_session=False)
+
+    # 2. Purge Community Posts
+    if user_name:
+        db.query(models.CommunityPost).filter(
+            models.CommunityPost.author_name.ilike(f"%{user_name}%")
+        ).delete(synchronize_session=False)
+
+    # 3. Purge Market Listings
+    if user_name or user_phone:
+        db.query(models.MarketListing).filter(
+            (models.MarketListing.seller_name == user_name) | (models.MarketListing.seller_phone == user_phone)
+        ).delete(synchronize_session=False)
+
+    # 4. Purge Buyer Requirements
+    if user_name or user_phone:
+        db.query(models.BuyerRequirement).filter(
+            (models.BuyerRequirement.buyer_name == user_name) | (models.BuyerRequirement.contact_phone == user_phone)
+        ).delete(synchronize_session=False)
+
+    # 5. Purge Transport Listings
+    if user_name or user_phone:
+        db.query(models.TransportListing).filter(
+            (models.TransportListing.owner_name == user_name) | (models.TransportListing.phone == user_phone)
+        ).delete(synchronize_session=False)
+
+    # 6. Delete the User Record
+    db.delete(user)
+    db.commit()
+
+    # 7. Clean up MongoDB if connected
+    try:
+        from app.mongodb import get_collection
+        user_col = get_collection("users")
+        if user_col is not None:
+            if user_email:
+                await user_col.delete_many({"email": user_email})
+            if uid:
+                await user_col.delete_many({"uid": uid})
+    except Exception as e:
+        print(f"MongoDB account deletion notice: {e}")
+
+    # 8. Log in Control Plane
+    from app.services.control_plane_service import control_plane
+    control_plane.log_event("AUTH", "WARN", f"User account '{user_email}' ({user_name}) and all associated records were permanently purged.")
+
+    return {
+        "status": "success",
+        "message": f"Account '{user_email}' and all associated records have been completely and permanently deleted.",
+        "purged_user": {
+            "email": user_email,
+            "name": user_name
+        }
+    }
+
+

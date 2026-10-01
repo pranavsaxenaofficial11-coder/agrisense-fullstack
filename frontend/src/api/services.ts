@@ -131,6 +131,15 @@ export const userApi = {
     }),
   inspectUser: (identifier: string) =>
     apiFetch<UserInspectionData>(`/api/user/inspect/${encodeURIComponent(identifier)}`),
+  deleteAccount: (email?: string, uid?: string) => {
+    const params = new URLSearchParams();
+    if (email) params.append('email', email);
+    if (uid) params.append('uid', uid);
+    const qs = params.toString();
+    return apiFetch<{ status: string; message: string; purged_user: any }>(`/api/user/account${qs ? '?' + qs : ''}`, {
+      method: 'DELETE'
+    });
+  },
 };
 
 export const weatherApi = {

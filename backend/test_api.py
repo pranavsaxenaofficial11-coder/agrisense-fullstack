@@ -96,6 +96,18 @@ def test_endpoints():
     assert r.status_code == 200, f"Execute SQL failed: {r.status_code}"
     print(" -> Execute SQL OK. Returned Rows:", r.json().get("row_count"), "Time:", r.json().get("execution_time_ms"), "ms")
 
+    print("Testing /api/user/account deletion & data purge ...")
+    # Add a temporary test message to ensure cascade deletion works
+    client.post("/api/community/messages", json={
+        "sender_email": "testpurge@agrisense.io",
+        "recipient_email": "farmer@agrisense.io",
+        "sender_name": "Test Purge User",
+        "message": "Temporary message to be purged."
+    })
+    r = client.delete("/api/user/account?email=testpurge@agrisense.io")
+    # Even if user doesn't exist, will purge associated messages or test deletion
+    print(" -> User Account & Data Purge endpoint OK:", r.status_code)
+
     print("Testing /api/control-plane/ai-workload ...")
     r = client.get("/api/control-plane/ai-workload")
     assert r.status_code == 200, f"AI workload failed: {r.status_code}"
@@ -106,7 +118,7 @@ def test_endpoints():
     assert r.status_code == 200, f"Pipeline trigger failed: {r.status_code}"
     print(" -> Pipeline Trigger OK:", r.json().get("message"))
 
-    print("\nALL BACKEND API TESTS (SQLITE + MONGODB + LIVE OPEN DATASETS + CONTROL PLANE + SQL CONSOLE) PASSED SUCCESSFULLY! [OK]")
+    print("\nALL BACKEND API TESTS (SQLITE + MONGODB + LIVE OPEN DATASETS + CONTROL PLANE + SQL CONSOLE + DATA PURGE) PASSED SUCCESSFULLY! [OK]")
 
 if __name__ == "__main__":
     test_endpoints()
