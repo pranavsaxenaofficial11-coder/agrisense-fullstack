@@ -10386,7 +10386,8 @@ function openUserDetail(i){
 }
 
 /* Google buttons (both forms) */
-$$('.gbtn').forEach(b => b.addEventListener('click', async () => {
+$$('.gbtn').forEach(b => b.addEventListener('click', async (e) => {
+  e.preventDefault(); // prevent any form submission
   if (window.AgriAuth && window.AgriAuth.enabled){
     try {
       toast('Opening Google sign-in…');
@@ -10414,10 +10415,11 @@ $$('.gbtn').forEach(b => b.addEventListener('click', async () => {
       }
     }
   } else {
+    alert('Real Google Sign-In requires a Firebase apiKey!\n\nPlease open app.html and paste your apiKey into the firebaseConfig object (around line 10900).\n\nContinuing to demo mode for now...');
     state.isAdmin = true;
     recordLoginDemo(state.user.name, state.user.email, 'Google · demo');
     showApp();
-    toast('Signed in via Google');
+    toast('Signed in via Google (Demo)');
   }
 }));
 
