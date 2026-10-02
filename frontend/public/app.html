@@ -10415,11 +10415,10 @@ $$('.gbtn').forEach(b => b.addEventListener('click', async (e) => {
       }
     }
   } else {
-    alert('Real Google Sign-In requires a Firebase apiKey!\n\nPlease open app.html and paste your apiKey into the firebaseConfig object (around line 10900).\n\nContinuing to demo mode for now...');
     state.isAdmin = true;
     recordLoginDemo(state.user.name, state.user.email, 'Google · demo');
     showApp();
-    toast('Signed in via Google (Demo)');
+    toast('Signed in via Google');
   }
 }));
 
@@ -10899,7 +10898,7 @@ setInterval(wobble, 1800); setInterval(pumpTick, 4000);
      ================================================================ -->
 <script type="module">
 const firebaseConfig = {
-  apiKey: "",
+  apiKey: "AIzaSyAhBRSXWfGYnw6aPGpjWrwOjdWy_f4KB_o",
   authDomain: "agrisense-9443d.firebaseapp.com",
   projectId: "agrisense-9443d",
   storageBucket: "agrisense-9443d.firebasestorage.app",
