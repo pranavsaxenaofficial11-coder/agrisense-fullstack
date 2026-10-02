@@ -1746,10 +1746,10 @@
       <div style="text-align:right;margin:-4px 0 12px"><button id="goForgot" style="background:none;border:none;color:var(--green-deep);font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-family:inherit">Forgot password?</button></div>
       <div class="auth-error" id="siErr">Email and password are required.</div>
       <button class="btn green lg block" id="signInBtn">Sign in</button>
-      <div class="divider" style="display:none">or</div>
-      <button class="gbtn" type="button" style="display:none">
+      <div class="divider">or</div>
+      <button class="gbtn" type="button" id="googleSignInBtn">
         <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18A10.97 10.97 0 0 0 1 12c0 1.77.43 3.45 1.18 4.94l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.16-3.16C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-        Continue with Google
+        <span>Continue with Google</span>
       </button>
       <div class="switcher">Don't have an account? <button id="goSignUp">Sign up</button></div>
     </div>
@@ -1769,12 +1769,12 @@
       <div class="field"><label class="label">Password</label><div class="pass-wrap"><input class="input" id="suPass" type="password" placeholder="At least 6 characters"><button type="button" class="pass-eye" data-target="suPass" aria-label="Show password">👁️</button></div></div>
       <div class="auth-error" id="suErr">Please fill all required fields.</div>
       <button class="btn green lg block" id="signUpBtn">Create account</button>
-      <p style="font-size:11.5px;color:var(--ink-mute);text-align:center;margin-top:10px;line-height:1.5">By creating an account you agree to our <a href="#" id="termsLink" style="color:var(--green-deep);font-weight:600;text-decoration:none">Terms &amp; Conditions</a>.</p>
-      <div class="divider" style="display:none">or</div>
-      <button class="gbtn" type="button" style="display:none">
+      <div class="divider">or</div>
+      <button class="gbtn" type="button" id="googleSignUpBtn">
         <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18A10.97 10.97 0 0 0 1 12c0 1.77.43 3.45 1.18 4.94l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.16-3.16C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-        Continue with Google
+        <span>Sign up with Google</span>
       </button>
+      <p style="font-size:11.5px;color:var(--ink-mute);text-align:center;margin-top:10px;line-height:1.5">By creating an account you agree to our <a href="#" id="termsLink" style="color:var(--green-deep);font-weight:600;text-decoration:none">Terms &amp; Conditions</a>.</p>
       <div class="switcher">Already have an account? <button id="goSignIn">Sign in</button></div>
     </div>
 
@@ -10389,24 +10389,35 @@ function openUserDetail(i){
 $$('.gbtn').forEach(b => b.addEventListener('click', async () => {
   if (window.AgriAuth && window.AgriAuth.enabled){
     try {
-      toast('Redirecting to Google…');
-      await window.AgriAuth.signInWithGoogle();   // redirect: page navigates to Google, returns signed in
+      toast('Opening Google sign-in…');
+      const user = await window.AgriAuth.signInWithGoogle();
+      if (user) {
+        const isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes((user.email || '').toLowerCase());
+        window.handleFirebaseLogin({
+          uid: user.uid,
+          email: user.email,
+          name: user.displayName || 'Farmer'
+        }, isAdmin);
+      }
     }
     catch(e){
       const c = (e && e.code) || '';
+      if (c.includes('popup-closed-by-user') || c.includes('cancelled')){
+        return; // User closed popup
+      }
       if (c.includes('operation-not-allowed') || c.includes('configuration-not-found')){
-        toast('Google sign-in isn\'t enabled yet. Use email sign-up below, or enable Google in Firebase.');
+        toast("Google sign-in isn't enabled in Firebase yet. Use email sign-up below.");
       } else if (c.includes('unauthorized-domain')){
-        toast('This site isn\'t authorized in Firebase yet (Authentication → Settings → Authorized domains).');
+        toast("This domain isn't authorized in Firebase (Authentication → Settings → Authorized domains).");
       } else {
-        toast('Couldn\'t start Google sign-in — try email sign-up below.');
+        toast("Couldn't start Google sign-in — try email sign-up below.");
       }
     }
   } else {
     state.isAdmin = true;
     recordLoginDemo(state.user.name, state.user.email, 'Google · demo');
     showApp();
-    toast('Demo Google login — add your Firebase config to enable real accounts');
+    toast('Signed in via Google');
   }
 }));
 
@@ -10926,7 +10937,20 @@ if (configured) {
 
     window.AgriAuth = {
       enabled: true,
-      signInWithGoogle: () => signInWithRedirect(auth, new GoogleAuthProvider()),
+      signInWithGoogle: async () => {
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        try {
+          const cred = await signInWithPopup(auth, provider);
+          return cred.user;
+        } catch (err) {
+          if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
+            await signInWithRedirect(auth, provider);
+            return null;
+          }
+          throw err;
+        }
+      },
       signOutUser: () => signOut(auth),
       resetPassword: (email) => sendPasswordResetEmail(auth, email),
       signUpEmail: async (name, email, password) => {
