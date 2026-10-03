@@ -160,6 +160,31 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
 
     db.commit()
 
+import asyncio
+import httpx
+
+GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxEWNrnzavYmBi6JyLME1dnxTW-xqxL17jZrVtTBhRO0rKKEXpTxAGb3yx_3D-IMzDUiw/exec"
+
+async def _bg_sync_google_sheet(zone: str, temp: float, hum: float, s1: float, s2: float, s_avg: float, light: float, rain: float, pump: bool, fan: bool):
+    try:
+        params = {
+            "sts": "write",
+            "zone": zone,
+            "air_temp": f"{temp:.1f}",
+            "air_humidity": f"{hum:.1f}",
+            "soil_moisture_1": str(int(s1)),
+            "soil_moisture_2": str(int(s2)),
+            "soil_average": str(int(s_avg)),
+            "light_pct": str(int(light)),
+            "rain_pct": str(int(rain)),
+            "pump_state": "true" if pump else "false",
+            "fan_state": "true" if fan else "false"
+        }
+        async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+            await client.get(GOOGLE_APPS_SCRIPT_URL, params=params)
+    except Exception as e:
+        print(f"[Google Sheet Sync Notice]: {e}")
+
     # 4. Instant WebSocket Broadcast
     from app.services.websocket_manager import telemetry_ws_manager
     await telemetry_ws_manager.broadcast({
@@ -174,6 +199,20 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
         "pump_running": ctrl.pump_state if ctrl else False,
         "timestamp": datetime.utcnow().isoformat()
     })
+
+    # 5. Non-blocking Google Sheet Auto-Sync
+    asyncio.create_task(_bg_sync_google_sheet(
+        zone=data.zone or "Zone A",
+        temp=temp,
+        hum=hum,
+        s1=data.soil_moisture_1 if data.soil_moisture_1 is not None else moist,
+        s2=data.soil_moisture_2 if data.soil_moisture_2 is not None else moist,
+        s_avg=moist,
+        light=latest_hardware_cache["light_pct"],
+        rain=latest_hardware_cache["rain_pct"],
+        pump=ctrl.pump_state if ctrl else False,
+        fan=latest_hardware_cache["fan_state"]
+    ))
 
     return {
         "status": "success",
