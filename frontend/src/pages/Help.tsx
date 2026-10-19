@@ -4,16 +4,16 @@ import { HelpCircle, PhoneCall, Mail, MessageCircle, FileText, ExternalLink } fr
 export const HelpPage: React.FC = () => {
   const faqs = [
     {
-      q: 'How does AgriUpdate determine when to start the irrigation pump?',
-      a: 'AgriUpdate reads real-time capacitive soil moisture sensors across Zones A, B, C, and D. When any zone drops below its configured crop-specific threshold (e.g. 35% for tomato), the edge controller automatically turns on the pump and opens the relevant solenoid valve.'
+      q: 'How does AgriSense determine when to start the irrigation pump?',
+      a: 'AgriSense reads real-time capacitive soil moisture sensors across Zones A, B, C, and D. When any zone drops below its configured crop-specific threshold (e.g. 35% for tomato), the edge controller automatically turns on the pump and opens the relevant solenoid valve.'
     },
     {
       q: 'Can I operate the irrigation system manually if WiFi disconnects?',
-      a: 'Yes. The AgriUpdate IoT edge gateway is equipped with an offline fallback mode and a physical bypass toggle that directly controls the 12V DC relays and contactor.'
+      a: 'Yes. The AgriSense IoT edge gateway is equipped with an offline fallback mode and a physical bypass toggle that directly controls the 12V DC relays and contactor.'
     },
     {
       q: 'How accurate is the leaf disease AI diagnosis scanner?',
-      a: 'The AgriUpdate vision model is calibrated against tens of thousands of agricultural plant pathology samples from Indian agricultural research institutes (ICAR/PAU), providing over 92% diagnostic accuracy for common fungal, bacterial, and viral blights.'
+      a: 'The AgriSense vision model is calibrated against tens of thousands of agricultural plant pathology samples from Indian agricultural research institutes (ICAR/PAU), providing over 92% diagnostic accuracy for common fungal, bacterial, and viral blights.'
     },
     {
       q: 'How do I claim PM-KISAN or PMKSY drip irrigation subsidies?',
@@ -51,12 +51,12 @@ export const HelpPage: React.FC = () => {
               <Mail size={20} color="#38bdf8" />
             </div>
             <div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 600 }}>AgriUpdate Agronomy Desk</h4>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 600 }}>AgriSense Agronomy Desk</h4>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Dedicated support for sensor nodes</p>
             </div>
           </div>
-          <a href="mailto:support@agrisense-269.pages.dev" className="mono-val" style={{ fontSize: '0.95rem', fontWeight: 600, color: '#38bdf8', textDecoration: 'none' }}>
-            support@agrisense-269.pages.dev
+          <a href="mailto:support@agrisense.io" className="mono-val" style={{ fontSize: '0.95rem', fontWeight: 600, color: '#38bdf8', textDecoration: 'none' }}>
+            support@agrisense.io
           </a>
         </div>
       </div>

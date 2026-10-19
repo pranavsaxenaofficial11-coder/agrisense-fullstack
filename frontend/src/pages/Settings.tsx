@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { userApi } from '../api/services';
-import { Settings, Globe, Bell, Shield, Sliders, Trash2, AlertTriangle, RotateCcw } from 'lucide-react';
+import { Settings, Globe, Bell, Shield, Sliders, Trash2, AlertTriangle } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
   const [lang, setLang] = useState('en');
@@ -15,54 +15,6 @@ export const SettingsPage: React.FC = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [deleteStatus, setDeleteStatus] = useState<string | null>(null);
-
-  const [showResetModal, setShowResetModal] = useState(false);
-  const [resetConfirmText, setResetConfirmText] = useState('');
-
-  const triggerGoogleTranslate = (langCode: string) => {
-    const targetCode = langCode === 'zh' ? 'zh-CN' : langCode;
-    const cookieVal = targetCode === 'en' ? '' : `/en/${targetCode}`;
-    document.cookie = `googtrans=${cookieVal}; path=/;`;
-    const host = window.location.hostname;
-    if (host && host !== 'localhost') {
-      document.cookie = `googtrans=${cookieVal}; path=/; domain=${host};`;
-      document.cookie = `googtrans=${cookieVal}; path=/; domain=.${host};`;
-    }
-    const combo = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
-    if (combo) {
-      combo.value = targetCode === 'en' ? '' : targetCode;
-      combo.dispatchEvent(new Event('change'));
-    }
-  };
-
-  const handleFactoryReset = () => {
-    if (resetConfirmText !== 'RESET') {
-      alert('Please type "RESET" to confirm resetting all custom settings to factory defaults.');
-      return;
-    }
-    try {
-      localStorage.removeItem('agrisense_current_user');
-      localStorage.removeItem('agri_hw_calib_pct');
-      localStorage.removeItem('agrisense_report_feedback');
-      localStorage.removeItem('agrisense_saved_invoices');
-      localStorage.removeItem('agri_lang');
-      Object.keys(localStorage).forEach(k => {
-        if (k.startsWith('agri_tr_') || k.startsWith('agrisense_')) {
-          localStorage.removeItem(k);
-        }
-      });
-      document.cookie = 'googtrans=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-      const host = window.location.hostname;
-      if (host && host !== 'localhost') {
-        document.cookie = 'googtrans=; Path=/; domain=' + host + '; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-        document.cookie = 'googtrans=; Path=/; domain=.' + host + '; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-      }
-    } catch (e) {
-      console.warn('Reset error:', e);
-    }
-    alert('✓ All custom settings and calibrations reset to factory defaults.');
-    window.location.reload();
-  };
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'DELETE') {
@@ -94,9 +46,9 @@ export const SettingsPage: React.FC = () => {
       <div className="agri-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Globe size={20} color="#10b981" />
-          <h4 style={{ fontSize: '1rem', fontWeight: 600 }}>Regional Language (I18N — In-Browser & Phone)</h4>
+          <h4 style={{ fontSize: '1rem', fontWeight: 600 }}>Regional Language (I18N)</h4>
         </div>
-        <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Select your preferred language. Translations are powered natively across desktop and mobile browsers:</p>
+        <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Select your preferred language for sensor advisories, AI assistance, and mandi market alerts:</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
           {[
             { code: 'en', label: 'English' },
@@ -104,16 +56,11 @@ export const SettingsPage: React.FC = () => {
             { code: 'pa', label: 'ਪੰਜਾਬੀ (Punjabi)' },
             { code: 'mr', label: 'मराठी (Marathi)' },
             { code: 'te', label: 'తెలుగు (Telugu)' },
-            { code: 'ta', label: 'தமிழ் (Tamil)' },
-            { code: 'bn', label: 'বাংলা (Bengali)' },
-            { code: 'gu', label: 'ગુજરાતી (Gujarati)' }
+            { code: 'ta', label: 'தமிழ் (Tamil)' }
           ].map((l) => (
             <button
               key={l.code}
-              onClick={() => {
-                setLang(l.code);
-                triggerGoogleTranslate(l.code);
-              }}
+              onClick={() => setLang(l.code)}
               className={lang === l.code ? 'agri-btn-primary' : 'agri-btn-outline'}
               style={{ justifyContent: 'center', padding: '10px', fontSize: '0.85rem' }}
             >
@@ -150,27 +97,6 @@ export const SettingsPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Reset Custom Changes to Factory Defaults */}
-      <div className="agri-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px', border: '1px solid rgba(245, 158, 11, 0.4)', background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(18, 27, 22, 1) 100%)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <RotateCcw size={20} color="#f59e0b" />
-          <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#fbbf24' }}>Reset Custom Changes to Factory Defaults</h4>
-        </div>
-        <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          Restore all default field preferences, clear custom hardware percentage calibrations, reset language to English, and reload default agronomy sweet-spot settings.
-        </p>
-
-        <div>
-          <button 
-            onClick={() => setShowResetModal(true)} 
-            className="agri-btn-outline" 
-            style={{ borderColor: '#f59e0b', color: '#fbbf24', fontSize: '0.85rem' }}
-          >
-            <RotateCcw size={16} /> Reset All to Factory Defaults
-          </button>
-        </div>
-      </div>
-
       {/* Danger Zone: Account Deletion & Permanent Data Purge */}
       <div className="agri-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px', border: '1px solid rgba(244, 63, 94, 0.4)', background: 'linear-gradient(135deg, rgba(244, 63, 94, 0.06) 0%, #131f33 100%)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -178,7 +104,7 @@ export const SettingsPage: React.FC = () => {
           <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#fb7185' }}>Danger Zone: Delete Account & Purge Data</h4>
         </div>
         <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          Permanently delete your account and wipe all associated records from AgriUpdate database (including farm telemetry, direct messages, forum posts, marketplace listings, transport shares, and login sessions). This action is <strong>irreversible</strong>.
+          Permanently delete your account and wipe all associated records from AgriSense database (including farm telemetry, direct messages, forum posts, marketplace listings, transport shares, and login sessions). This action is <strong>irreversible</strong>.
         </p>
 
         <div>
@@ -191,82 +117,6 @@ export const SettingsPage: React.FC = () => {
           </button>
         </div>
       </div>
-
-      {/* Reset Confirmation Modal */}
-      {showResetModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.85)',
-          backdropFilter: 'blur(8px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '20px'
-        }}>
-          <div className="agri-card" style={{ maxWidth: '480px', width: '100%', border: '1px solid rgba(245, 158, 11, 0.5)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(245, 158, 11, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <RotateCcw size={24} color="#f59e0b" />
-              </div>
-              <div>
-                <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>Confirm Factory Reset</h4>
-                <p style={{ fontSize: '0.78rem', color: '#fbbf24' }}>Restore Default Field Parameters</p>
-              </div>
-            </div>
-
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
-              This will restore default settings, clear custom sensor percentages, reset translation cache, and reset agronomic ranges. To proceed, please type <strong style={{ color: '#fff' }}>RESET</strong> below:
-            </p>
-
-            <input
-              type="text"
-              placeholder='Type "RESET"'
-              value={resetConfirmText}
-              onChange={(e) => setResetConfirmText(e.target.value)}
-              style={{
-                width: '100%',
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '8px',
-                padding: '10px 14px',
-                color: '#fff',
-                marginBottom: '16px',
-                fontSize: '0.9rem',
-                fontFamily: 'monospace'
-              }}
-            />
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button 
-                onClick={() => { setShowResetModal(false); setResetConfirmText(''); }}
-                className="agri-btn-outline"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleFactoryReset}
-                disabled={resetConfirmText !== 'RESET'}
-                style={{
-                  background: resetConfirmText === 'RESET' ? '#f59e0b' : 'rgba(245, 158, 11, 0.3)',
-                  color: '#000',
-                  border: 'none',
-                  padding: '8px 18px',
-                  borderRadius: '8px',
-                  fontWeight: 700,
-                  cursor: resetConfirmText === 'RESET' ? 'pointer' : 'not-allowed'
-                }}
-              >
-                Confirm Factory Reset
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
@@ -356,5 +206,3 @@ export const SettingsPage: React.FC = () => {
     </div>
   );
 };
-
-export default SettingsPage;

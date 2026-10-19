@@ -81,7 +81,7 @@ export const DronePage: React.FC = () => {
           <Plane size={24} color="#10b981" />
           <div>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Survey UAV</span>
-            <h4 style={{ fontSize: '1.05rem', fontWeight: 600 }}>AgriUpdate Scout X4</h4>
+            <h4 style={{ fontSize: '1.05rem', fontWeight: 600 }}>AgriSense Scout X4</h4>
           </div>
         </div>
 

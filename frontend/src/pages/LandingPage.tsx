@@ -227,7 +227,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Hero Cue Card */}
-          <div className="cue-card" aria-label="Example AgriUpdate instruction card">
+          <div className="cue-card" aria-label="Example AgriSense instruction card">
             <div className="cue-top">
               <span className={`cue-chip ${currentHero.cls}`} id="heroChip">{currentHero.chip}</span>
               <span className="cue-time" id="heroTime">{currentHero.time}</span>
@@ -271,7 +271,7 @@ export const LandingPage: React.FC = () => {
           <div className="eyebrow">Proposed solution</div>
           <h2>Sense it. Decide it. Do it.</h2>
           <p className="lede">
-            AgriUpdate is an AI-powered smart farming system that integrates field sensors, controllers, and cloud analytics — then closes the loop by acting on its own recommendations.
+            AgriSense is an AI-powered smart farming system that integrates field sensors, controllers, and cloud analytics — then closes the loop by acting on its own recommendations.
           </p>
           <div className="dark-cards cols-3">
             <div className="dc">
@@ -318,7 +318,7 @@ export const LandingPage: React.FC = () => {
             <div className="eyebrow">AI integration</div>
             <h2>The brain behind every instruction.</h2>
             <p className="lede">
-              AgriUpdate AI analyzes real-time data from soil and environmental sensors to understand crop conditions. It compares live values against ideal farming parameters and turns the difference into smart, specific recommendations — for irrigation, fertilizers, and plant care. And because every farmer should be able to talk to their field, a multilingual AI chatbot answers questions in the farmer's own language.
+              AgriSense AI analyzes real-time data from soil and environmental sensors to understand crop conditions. It compares live values against ideal farming parameters and turns the difference into smart, specific recommendations — for irrigation, fertilizers, and plant care. And because every farmer should be able to talk to their field, a multilingual AI chatbot answers questions in the farmer's own language.
             </p>
           </div>
           <div className="ok-grid" aria-label="AI capabilities">
@@ -334,7 +334,7 @@ export const LandingPage: React.FC = () => {
       <section id="demo">
         <div className="inner">
           <div className="eyebrow">Live demo</div>
-          <h2>One morning with AgriUpdate.</h2>
+          <h2>One morning with AgriSense.</h2>
           <p className="lede">A simulation of a 16-zone plot. Run the scan and watch raw sensor readings become instructions — and one automated action.</p>
           <div className="demo-grid">
             <div>
@@ -450,7 +450,7 @@ export const LandingPage: React.FC = () => {
         <div className="wrap split">
           <div>
             <div className="eyebrow">Future scope</div>
-            <h2>Where AgriUpdate grows next.</h2>
+            <h2>Where AgriSense grows next.</h2>
             <p className="lede">
               The prototype is one field. The architecture scales much further: aerial drone monitoring for full-farm crop and soil analysis, satellite data for enhanced weather forecasting and climate alerts, and ultimately autonomous farms with robotic actuators and AI-driven operations.
             </p>
@@ -475,8 +475,8 @@ export const LandingPage: React.FC = () => {
         <div className="wrap">
           <div className="cta-box">
             <h2>Let's grow the future of agriculture together.</h2>
-            <p>AgriUpdate empowers farmers with smart, sustainable solutions. Reach out to see the prototype in action.</p>
-            <a className="btn" href="mailto:agrisense000@gmail.com?subject=AgriUpdate%20enquiry">Contact the team</a>
+            <p>AgriSense empowers farmers with smart, sustainable solutions. Reach out to see the prototype in action.</p>
+            <a className="btn" href="mailto:agrisense000@gmail.com?subject=AgriSense%20enquiry">Contact the team</a>
             <button
               className="btn"
               id="knowMoreBtn"
@@ -503,7 +503,7 @@ export const LandingPage: React.FC = () => {
                 }}
               >
                 <a
-                  href="/AgriUpdate_Pitch_Deck.pptx"
+                  href="/AgriSense_Pitch_Deck.pptx"
                   download
                   style={{
                     display: 'flex',
@@ -554,7 +554,7 @@ export const LandingPage: React.FC = () => {
                   className="km-link"
                 >
                   <span style={{ fontSize: '22px' }}>📱</span>
-                  <span>Open Full Web App<br /><small style={{ fontWeight: 400, color: '#B9CDAA' }}>Interactive AgriUpdate Dashboard</small></span>
+                  <span>Open Full Web App<br /><small style={{ fontWeight: 400, color: '#B9CDAA' }}>Interactive AgriSense Dashboard</small></span>
                 </a>
               </div>
             )}
@@ -565,8 +565,8 @@ export const LandingPage: React.FC = () => {
       {/* Footer */}
       <footer>
         <div className="wrap foot">
-          <div><strong>AgriUpdate</strong> — transforming agriculture with AI, IoT, and smart automation.</div>
-          <div>© 2026 AgriUpdate</div>
+          <div><strong>AgriSense</strong> — transforming agriculture with AI, IoT, and smart automation.</div>
+          <div>© 2026 AgriSense</div>
         </div>
       </footer>
     </div>

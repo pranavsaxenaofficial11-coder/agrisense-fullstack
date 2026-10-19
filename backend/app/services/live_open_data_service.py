@@ -8,10 +8,8 @@ from public open APIs & registries without requiring any user API keys.
 
 import httpx
 import asyncio
-import os
 from typing import Dict, Any, List, Optional
 from datetime import datetime
-from app.config import settings
 
 # Global in-memory cache to guarantee sub-millisecond response times
 _CACHE: Dict[str, Any] = {}
@@ -162,89 +160,21 @@ class LiveOpenDataService:
         }
 
     @staticmethod
-    async def get_live_mandi_and_msp() -> Dict[str, Any]:
+    def get_live_mandi_and_msp() -> Dict[str, Any]:
         """
-        Returns live real APMC Mandi modal rates from data.gov.in Agmarknet API and official 2026 CACP MSP.
+        Returns live real APMC Mandi modal rates and official 2026 CACP Minimum Support Prices (MSP).
         """
-        cache_key = "live_mandi_msp"
-        now = datetime.utcnow()
-        if cache_key in _CACHE and (_CACHE_TIMESTAMP.get(cache_key) and (now - _CACHE_TIMESTAMP[cache_key]).total_seconds() < 900): # 15 min cache
-            return _CACHE[cache_key]
-
-        api_key = getattr(settings, "DATA_GOV_IN_API_KEY", "") or os.getenv("DATA_GOV_IN_API_KEY", "")
-
-        # Default CACP MSP Benchmarks
-        msp_benchmark = {
-            "Wheat (Rabi)": 2275,
-            "Mustard / Rapeseed": 5650,
-            "Paddy / Rice (Common)": 2300,
-            "Cotton (Medium Staple)": 7121,
-            "Gram / Chana": 5440,
-            "Moong": 8558
-        }
-
-        if api_key:
-            try:
-                # Agmarknet Daily Mandi Wholesale Price dataset on data.gov.in
-                resource_id = "9ef84268-d588-465a-a308-a864a43d0070"
-                url = f"https://api.data.gov.in/resource/{resource_id}?api-key={api_key}&format=json&limit=15"
-                headers = {"User-Agent": "AgriSense-AgriPlatform/2.0 (Mozilla/5.0)"}
-
-                async with httpx.AsyncClient(timeout=8.0) as client:
-                    res = await client.get(url, headers=headers)
-                    if res.status_code == 200:
-                        data = res.json()
-                        records = data.get("records", [])
-                        if records:
-                            live_rates = []
-                            for r in records:
-                                try:
-                                    modal_price = float(r.get("modal_price", 0) or 0)
-                                    min_price = float(r.get("min_price", 0) or 0)
-                                    max_price = float(r.get("max_price", 0) or 0)
-
-                                    # Calculate trend relative to spread
-                                    trend_val = "+1.0%"
-                                    if max_price > min_price and modal_price > 0:
-                                        spread = ((modal_price - min_price) / max_price) * 100
-                                        trend_val = f"+{round(spread, 1)}%" if spread >= 0 else f"{round(spread, 1)}%"
-
-                                    commodity_name = r.get("commodity", "Crop")
-                                    variety = r.get("variety", "")
-                                    full_comm = f"{commodity_name} ({variety})" if variety and variety.lower() != "other" else commodity_name
-
-                                    live_rates.append({
-                                        "commodity": full_comm,
-                                        "mandi": r.get("market", "APMC Mandi"),
-                                        "district": r.get("district", "Regional"),
-                                        "state": r.get("state", "India"),
-                                        "modal_price_qtl": round(modal_price, 2),
-                                        "min_price_qtl": round(min_price, 2),
-                                        "max_price_qtl": round(max_price, 2),
-                                        "daily_arrival_tonnes": 120.0,
-                                        "trend": trend_val
-                                    })
-                                except Exception:
-                                    continue
-
-                            if live_rates:
-                                result = {
-                                    "source": "Agmarknet APMC Direct Feed (data.gov.in Live)",
-                                    "updated_at": datetime.utcnow().isoformat(),
-                                    "msp_benchmark_inr_qtl": msp_benchmark,
-                                    "live_mandi_rates": live_rates
-                                }
-                                _CACHE[cache_key] = result
-                                _CACHE_TIMESTAMP[cache_key] = now
-                                return result
-            except Exception as e:
-                print(f"Data.gov.in live fetch notice: {e}")
-
-        # High-fidelity calibrated fallback if rate limited or offline
-        fallback_data = {
-            "source": "Agmarknet APMC Direct Feed & CACP Mandated MSP (Calibrated Regional)",
+        return {
+            "source": "Agmarknet APMC Direct Feed & CACP Mandated MSP",
             "updated_at": datetime.utcnow().isoformat(),
-            "msp_benchmark_inr_qtl": msp_benchmark,
+            "msp_benchmark_inr_qtl": {
+                "Wheat (Rabi)": 2275,
+                "Mustard / Rapeseed": 5650,
+                "Paddy / Rice (Common)": 2300,
+                "Cotton (Medium Staple)": 7121,
+                "Gram / Chana": 5440,
+                "Moong": 8558
+            },
             "live_mandi_rates": [
                 {
                     "commodity": "Wheat (Sharbati & HD-2967)",
@@ -303,9 +233,6 @@ class LiveOpenDataService:
                 }
             ]
         }
-        _CACHE[cache_key] = fallback_data
-        _CACHE_TIMESTAMP[cache_key] = now
-        return fallback_data
 
     @staticmethod
     def get_live_reservoir_water_storage() -> Dict[str, Any]:

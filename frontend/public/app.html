@@ -21,7 +21,7 @@
 <meta property="og:description" content="Monitor real-time soil moisture, atmospheric VPD, and control irrigation actuators directly from your browser." />
 <meta property="og:image" content="https://agrisense.app/assets/og-preview.jpg" />
 
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://www.gstatic.com https://cdnjs.cloudflare.com https://apis.google.com https://www.google.com https://www.recaptcha.net https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://translate.googleapis.com https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://translate.google.com https://translate.googleapis.com https://server.arcgisonline.com https://unpkg.com; connect-src 'self' data: blob: https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com ws: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://*.pages.dev https://*.onrender.com https://agrisense-backend-kb22.onrender.com wss://*.onrender.com wss://agrisense-backend-kb22.onrender.com https://*.openrouter.ai https://openrouter.ai https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://generativelanguage.googleapis.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseappcheck.googleapis.com https://content-firebaseappcheck.googleapis.com https://api.open-meteo.com https://geocoding-api.open-meteo.com https://cloudflareinsights.com https://server.arcgisonline.com https://unpkg.com https://api.rss2json.com; worker-src 'self' blob: data:; frame-src https://translate.google.com https://*.firebaseapp.com https://accounts.google.com https://www.google.com https://recaptcha.google.com https://www.recaptcha.net; base-uri 'self'; form-action 'self'; object-src 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://apis.google.com https://www.google.com https://www.recaptcha.net https://unpkg.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: https://server.arcgisonline.com https://unpkg.com; connect-src 'self' data: blob: ws: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://*.pages.dev https://*.onrender.com https://agrisense-backend-kb22.onrender.com wss://*.onrender.com wss://agrisense-backend-kb22.onrender.com https://*.openrouter.ai https://openrouter.ai https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://generativelanguage.googleapis.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseappcheck.googleapis.com https://content-firebaseappcheck.googleapis.com https://api.open-meteo.com https://geocoding-api.open-meteo.com https://cloudflareinsights.com https://server.arcgisonline.com https://unpkg.com https://api.rss2json.com; worker-src 'self' blob: data:; frame-src https://*.firebaseapp.com https://accounts.google.com https://www.google.com https://recaptcha.google.com https://www.recaptcha.net; base-uri 'self'; form-action 'self'; object-src 'none';">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <script type="application/ld+json">
@@ -199,7 +199,7 @@
   .tbl .em{font-weight:700}
   .tbl .mono{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft)}
   .setup-note{background:var(--amber-soft);border:1px solid rgba(251,191,36,.3);border-radius:12px;
-    padding:14px 16px;font-size:13px;color:var(--amber);line-height:1.65;margin-bottom:16px}
+    padding:14px 16px;font-size:13px;color:#FCD34D;line-height:1.65;margin-bottom:16px}
   .setup-note b{font-weight:700}
 
   /* ============ REWARDS ============ */
@@ -271,7 +271,7 @@
     font-size:11.5px;font-weight:600;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em}
   .pill.green{background:var(--green-soft);color:var(--green-deep)}
   .pill.purple{background:var(--purple-soft);color:#6D40D8}
-  .pill.amber{background:var(--amber-soft);color:var(--amber)}
+  .pill.amber{background:var(--amber-soft);color:#FCD34D}
   .pill.alert{background:var(--alert-soft);color:var(--alert)}
   .pill.dot::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
   /* ===== COMPACT MODE — meaningfully denser, cleaner ===== */
@@ -311,7 +311,7 @@
   .env-head .ttl{font-size:15px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
   .env-score{font-family:var(--mono);font-size:12px;font-weight:600;padding:4px 12px;border-radius:999px}
   .env-score.good{background:var(--green-soft);color:var(--green-deep)}
-  .env-score.warn{background:var(--amber-soft);color:var(--amber)}
+  .env-score.warn{background:var(--amber-soft);color:#FCD34D}
   .env-score.bad{background:var(--alert-soft);color:var(--alert)}
   .env-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-soft)}
   .env-row:last-child{border-bottom:none}
@@ -321,7 +321,7 @@
   .env-dot{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;transform:translate(-50%,-50%);border:2px solid var(--card);box-shadow:0 0 6px rgba(0,0,0,.4)}
   .env-val{flex:0 0 86px;text-align:right;font-family:var(--mono);font-size:12px;font-weight:600}
   .env-val .tag{display:block;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:500}
-  .env-val.ok{color:var(--green-deep)} .env-val.low{color:var(--amber)} .env-val.high{color:var(--alert)}
+  .env-val.ok{color:var(--green-deep)} .env-val.low{color:#FCD34D} .env-val.high{color:var(--alert)}
     /* community chat */
   .chan-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px}
   .chan-row::-webkit-scrollbar{height:0}
@@ -498,7 +498,7 @@
   .rep-head .dx{font-size:19px;font-weight:900;letter-spacing:-.02em;margin-top:3px}
   .rep-status{font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;white-space:nowrap}
   .rep-status.bad{background:var(--alert-soft);color:var(--alert)}
-  .rep-status.warn{background:var(--amber-soft);color:var(--amber)}
+  .rep-status.warn{background:var(--amber-soft);color:#FCD34D}
   .rep-status.ok{background:var(--green-soft);color:var(--green-deep)}
   .rep-conf{display:flex;align-items:center;gap:10px;padding:12px 18px;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft)}
   .rep-conf .lbl{font-size:12px;color:var(--ink-mute);font-family:var(--mono)}
@@ -882,7 +882,7 @@
   .sens.flag{border-color:var(--alert);background:linear-gradient(180deg,var(--card) 25%,rgba(248,113,113,.2))}
   .sens.flag .val{color:var(--alert)}
   .sens.warn{border-color:var(--amber);background:linear-gradient(180deg,var(--card) 25%,rgba(251,191,36,.18))}
-  .sens.warn .val{color:var(--amber)}
+  .sens.warn .val{color:#FCD34D}
   .sugg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
   @media(max-width:900px){.sugg-grid{grid-template-columns:1fr}}
   .sugg{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;
@@ -976,7 +976,7 @@
   .tl-desc{font-size:12.5px;color:var(--ink-soft);line-height:1.5}
   .tl-tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:999px;margin-left:8px}
   .tl-tag.sow{background:var(--green-soft);color:var(--green-deep)} .tl-tag.water{background:rgba(56,189,248,.16);color:#7DD3FC}
-  .tl-tag.feed{background:var(--purple-soft);color:#C4B5FD} .tl-tag.care{background:var(--amber-soft);color:var(--amber)}
+  .tl-tag.feed{background:var(--purple-soft);color:#C4B5FD} .tl-tag.care{background:var(--amber-soft);color:#FCD34D}
   .tl-tag.harvest{background:rgba(248,113,113,.16);color:#FCA5A5}
   /* transport sharing */
   .trip-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;transition:transform .12s ease,border-color .15s ease}
@@ -987,7 +987,7 @@
   .trip-type.transport{background:var(--green-soft);color:var(--green-deep)}
   .trip-type.ride{background:rgba(56,189,248,.16);color:#7DD3FC}
   .trip-type.rental{background:var(--purple-soft);color:#C4B5FD}
-  .trip-type.pooling{background:var(--amber-soft);color:var(--amber)}
+  .trip-type.pooling{background:var(--amber-soft);color:#FCD34D}
   .trip-route{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;letter-spacing:-.01em;margin-bottom:8px}
   .trip-route .arrow{color:var(--green);font-size:18px}
   .trip-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
@@ -1055,7 +1055,7 @@
   .zread .zl{flex:0 0 130px;font-size:12.5px;color:var(--ink-soft);font-weight:600}
   .zread .zv{font-family:var(--mono);font-size:13px;font-weight:700}
   .zread .zt{margin-left:auto;font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:999px}
-  .zt.ok{background:var(--green-soft);color:var(--green-deep)} .zt.low{background:var(--amber-soft);color:var(--amber)} .zt.high{background:var(--alert-soft);color:var(--alert)}
+  .zt.ok{background:var(--green-soft);color:var(--green-deep)} .zt.low{background:var(--amber-soft);color:#FCD34D} .zt.high{background:var(--alert-soft);color:var(--alert)}
   .prob-row{margin-bottom:14px}
   .prob-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
   .prob-top .pl{font-size:13.5px;font-weight:700}
@@ -1199,7 +1199,7 @@
   .list-item .dot{width:40px;height:40px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;
     justify-content:center;font-size:18px;background:var(--green-soft);color:var(--green-deep)}
   .list-item .dot.purple{background:var(--purple-soft);color:#6D40D8}
-  .list-item .dot.amber{background:var(--amber-soft);color:var(--amber)}
+  .list-item .dot.amber{background:var(--amber-soft);color:#FCD34D}
   .list-item .dot.alert{background:var(--alert-soft);color:var(--alert)}
   .list-item .body{flex:1;min-width:0}
   .list-item .t{font-size:15px;font-weight:700;letter-spacing:-.01em}
@@ -1367,7 +1367,7 @@
   .mmm .m .v{font-size:20px;font-weight:800;margin-top:3px}
   .sheet .verdict{font-size:13.5px;line-height:1.6;color:var(--ink-soft);background:var(--green-soft);
     border-left:3px solid var(--green);border-radius:0 10px 10px 0;padding:12px 14px}
-  .sheet .verdict.warn{background:var(--amber-soft);border-left-color:var(--amber);color:var(--amber)}
+  .sheet .verdict.warn{background:var(--amber-soft);border-left-color:var(--amber);color:#FCD34D}
   .sheet .verdict.alert{background:var(--alert-soft);border-left-color:var(--alert);color:var(--alert)}
   .toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(20px);
     background:#1D2F25;border:1px solid var(--line);color:#fff;padding:12px 22px;border-radius:999px;
@@ -1688,25 +1688,7 @@
   @media (prefers-reduced-motion: reduce){.progress .bar,.toast{transition:none}}
   .land-tt{background:rgba(0,0,0,.65);border:none;color:#fff;font-weight:600;font-size:11px;box-shadow:none}
   .land-tt::before{display:none}
-  /* Google Translate bar suppression & smooth UI */
-  .goog-te-banner-frame.skiptranslate, .goog-te-banner-frame { display: none !important; }
-  body { top: 0px !important; }
-  #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
-  .goog-text-highlight { background: none !important; box-shadow: none !important; }
-  .skiptranslate:not(.goog-te-combo) { display: none !important; }
 </style>
-<!-- Google Translate Integration -->
-<div id="google_translate_element" style="display:none"></div>
-<script type="text/javascript">
-function googleTranslateElementInit() {
-  new google.translate.TranslateElement({
-    pageLanguage: 'en',
-    includedLanguages: 'en,hi,mr,bn,ta,te,kn,ml,gu,pa,ur,ne,es,fr,pt,de,it,ru,ar,tr,zh-CN,ja,ko,id',
-    autoDisplay: false
-  }, 'google_translate_element');
-}
-</script>
-<script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
 </head>
 <body>
 <div class="blobs" aria-hidden="true"></div>
@@ -1951,38 +1933,27 @@ function googleTranslateElementInit() {
             </div>
           </div>
 
-          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:12px;background:var(--bg);padding:12px 14px;border-radius:10px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:14px;background:var(--bg);padding:12px 14px;border-radius:10px">
             <div>
               <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
-                <span style="font-weight:600">Dry Soil Baseline (%)</span>
-                <span id="valDryPoint" style="font-family:var(--mono);font-weight:700;color:var(--amber)">0%</span>
+                <span style="font-weight:600">Soil Dry Point (ADC)</span>
+                <span id="valDryPoint" style="font-family:var(--mono);font-weight:700">4095</span>
               </div>
-              <input type="range" id="sliderDryPoint" min="0" max="30" value="0" style="width:100%">
-              <div style="font-size:10px;color:var(--ink-mute)">Air / bone-dry reference point</div>
+              <input type="range" id="sliderDryPoint" min="3000" max="4095" value="4095" style="width:100%">
             </div>
             <div>
               <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
-                <span style="font-weight:600">Wet Saturation Point (%)</span>
-                <span id="valWetPoint" style="font-family:var(--mono);font-weight:700;color:var(--green-deep)">100%</span>
+                <span style="font-weight:600">Soil Wet Point (ADC)</span>
+                <span id="valWetPoint" style="font-family:var(--mono);font-weight:700">1200</span>
               </div>
-              <input type="range" id="sliderWetPoint" min="70" max="100" value="100" style="width:100%">
-              <div style="font-size:10px;color:var(--ink-mute)">Water submersion reference point</div>
+              <input type="range" id="sliderWetPoint" min="800" max="2500" value="1200" style="width:100%">
             </div>
             <div>
               <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
-                <span style="font-weight:600">Sensor Trim Offset (%)</span>
-                <span id="valTrimPoint" style="font-family:var(--mono);font-weight:700">0%</span>
+                <span style="font-weight:600">Pump Cutoff Threshold (%)</span>
+                <span id="valPumpThresh" style="font-family:var(--mono);font-weight:700">100%</span>
               </div>
-              <input type="range" id="sliderTrimPoint" min="-20" max="20" value="0" style="width:100%">
-              <div style="font-size:10px;color:var(--ink-mute)">Fine-tune zero-drift compensation</div>
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
-                <span style="font-weight:600">Auto Irrigation Cutoff (%)</span>
-                <span id="valPumpThresh" style="font-family:var(--mono);font-weight:700;color:var(--green-deep)">75%</span>
-              </div>
-              <input type="range" id="sliderPumpThresh" min="30" max="95" value="75" style="width:100%">
-              <div style="font-size:10px;color:var(--ink-mute)">Target moisture shutoff threshold</div>
+              <input type="range" id="sliderPumpThresh" min="20" max="100" value="100" style="width:100%">
             </div>
           </div>
         </div>
@@ -2049,7 +2020,7 @@ function googleTranslateElementInit() {
         <div class="stats">
           <div class="stat green" data-tip="Overall crop health score, computed live from all 38 sensor streams."><div class="l" data-i18n="st_health">Plant health</div><div class="v" id="statHealth">87<span class="u">/100</span></div><div class="d" data-i18n="st_health_d">good · steady</div></div>
           <div class="stat"><div class="l" data-i18n="st_zones">Active zones</div><div class="v">16<span class="u" data-i18n="st_zones_u"> zones</span></div><div class="d" data-i18n="st_zones_d">all reporting</div></div>
-          <div class="stat purple" data-tip="Water conserved today relative to flood irrigation baseline across your acreage."><div class="l" data-i18n="st_water">Water saved today</div><div class="v" id="statWaterVal">1,280<span class="u"> L</span></div><div class="d" data-i18n="st_water_d">vs flood baseline</div></div>
+          <div class="stat purple"><div class="l" data-i18n="st_water">Water saved today</div><div class="v">18<span class="u"> L</span></div><div class="d" data-i18n="st_water_d">vs scheduled baseline</div></div>
           <div class="stat"><div class="l" data-i18n="st_sugg">Open suggestions</div><div class="v" id="statSugg">3</div><div class="d" data-i18n="st_sugg_d">tap below to act</div></div>
         </div>
         <div class="hero-row">
@@ -2332,19 +2303,9 @@ function googleTranslateElementInit() {
         </div>
         <div id="scanPrevWrap" style="display:none;margin-top:14px;text-align:center">
           <img class="scan-prev" id="scanPrev" alt="crop photo">
-          <div style="margin:12px auto;max-width:440px;background:var(--bg-2);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px">
-            <span style="font-size:12px;font-weight:700">AI Execution Mode:</span>
-            <select class="select" id="scanModelSelect" style="max-width:240px;font-size:11.5px;padding:5px 8px">
-              <option value="tri_consensus" selected>✨ Simultaneous Tri-Model Consensus</option>
-              <option value="local_ai">📱 Local Edge AI Model</option>
-              <option value="deep_learning">🖥️ Deep Learning Server</option>
-              <option value="openrouter">☁️ OpenRouter Cloud AI</option>
-            </select>
-          </div>
-          <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">
-            <button class="btn green" id="scanGo">✨ Diagnose Plant Health</button>
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+            <button class="btn green" id="scanGo">🔍 Diagnose</button>
             <button class="btn ghost" id="scanReset">Choose another</button>
-            <button class="btn ghost" id="scanAdvancedBtn">⚙️ Advanced Camera &amp; AI Lab</button>
           </div>
         </div>
         <div id="scanResult"></div>
@@ -2480,14 +2441,8 @@ function googleTranslateElementInit() {
           <div class="fin-stat exp"><div class="l">Expenses</div><div class="v" id="finExp">₹0</div></div>
           <div class="fin-stat net"><div class="l">Net profit</div><div class="v" id="finNet">₹0</div></div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-          <button class="btn green" id="finAddBtn">＋ Add entry</button>
-          <button class="btn ghost" id="finInvoiceBtn">🧾 Create Custom Invoice</button>
-        </div>
+        <button class="btn green" id="finAddBtn" style="margin-bottom:6px">＋ Add entry</button>
         <div id="finFormMount" style="margin-top:10px"></div>
-        <div id="finInvoiceMount" style="margin-top:10px"></div>
-        <div class="section-title">Saved Invoices (<span id="savedInvCount">0</span>)</div>
-        <div class="card" id="savedInvoicesList" style="padding:10px 16px;margin-bottom:18px"></div>
         <div class="section-title">Where the money goes</div>
         <div class="card" id="finBreakdown"></div>
         <div class="section-title">Recent transactions</div>
@@ -3418,54 +3373,19 @@ function wireAdvancedHardwareControls() {
     });
   }
 
-  // Percentage-based hardware calibration sliders
+  // Sliders
   const slDry = document.getElementById('sliderDryPoint');
   const slWet = document.getElementById('sliderWetPoint');
-  const slTrim = document.getElementById('sliderTrimPoint');
   const slPump = document.getElementById('sliderPumpThresh');
 
-  function saveHwCalib(){
-    const cfg = {
-      dry: slDry ? +slDry.value : 0,
-      wet: slWet ? +slWet.value : 100,
-      trim: slTrim ? +slTrim.value : 0,
-      cutoff: slPump ? +slPump.value : 75
-    };
-    try { localStorage.setItem('agri_hw_calib_pct', JSON.stringify(cfg)); } catch(_){}
-    if (window._serialWriter) {
-      try { window._serialWriter.write(`CALIB:dry=${cfg.dry}%,wet=${cfg.wet}%,trim=${cfg.trim}%,cutoff=${cfg.cutoff}%
-`); } catch(_){}
-    }
-  }
-
-  // Restore saved calibration %
-  try {
-    const saved = localStorage.getItem('agri_hw_calib_pct');
-    if (saved){
-      const c = JSON.parse(saved);
-      if (slDry && c.dry !== undefined){ slDry.value = c.dry; const v = document.getElementById('valDryPoint'); if (v) v.textContent = c.dry + '%'; }
-      if (slWet && c.wet !== undefined){ slWet.value = c.wet; const v = document.getElementById('valWetPoint'); if (v) v.textContent = c.wet + '%'; }
-      if (slTrim && c.trim !== undefined){ slTrim.value = c.trim; const v = document.getElementById('valTrimPoint'); if (v) v.textContent = (c.trim > 0 ? '+' : '') + c.trim + '%'; }
-      if (slPump && c.cutoff !== undefined){ slPump.value = c.cutoff; const v = document.getElementById('valPumpThresh'); if (v) v.textContent = c.cutoff + '%'; }
-    }
-  } catch(_){}
-
   if (slDry) slDry.addEventListener('input', (e) => {
-    const v = document.getElementById('valDryPoint'); if (v) v.textContent = e.target.value + '%';
-    saveHwCalib();
+    document.getElementById('valDryPoint').textContent = e.target.value;
   });
   if (slWet) slWet.addEventListener('input', (e) => {
-    const v = document.getElementById('valWetPoint'); if (v) v.textContent = e.target.value + '%';
-    saveHwCalib();
-  });
-  if (slTrim) slTrim.addEventListener('input', (e) => {
-    const val = +e.target.value;
-    const v = document.getElementById('valTrimPoint'); if (v) v.textContent = (val > 0 ? '+' : '') + val + '%';
-    saveHwCalib();
+    document.getElementById('valWetPoint').textContent = e.target.value;
   });
   if (slPump) slPump.addEventListener('input', (e) => {
-    const v = document.getElementById('valPumpThresh'); if (v) v.textContent = e.target.value + '%';
-    saveHwCalib();
+    document.getElementById('valPumpThresh').textContent = e.target.value + '%';
   });
 
   // Manual Relay Toggles
@@ -4268,31 +4188,27 @@ function updateDynamicPlantHealth() {
 /* ============ CROP ENVIRONMENT MATCH + LEARNING UI ============ */
 function renderEnv(){
   const card = $('#envCard'); if (!card) return;
-  const f = farm();
-  const reg = f.loc || (state.user && state.user.loc) || 'Punjab';
-  const env = cropEnv(f.crop, reg);
-  const s = state.sensors;
-  const regShort = reg.split(',')[0];
-  $('#envCropLbl').textContent = 'sweet spot for ' + f.crop.split(' ')[0] + ' (' + regShort + ')';
+  const f = farm(); const env = cropEnv(f.crop); const s = state.sensors;
+  $('#envCropLbl').textContent = 'ideal for ' + f.crop.split(' ')[0];
   const rows = [
-    { nm:'Soil moisture', v:(s.soilA+s.soilB)/2, band:env.soil, unit:'%', max:100, sweet:`Sweet spot: ${env.soil[0]}–${env.soil[1]}%` },
-    { nm:'Air temp', v:s.airTemp, band:env.airT, unit:'°C', max:45, sweet:`Sweet spot: ${env.airT[0]}–${env.airT[1]}°C` },
-    { nm:'Humidity', v:s.airHumidity, band:env.humid, unit:'%', max:100, sweet:`Sweet spot: ${env.humid[0]}–${env.humid[1]}%` },
-    { nm:'Soil temp', v:s.soilTemp, band:env.soilT, unit:'°C', max:40, sweet:`Sweet spot: ${env.soilT[0]}–${env.soilT[1]}°C` },
-    { nm:'Light', v:s.light, band:env.light, unit:'%', max:100, sweet:`Sweet spot: ${env.light[0]}–${env.light[1]}%` },
-    { nm:'Soil pH', v:s.soilPH, band:env.ph, unit:'', max:9, sweet:`Sweet spot: ${env.ph[0]}–${env.ph[1]}` },
-    { nm:'Water TDS', v:s.tds, band:env.tds, unit:'', max:1400, sweet:`Sweet spot: ${env.tds[0]}–${env.tds[1]}` }
+    { nm:'Soil moisture', v:(s.soilA+s.soilB)/2, band:env.soil, unit:'%', max:100 },
+    { nm:'Air temp', v:s.airTemp, band:env.airT, unit:'°C', max:45 },
+    { nm:'Humidity', v:s.airHumidity, band:env.humid, unit:'%', max:100 },
+    { nm:'Soil temp', v:s.soilTemp, band:env.soilT, unit:'°C', max:40 },
+    { nm:'Light', v:s.light, band:env.light, unit:'%', max:100 },
+    { nm:'Soil pH', v:s.soilPH, band:env.ph, unit:'', max:9 },
+    { nm:'Water TDS', v:s.tds, band:env.tds, unit:'', max:1400 }
   ];
   let okCount = 0;
   const rowHtml = rows.map(r => {
     const c = bandCheck(r.v, r.band);
     if (c.state==='ok') okCount++;
-    const col = c.state==='ok' ? '#34D399' : c.state==='low' ? 'var(--amber)' : '#F87171';
+    const col = c.state==='ok' ? '#34D399' : c.state==='low' ? '#FBBF24' : '#F87171';
     const idealL = (r.band[0]/r.max)*100, idealW = ((r.band[1]-r.band[0])/r.max)*100;
     const dotX = Math.max(0, Math.min(100, (r.v/r.max)*100));
-    const tag = c.state==='ok' ? 'sweet spot' : c.state==='low' ? `${c.off} low` : `${c.off} high`;
+    const tag = c.state==='ok' ? 'ideal' : c.state==='low' ? `${c.off} low` : `${c.off} high`;
     return `<div class="env-row">
-      <div class="nm">${r.nm} <span style="font-size:10px;color:var(--ink-mute);display:block;font-weight:400">${r.sweet}</span></div>
+      <div class="nm">${r.nm}</div>
       <div class="env-track">
         <div class="env-ideal" style="left:${idealL}%;width:${idealW}%"></div>
         <div class="env-dot" style="left:${dotX}%;background:${col}"></div>
@@ -4303,10 +4219,10 @@ function renderEnv(){
   const pct = Math.round((okCount/rows.length)*100);
   const cls = pct>=80?'good':pct>=50?'warn':'bad';
   card.innerHTML = `<div class="env-head">
-      <div class="ttl">${f.icon} ${escapeHtml(f.crop)} <span style="font-size:10.5px;font-weight:700;color:var(--green-deep);background:var(--green-soft);padding:3px 8px;border-radius:6px;margin-left:6px">${escapeHtml(regShort)} Soil Calibrated</span></div>
-      <div class="env-score ${cls}">${okCount}/${rows.length} in sweet spot · ${pct}%</div>
+      <div class="ttl">${f.icon} ${escapeHtml(f.crop)}</div>
+      <div class="env-score ${cls}">${okCount}/${rows.length} in ideal range · ${pct}%</div>
     </div>${rowHtml}
-    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-mute);margin-top:12px">Green band = agronomic sweet spot for ${escapeHtml(f.crop)} calibrated to ${escapeHtml(regShort)} soil · dot = live telemetry</div>`;
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-mute);margin-top:12px">Green band = ideal range for this crop · dot = your live reading</div>`;
 }
 function renderLearn(){
   const f = farm(); const conf = farmConfidence(f); const L = ensureLearn(f);
@@ -4822,7 +4738,6 @@ function fieldContext(){
       return { name: f.name, crop: f.crop, size: f.size, farmIQ: farmIQ(f) + '%', knownDetails: f.quiz }; })(),
     otherFarms: state.farms.filter((_,i) => i !== state.activeFarm).map(f => f.name + ' (' + f.crop + ')'),
     crop: state.farms[state.activeFarm].crop,
-    recentFarmerFeedback: (function(){ try { const f = JSON.parse(localStorage.getItem('agrisense_report_feedback')||'[]'); return f.slice(0,3); } catch(_) { return []; } })(),
     plantHealth: state.health, mode: state.mode,
     pump: state.pump.on ? `running on Zone ${state.pump.zone}` : 'idle',
     agriPoints: state.points,
@@ -4878,99 +4793,12 @@ LIVE FIELD DATA: ${fieldContext()}
         <span style="font-family:var(--mono);font-size:11px;color:var(--ink-mute)">${today}</span>
       </div>
       <div style="white-space:pre-wrap;line-height:1.7;font-size:14px">${escapeHtml(txt)}</div>
-    </div>
-    <div class="card" style="margin-top:14px;border:1px solid var(--line);background:var(--bg-2)">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <span style="font-size:18px">🔄</span>
-        <b style="font-size:14px">AI Agronomy Feedback Loop</b>
-      </div>
-      <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:10px">Did you act on this advice? How accurate was it for your field?</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px" id="rptFbTags">
-        <button class="btn sm ghost" data-fbt="Followed Advice">✅ Followed Advice</button>
-        <button class="btn sm ghost" data-fbt="Partially Followed">⚖️ Partially Followed</button>
-        <button class="btn sm ghost" data-fbt="Postponed (Weather)">⏳ Postponed / Rain</button>
-        <button class="btn sm ghost" data-fbt="Disagreed">❌ Disagreed</button>
-      </div>
-      <div style="display:flex;gap:8px">
-        <input class="input" id="rptFbNotes" placeholder="Optional field notes (e.g. soil stayed moist 3 days)" style="font-size:12.5px;padding:6px 10px;flex:1">
-        <button class="btn sm green" id="rptFbSubmit">Submit Feedback</button>
-      </div>
-      <div id="rptFbStatus" style="margin-top:10px;font-size:12px;color:var(--green-deep,#10b981);display:none"></div>
-      <div id="rptFbHistory" style="margin-top:12px;font-size:11.5px;color:var(--ink-mute);border-top:1px solid var(--line-soft);padding-top:8px"></div>
     </div>`;
     awardPoints && awardPoints(3,'Generated a farm report');
-    initReportFeedbackHandlers(txt);
   } catch(e){
     out.innerHTML = '<div class="card">⚠️ The AI is busy or the daily free limit was hit. Please wait a moment and tap generate again.</div>';
   }
   btn.disabled = false; btn.textContent = old;
-}
-
-function getSavedReportFeedback(){
-  try {
-    const s = localStorage.getItem('agrisense_report_feedback');
-    return s ? JSON.parse(s) : [];
-  } catch(_) { return []; }
-}
-
-function initReportFeedbackHandlers(reportSummary){
-  let selectedTag = 'Followed Advice';
-  const tagsContainer = $('#rptFbTags');
-  if (tagsContainer){
-    const btns = tagsContainer.querySelectorAll('button');
-    btns.forEach(b => {
-      if (b.dataset.fbt === selectedTag) b.classList.add('green');
-      b.addEventListener('click', () => {
-        selectedTag = b.dataset.fbt;
-        btns.forEach(x => {
-          x.classList.toggle('green', x === b);
-          x.classList.toggle('ghost', x !== b);
-        });
-      });
-    });
-  }
-
-  function renderHistory(){
-    const histEl = $('#rptFbHistory');
-    if (!histEl) return;
-    const history = getSavedReportFeedback();
-    if (!history.length){
-      histEl.innerHTML = 'No prior feedback recorded yet. Your feedback helps the AI fine-tune irrigation thresholds.';
-      return;
-    }
-    histEl.innerHTML = '<b>Recent Feedback History:</b><br>' + history.slice(0, 3).map(h => 
-      `• [${escapeHtml(h.date)}] <b>${escapeHtml(h.tag)}</b>${h.note ? ' — ' + escapeHtml(h.note) : ''}`
-    ).join('<br>');
-  }
-
-  renderHistory();
-
-  const subBtn = $('#rptFbSubmit');
-  if (subBtn){
-    subBtn.addEventListener('click', () => {
-      const note = $('#rptFbNotes') ? $('#rptFbNotes').value.trim() : '';
-      const dateStr = new Date().toLocaleDateString(undefined, { day:'numeric', month:'short' });
-      const entry = {
-        date: dateStr,
-        tag: selectedTag,
-        note: note,
-        crop: state.farms[state.activeFarm].crop
-      };
-      const all = getSavedReportFeedback();
-      all.unshift(entry);
-      try { localStorage.setItem('agrisense_report_feedback', JSON.stringify(all)); } catch(_){}
-      const statusEl = $('#rptFbStatus');
-      if (statusEl){
-        statusEl.style.display = 'block';
-        statusEl.textContent = `✓ Feedback saved (${selectedTag})! The AI will adapt future irrigation advice.`;
-      }
-      renderHistory();
-      toast('✓ Feedback recorded! AI model updated.');
-      awardPoints && awardPoints(5, 'Submitted agronomy feedback');
-      subBtn.disabled = true;
-      subBtn.textContent = '✓ Saved';
-    });
-  }
 }
 
 async function geminiRespond(q){
@@ -5458,8 +5286,6 @@ const exportBtn = $('#exportDataBtn'); if (exportBtn) exportBtn.addEventListener
 const aboutBtn = $('#aboutBtn'); if (aboutBtn) aboutBtn.addEventListener('click', openAbout);
 const termsBtn = $('#termsBtn'); if (termsBtn) termsBtn.addEventListener('click', openTerms);
 const finAddBtn = $('#finAddBtn'); if (finAddBtn) finAddBtn.addEventListener('click', openFinForm);
-const finInvBtn = $('#finInvoiceBtn'); if (finInvBtn) finInvBtn.addEventListener('click', openInvoiceForm);
-renderSavedInvoices();
 const finListEl = $('#finList');
 if (finListEl) finListEl.addEventListener('click', (e) => {
   const d = e.target.closest('[data-fdel]'); if (!d) return;
@@ -5505,394 +5331,13 @@ $('#prompts').addEventListener('click', (e) => {
 
 /* ============ BLOG ============ */
 const POSTS = [
-  {
-    id: 1,
-    cat: 'ai',
-    catLabel: 'AI & Tech',
-    img: 'blue',
-    emoji: '🛰️',
-    heroImg: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=80',
-    title: 'From Sensor Reading to Actuation in 4 Seconds: Real-Time Edge Pipeline',
-    excerpt: 'Inside the sub-second edge telemetry architecture that turns capacitive soil moisture, VPD, and weather forecasts into immediate autonomous valve actuation.',
-    author: 'AgriSense IoT & Embedded Team',
-    date: '9 Jun 2026',
-    read: '6 min',
-    summary: 'Most ag-tech systems stop at passive charts, requiring farmers to interpret raw graphs. AgriSense implements a zero-latency feedback loop combining ESP32 edge rules with cloud LLM auditing to actuate irrigation within 4 seconds of threshold breach.',
-    body: `Most ag-tech stops at a dashboard. The farmer is left to look at raw NDVI maps and soil percentages, wondering what to do. AgriSense closes that gap completely by executing a sub-second decision cycle.
-
-The Real-Time Decision Pipeline:
-
-• Dual-Edge Telemetry Ingestion: Capacitive probes read analog voltage at 100Hz, applying hardware RC low-pass filtering and software median filtering on the ESP32-S3 before packaging JSON packets.
-• Local Threshold Guard: If soil moisture dips below the crop safety limit (e.g. 38% for Maharashtra vertisol), the edge actuator triggers immediately without awaiting cloud round-trips.
-• Contextual Cloud Normalization: Simultaneously, Open-Meteo 7-day atmospheric forecasts and ET0 vapor pressure deficit matrices are queried to determine whether to sustain or hold the irrigation burst.
-• Tri-Model AI Verification: Deep learning vision, local edge heuristics, and OpenRouter cloud models corroborate to verify that root zone distress is moisture-related rather than fungal blight.
-• Transparent Farmer Audit: The user receives a plain-language summary detailing the exact agronomic reason: "Watering Zone C4 for 12 min — moisture at 27% and zero rain forecast for 48 hours."`,
-    barChart: {
-      title: 'Latency & Execution Speed Benchmark (Milliseconds)',
-      note: 'AgriSense local edge decisioning vs standard remote cloud IoT gateways.',
-      items: [
-        { label: 'Traditional Cloud Gateway', val1: 4200, val1Label: '4,200 ms', val2: 1200, val2Label: '1,200 ms Network Jitter' },
-        { label: 'AgriSense Edge-Assisted Loop', val1: 480, val1Label: '480 ms (-88%)', val2: 150, val2Label: '150 ms Serial Sync' }
-      ]
-    },
-    pieChart: {
-      title: 'Sub-4-Second Pipeline Computation Distribution',
-      slices: [
-        { label: 'Hardware ADC Filtering & Calibration', pct: 30, color: '#10B981' },
-        { label: 'Edge Rule Inference & Pump Lockout', pct: 45, color: '#3B82F6' },
-        { label: 'Cloud Forecast Sync & Auditing', pct: 15, color: '#F59E0B' },
-        { label: 'Farmer Push & Notification Dispatch', pct: 10, color: '#A78BFA' }
-      ]
-    },
-    references: [
-      { name: 'ICAR Smart Agriculture & Microclimatic Radar Directorate', desc: 'Framework for high-frequency IoT sensor telemetry and automated irrigation standards in Indian arable soils.', url: 'https://icar.org.in' },
-      { name: 'IEEE Agro-Informatics & Edge Computing Journal', desc: 'Low-latency asynchronous MQTT and Web Serial protocols for distributed farmland sensor nodes.', url: 'https://ieeexplore.ieee.org' },
-      { name: 'FAO Digital Agriculture Infrastructure Guidelines', desc: 'Global benchmarks for rural precision farming, edge reliability, and fault-tolerant actuator control.', url: 'https://www.fao.org/digital-agriculture/en/' }
-    ]
-  },
-  {
-    id: 2,
-    cat: 'farming',
-    catLabel: 'Farming',
-    img: 'amber',
-    emoji: '🌾',
-    heroImg: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=1200&q=80',
-    title: 'Precision Tomato Nutrition: Scientific NPK & Organic Manure Protocol',
-    excerpt: 'Dosage calculations based on real soil baseline testing, crop phenological stage, and organic carbon retention without over-fertilizing.',
-    author: 'Dr. Gurmeet Singh (PAU) & AgriSense Agronomy',
-    date: '7 Jun 2026',
-    read: '5 min',
-    summary: 'Tomatoes are voracious feeders, but excess nitrogen triggers lush vegetative canopy at the expense of fruit set and induces blossom-end rot. This protocol balances organic manures with staged mineral fertigation based on live NPK telemetry.',
-    body: `Tomatoes require precise nutrient transitions between vegetative, flowering, and fruit-filling phases. Excess chemical urea causes rapid vegetative growth with weak cell walls, rendering plants vulnerable to early blight and whiteflies.
-
-Stage-by-Stage Nutrition Protocol:
-
-• Basal Planting Bed (Per Acre): 8–10 metric tonnes of well-rotted farmyard manure (FYM) or 3 tonnes of vermicompost enriched with Trichoderma viride and Pseudomonas fluorescens to prevent soil-borne damping-off.
-• Vegetative Phase (Days 15–30): N:P:K 19:19:19 water-soluble fertigation twice weekly at 2.5 kg/acre to stimulate root branching and node development.
-• Flowering & Fruit Set (Days 35–55): Transition to 12:61:00 (Mono Ammonium Phosphate) and Boron (20%) foliar spray to maximize pollen viability and prevent flower drop.
-• Fruit Enlargement & Ripening (Days 60–90): Shift to 13:0:45 (Potassium Nitrate) and Calcium Nitrate to bolster fruit epidermis thickness and eliminate blossom-end rot.`,
-    barChart: {
-      title: 'Tomato Nutrient Uptake by Phenological Stage (Kg / Hectare)',
-      note: 'Based on Punjab Agricultural University (PAU) field trials.',
-      items: [
-        { label: 'Vegetative Stage (Weeks 1-4)', val1: 28, val1Label: '28 kg NPK', val2: 12, val2Label: '12 kg Secondary' },
-        { label: 'Flowering & Setting (Weeks 5-8)', val1: 64, val1Label: '64 kg NPK', val2: 26, val2Label: '26 kg Secondary' },
-        { label: 'Fruit Enlargement (Weeks 9-14)', val1: 118, val1Label: '118 kg NPK (+84%)', val2: 45, val2Label: '45 kg Secondary' }
-      ]
-    },
-    pieChart: {
-      title: 'Recommended Organic & Mineral Nutrient Source Distribution',
-      slices: [
-        { label: 'Well-Rotted Farmyard Manure (FYM)', pct: 45, color: '#10B981' },
-        { label: 'Vermicompost & Bio-Fertilizers (PSB/Azotobacter)', pct: 30, color: '#3B82F6' },
-        { label: 'Neem Cake & Organic Nematicides', pct: 15, color: '#F59E0B' },
-        { label: 'Targeted Drip Micro-Nutrients (Ca, B, Zn)', pct: 10, color: '#A78BFA' }
-      ]
-    },
-    references: [
-      { name: 'ICAR-IIHR Directorate of Vegetable Research', desc: 'Precision fertigation schedules and integrated nutrient management packages for hybrid tomatoes.', url: 'https://iihr.res.in' },
-      { name: 'Punjab Agricultural University (PAU) Vegetable Handbook', desc: 'Official package of practices for tomato cultivation in alluvial northern soils.', url: 'https://pau.edu' },
-      { name: 'Krishi Vigyan Kendra (KVK) Soil Health & Bio-Manure Bulletin', desc: 'Practical field guides for vermicompost formulation and soil carbon rejuvenation.', url: 'https://kvk.icar.gov.in' }
-    ]
-  },
-  {
-    id: 3,
-    cat: 'sustain',
-    catLabel: 'Sustainability',
-    img: '',
-    emoji: '💧',
-    heroImg: 'https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?auto=format&fit=crop&w=1200&q=80',
-    title: 'The Hydrology of Saving 40,000 Litres: Micro-Irrigation Economics',
-    excerpt: 'Detailed volumetric breakdown of how sensor-guided drip reduces irrigation pumping volume by 42% while improving fruit grade consistency.',
-    author: 'AgriSense Conservation Engineering',
-    date: '5 Jun 2026',
-    read: '7 min',
-    summary: 'A standard 2.5-acre vegetable holding under conventional flood irrigation consumes over 11,250 litres daily, suffering severe deep percolation and evaporative losses. Automated precision dosing preserves 40,000+ litres annually without yield penalty.',
-    body: `Flood irrigation wets the entire surface soil, losing over 35% to direct solar evaporation and another 25% to deep percolation below root access zones. Sensor-actuated micro-drip maintains the root zone within optimal matric potential continuously.
-
-How the 40,000 Litre Conservation is Achieved:
-
-• High-Resolution Root-Zone Sensing: Irrigation is triggered strictly when volumetric soil moisture drops below the crop sweet spot (e.g. 45% in Ludhiana loam, 38% in Maharashtra clay).
-• Weather Forecast Rain Intercept: AgriSense syncs with local radar; if rain probability exceeds 70% within 18 hours, irrigation cycles are automatically postponed.
-• Soil Moisture Matric Holding: Water is administered in pulsed 15-minute bursts rather than single heavy floodings, allowing capillary action to spread water uniformly horizontally without runoff.
-• Reduced Tubewell Power Draw: Running the pump 40% less reduces electricity consumption and protects aquifer drawdown during critical pre-monsoon summer months.`,
-    barChart: {
-      title: 'Daily Water Consumption & Yield Comparison (2.5-Acre Holding)',
-      note: 'Measured in litres of groundwater pumped per day vs marketable yield harvested in quintals.',
-      items: [
-        { label: 'Conventional Flood Furrow', val1: 11250, val1Label: '11,250 L/day', val2: 240, val2Label: '240 Quintals Yield' },
-        { label: 'AgriSense Autonomous Drip', val1: 6750, val1Label: '6,750 L/day (-40%)', val2: 380, val2Label: '380 Quintals (+58%)' }
-      ]
-    },
-    pieChart: {
-      title: 'Water Savings Contribution by AgriSense Feature',
-      slices: [
-        { label: 'Capacitive Sensor Threshold Triggering', pct: 38, color: '#10B981' },
-        { label: 'Predictive 24h Rain Holding Logic', pct: 26, color: '#3B82F6' },
-        { label: 'Pulsed Drip Capillary Distribution', pct: 22, color: '#F59E0B' },
-        { label: 'Night / Dawn Low-VPD Timing', pct: 14, color: '#A78BFA' }
-      ]
-    },
-    references: [
-      { name: 'PMKSY — Per Drop More Crop (Ministry of Agriculture)', desc: 'National mission on micro-irrigation guidelines, operational subsidy norms, and water-use efficiency benchmarks.', url: 'https://pmksy.gov.in' },
-      { name: 'FAO AquaCrop & Land-Water Hydrology Department', desc: 'Crop water productivity models and evapotranspiration calculations for horticultural crops.', url: 'https://www.fao.org/land-water/databases-and-software/aquacrop/en/' },
-      { name: 'Central Ground Water Board (CGWB) Agricultural Impact Report', desc: 'Aquifer recharge data and sustainable groundwater draft benchmarks across northern river basins.', url: 'https://cgwb.gov.in' }
-    ]
-  },
-  {
-    id: 4,
-    cat: 'how',
-    catLabel: 'How-to',
-    img: 'dark',
-    emoji: '⚙️',
-    heroImg: 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?auto=format&fit=crop&w=1200&q=80',
-    title: 'Capacitive Soil Moisture Calibration: 2-Minute Precision Field Guide',
-    excerpt: 'Convert fluctuating raw ADC counts into calibrated volumetric water content (VWC%) with clean two-point field normalization.',
-    author: 'AgriSense Hardware Lab',
-    date: '2 Jun 2026',
-    read: '4 min',
-    summary: 'Corrosion-resistant capacitive sensors operate on resonant frequency shifts dictated by the soil dielectric constant. Here is how to calibrate dry and saturated baselines to achieve +/-2% measurement accuracy.',
-    body: `Capacitive sensors do not suffer from the rapid galvanic corrosion of cheap resistive probes. However, component tolerances across operational amplifier circuits cause dry air readings to vary between 2600 and 3400 ADC counts.
-
-Step-by-Step Two-Point Calibration Procedure:
-
-• Step 1 — Clean Air Dry Baseline: Clean the probe blades with isopropyl alcohol. Hold the sensor in open air away from metal objects. Note the raw ADC count in the web hardware calibration drawer (typically 2800–3200 ADC). Set this as your Dry Point (0%).
-• Step 2 — 100% Saturation Baseline: Immerse only the sensing blade into a container of clean water up to the white marker line (do NOT submerge the onboard circuit components or solder joints!). Note the ADC value (typically 1200–1450 ADC). Set this as your Wet Point (100%).
-• Step 3 — Water-tight Conformal Coating: Apply heat-shrink tubing and marine-grade silicone sealant over the top edge of the PCB where the wiring harness is soldered. Exposed circuitry will fail within weeks from humid soil vapors.
-• Step 4 — Verification in Target Soil: Insert the calibrated sensor into field soil. Water the zone thoroughly to verify that the reading rises smoothly to 85–95% and drains toward field capacity (50–65%) over 24 hours.`,
-    barChart: {
-      title: 'Raw ESP32 ADC Reading vs Soil Volumetric Water Content (VWC)',
-      note: 'Non-linear capacitive response curve normalized to 0-100% moisture.',
-      items: [
-        { label: 'Dry Ambient Air (0% Moisture)', val1: 3120, val1Label: '3,120 ADC', val2: 0, val2Label: '0% VWC' },
-        { label: 'Optimum Field Capacity (55% Moisture)', val1: 1980, val1Label: '1,980 ADC', val2: 55, val2Label: '55% VWC' },
-        { label: 'Water Saturated Soil (100% Moisture)', val1: 1320, val1Label: '1,320 ADC', val2: 100, val2Label: '100% VWC' }
-      ]
-    },
-    pieChart: {
-      title: 'Sources of Error in Field Soil Moisture Probing',
-      slices: [
-        { label: 'Sensor Cable Voltage Drop & Noise', pct: 15, color: '#3B82F6' },
-        { label: 'Soil Salinity (EC) Variation', pct: 25, color: '#F59E0B' },
-        { label: 'Soil-to-Blade Air Gaps & Poor Compaction', pct: 35, color: '#10B981' },
-        { label: 'Temperature Fluctuations in Topsoil', pct: 25, color: '#A78BFA' }
-      ]
-    },
-    references: [
-      { name: 'ICAR Central Soil Salinity Research Institute (CSSRI)', desc: 'Effects of soil dielectric permittivity and electrical conductivity on capacitive moisture probes.', url: 'https://cssri.res.in' },
-      { name: 'PAU Department of Soil and Water Engineering', desc: 'Standard calibration protocols for electronic tensiometers and capacitance probes in field trials.', url: 'https://pau.edu' },
-      { name: 'USDA-NRCS Soil Moisture Measurement Technical Note', desc: 'Best practices for probe installation, depth stratification, and root zone monitoring.', url: 'https://www.nrcs.usda.gov' }
-    ]
-  },
-  {
-    id: 5,
-    cat: 'ai',
-    catLabel: 'AI & Tech',
-    img: 'pink',
-    emoji: '🗣️',
-    heroImg: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1200&q=80',
-    title: 'Why Native Multilingual AI Closes the Agriculture Adoption Gap',
-    excerpt: 'Bridging the linguistic divide in Indian agriculture by providing real-time voice and text translation across 24 regional languages.',
-    author: 'AgriSense Multilingual & AI Ethics Lab',
-    date: '30 May 2026',
-    read: '5 min',
-    summary: 'Building digital farming applications solely in English locks out 82% of Indian smallholders. AgriSense natively combines Google Neural Translation with localized agronomic vernacular to ensure actionable guidance reaches every grower.',
-    body: `A recurring failure mode in agricultural technology is shipping an English-centric user experience that baffles real field operators. AgriSense was built from day one to operate in 24 languages including Hindi, Punjabi, Marathi, Telugu, Tamil, Bengali, and Gujarati.
-
-Linguistic Localization Principles:
-
-• Authentic Regional Terminology: Translating technical agricultural vocabulary requires domain awareness. Terms like "field capacity", "wilting point", and "stem borer" are mapped to native agricultural phrases used in local mandis.
-• Speech-to-Text and TTS Voice Prompts: Illiterate or visually impaired growers can tap the microphone to ask questions in spoken dialects and receive instant spoken audio guidance.
-• Integrated Google Neural Machine Translation: In addition to hand-tuned agronomic glossaries, AgriSense activates the native Google Translate engine on browsers and mobile devices to translate live telemetry, market prices, and community discussion instantaneously.`,
-    barChart: {
-      title: 'Farmer Advisory Adoption Rate: English vs Native Regional Languages',
-      note: 'Field study measuring farmer action within 24 hours of receiving high-priority disease alert.',
-      items: [
-        { label: 'English-Only Alert Push', val1: 28, val1Label: '28% Adoption', val2: 72, val2Label: '72% Ignored / Delayed' },
-        { label: 'Native Regional Voice + Text', val1: 94, val1Label: '94% Adoption (+235%)', val2: 6, val2Label: '6% Pending' }
-      ]
-    },
-    pieChart: {
-      title: 'AgriSense Active User Language Distribution in India',
-      slices: [
-        { label: 'Hindi (North Central States)', pct: 36, color: '#10B981' },
-        { label: 'Marathi (Maharashtra & Deccan)', pct: 22, color: '#3B82F6' },
-        { label: 'Punjabi (Punjab & Haryana)', pct: 18, color: '#F59E0B' },
-        { label: 'Telugu & Tamil (Southern Arable Zones)', pct: 14, color: '#A78BFA' },
-        { label: 'Bengali, Gujarati & Others', pct: 10, color: '#EC4899' }
-      ]
-    },
-    references: [
-      { name: 'Digital India Bhashini Multilingual Initiative', desc: 'National AI language translation mission fostering digital inclusion across regional rural sectors.', url: 'https://bhashini.gov.in' },
-      { name: 'Kisan Call Centre (KCC) Multilingual Operations Data', desc: 'Department of Agriculture analysis of linguistic query patterns across 22 scheduled languages.', url: 'https://dhanuka.com/kisan-call-center' },
-      { name: 'ICAR Directorate of Knowledge Management in Agriculture (DKMA)', desc: 'Strategies for vernacular agricultural journalism and farmer digital literacy.', url: 'https://icar.gov.in' }
-    ]
-  },
-  {
-    id: 6,
-    cat: 'farming',
-    catLabel: 'Farming',
-    img: '',
-    emoji: '🌱',
-    heroImg: 'https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?auto=format&fit=crop&w=1200&q=80',
-    title: 'Visual Diagnosis: Reading Early Crop Stress Signs Before Tissue Death',
-    excerpt: 'Correlating leaf turgor loss, chlorosis patterns, and marginal necrosis with automated soil telemetry for rapid field interventions.',
-    author: 'AgriSense Plant Pathology Cell',
-    date: '27 May 2026',
-    read: '6 min',
-    summary: 'Sensors flag subterranean moisture deficits hours before foliage manifests visible wilt. Combining optical leaf scouting with live soil matric telemetry enables curative treatments before irreversible yield depression occurs.',
-    body: `Precision sensors detect root distress before visual symptoms emerge, but walking the crop rows remains an indispensable discipline. Here is how to distinguish between nutritional deficiencies, fungal pathogens, and abiotic moisture stress.
-
-Diagnostic Visual Key:
-
-• Midday Wilting with Rapid Evening Recovery: Classic symptom of atmospheric vapor pressure deficit (VPD) exceeding root hydraulic conductivity. The plant closes stomata to survive. Increasing root zone moisture slightly mitigates thermal shock.
-• Upward Leaf Cupping and Curling: Typical response to high solar radiation, hot dry winds, or early infestation of sucking pests (whiteflies and mites).
-• Interveinal Chlorosis on Young Leaves: Yellowing between dark green veins indicates Iron or Zinc deficiency caused by high alkaline soil pH (pH > 7.8) locking up micronutrients.
-• Lower Foliage Yellowing with V-Shaped Chlorosis: Nitrogen translocation from mature tissue to newly emerging foliage. Immediately apply organic vermiwash or urea side dressing.
-• Concentric Dark Target Spots with Yellow Halo: Early Blight (Alternaria solani). Apply copper oxychloride or azoxystrobin spray immediately before rain events.`,
-    barChart: {
-      title: 'Cost of Field Intervention: Early Stage vs Severe Stage (₹ / Acre)',
-      note: 'Comparison of preventive organic control vs rescue chemical fungicide intervention.',
-      items: [
-        { label: 'Day 1-3 Early Visual Detection', val1: 280, val1Label: '₹280 / acre (Bio-spray)', val2: 98, val2Label: '98% Yield Protected' },
-        { label: 'Day 10+ Severe Outbreak', val1: 2450, val1Label: '₹2,450 / acre (Chemical)', val2: 65, val2Label: '65% Yield Protected' }
-      ]
-    },
-    pieChart: {
-      title: 'Breakdown of Reported Leaf Distress in Solanaceous Crops',
-      slices: [
-        { label: 'Nutrient Deficiency (N, Fe, Mg)', pct: 35, color: '#10B981' },
-        { label: 'Water Deficit & Heat Stress Wilt', pct: 30, color: '#3B82F6' },
-        { label: 'Fungal Pathogens (Early Blight / Powdery Mildew)', pct: 20, color: '#F59E0B' },
-        { label: 'Insect Vector Attack (Whitefly / Thrips)', pct: 15, color: '#A78BFA' }
-      ]
-    },
-    references: [
-      { name: 'PAU Plant Pathology Diagnostic Manual', desc: 'Visual symptoms, etiology, and integrated disease management for northern horticultural crops.', url: 'https://pau.edu' },
-      { name: 'ICAR-NCIPM (National Research Centre for Integrated Pest Management)', desc: 'Economic threshold levels (ETL) and bio-rational protection strategies for vegetables.', url: 'https://ncipm.icar.gov.in' },
-      { name: 'CABI Crop Protection Compendium & Diagnostic Keys', desc: 'Global verified taxonomic keys for agricultural pests, viruses, and physiological disorders.', url: 'https://www.cabi.org/cpc/' }
-    ]
-  }
+  { id:1, cat:'ai', catLabel:'AI & tech', img:'blue', emoji:'🛰️', title:'From sensor reading to instruction in 4 seconds', excerpt:'Inside the pipeline that turns soil moisture, weather, and crop data into a single action — "water now" or "skip tonight."', author:'AgriSense Team', date:'9 Jun 2026', read:'6 min', body:`Most ag-tech stops at a dashboard. The farmer is left to look at NDVI maps and decide what to do. AgriSense closes that gap.\n\nOur pipeline runs every 30 minutes:\n\n1. Sensors push readings to the ESP32, which packages a JSON payload.\n2. Cloud function ingests, normalizes, and adds context (weather, schedule, recent activity).\n3. A small decision model — closer to expert rules than deep learning — evaluates each zone.\n4. If action is needed, we generate a plain-language instruction with a one-line reason.\n5. The app delivers it, and if it's a routine task (irrigation, fertilizer feed), runs it automatically.\n\nWhy not pure ML? Because farmers need to understand *why*. A rule that says "soil < 30% AND no rain in 72h THEN water" is auditable. A neural net that says "trust me" is not.`},
+  { id:2, cat:'farming', catLabel:'Farming', img:'amber', emoji:'🌾', title:'How much manure does a tomato plant actually need?', excerpt:'Dosage depends on soil baseline, plant age, and what you applied last. Here\'s a working formula you can use without an agronomy degree.', author:'AgriSense Team', date:'7 Jun 2026', read:'5 min', body:`Tomatoes are heavy feeders, but more is not better — over-fertilizing burns roots and pollutes runoff.\n\nFor 1 sqm of tomato bed:\n\n• At planting: 4–6 kg of well-rotted farmyard manure or compost, mixed into top 15 cm.\n• Side dressing #1 (3 weeks after planting): ~30g urea or 200g vermicompost.\n• Side dressing #2 (at flowering): ~50g urea + 30g muriate of potash.\n• Side dressing #3 (during fruiting): 40g urea every 2 weeks until last harvest.\n\nAgriSense adjusts these numbers based on your soil NPK readings. If your nitrogen is already at 50+ mg/kg, we skip the urea. If potassium dips, we prompt you. The point is: you don't have to memorize this. You log what you did, and we tell you what comes next.`},
+  { id:3, cat:'sustain', catLabel:'Sustainability', img:'', emoji:'💧', title:'The math of saving 40,000 litres of water a year', excerpt:'A 2.5-acre tomato farm running on schedule wastes about 110L a day. Here\'s how AgriSense cuts that without reducing yield.', author:'AgriSense Team', date:'5 Jun 2026', read:'7 min', body:`A typical small farm running scheduled drip irrigation uses about 4,000–5,000 L of water per acre per day. For a 2.5-acre farm, that's ~11,250 L/day.\n\nAgriSense reduces this in four ways:\n\n• Sensor-driven triggering: only water when soil moisture drops below the crop-specific threshold. Saves ~15%.\n• Predictive holding: if pressure trends suggest rain in 12h, hold irrigation. Saves ~8%.\n• Zone-aware dosing: water only the zones that need it. Saves ~12%.\n• Target-based stopping: stop at optimal moisture, not at a fixed time. Saves ~5%.\n\nCombined, that's ~40% reduction, or roughly 40,000 L per year on this farm. And — critically — without yield loss. The plant is getting water when it actually needs it, which is healthier for the crop than fixed schedules.`},
+  { id:4, cat:'how', catLabel:'How-to', img:'dark', emoji:'⚙️', title:'Calibrating a capacitive soil moisture sensor in 2 minutes', excerpt:'Every sensor reads slightly differently. Here\'s a quick calibration that fixes most weird readings.', author:'AgriSense Team', date:'2 Jun 2026', read:'3 min', body:`If your soil readings look strange (always 100%, always 0%, jumping erratically), calibration is almost always the fix.\n\nStep 1: Hold the sensor in dry air. Read the raw ADC value from the serial monitor. Note it down — this is your DRY_VALUE (usually 2800–3200 on an ESP32).\n\nStep 2: Submerge only the sensing strip in a glass of water (not the electronics on top!). Read the value. Note it. This is your WET_VALUE (usually 1100–1400).\n\nStep 3: Update these two constants in the firmware. Re-upload. Done.\n\nWarning: capacitive sensors corrode if water touches the electronics. Always seal the top half with hot glue or tape before deployment. We've had two prototype sensors die from skipping this step.`},
+  { id:5, cat:'ai', catLabel:'AI & tech', img:'pink', emoji:'🗣️', title:'Why our AI speaks 6 languages — and why that matters', excerpt:'Most Indian farmers don\'t want their agronomy advice in English. Building multilingual was a design choice, not a feature.', author:'AgriSense Team', date:'30 May 2026', read:'4 min', body:`A common ag-tech failure mode in India: build a slick English-language app, demo it to investors, then watch farmers ignore it.\n\nWe support English, Hindi, Marathi, Tamil, Telugu, and Punjabi at launch. The interface translates, the chatbot translates, and the audio alerts translate. This is harder than it sounds — agricultural vocabulary is regional. The word for "soil" varies, the way you describe "moist" varies, even the units (acres vs. bigha vs. hectare) differ.\n\nWe didn't build a translation layer. We built native-language interfaces and tested them with farmers in Maharashtra, Tamil Nadu, and Punjab. The Hindi version of "Apply nitrogen to Zone C4" reads naturally for a North Indian farmer — not like Google-translated English.\n\nIf the goal is closing the action gap, the language the action arrives in matters as much as the action itself.`},
+  { id:6, cat:'farming', catLabel:'Farming', img:'', emoji:'🌱', title:'Reading the early signs of crop stress, without instruments', excerpt:'Sensors are great. But your eyes catch things the sensors miss. Here are the visual cues every grower should know.', author:'AgriSense Team', date:'27 May 2026', read:'5 min', body:`AgriSense flags problems before they're visible. But once you walk into the field, here's what to look for:\n\n• Leaf curling upward: heat stress or under-watering. Check soil moisture.\n• Yellowing between leaf veins: usually iron or magnesium deficiency.\n• Yellowing of older leaves first: classic nitrogen deficiency.\n• Purple/red tinge on leaves: phosphorus deficiency, especially in cold soil.\n• Sticky black residue on leaves: aphids or whiteflies are present.\n• Wilting at midday but recovering at evening: roots can't keep up with transpiration — usually a soil issue.\n• Stunted, narrow new growth: micronutrient deficiency.\n\nSensors give you the early warning. Eyes give you the diagnosis. Both together is how good farming works.`}
 ];
-
-function renderArticleBarChart(chart) {
-  if (!chart || !chart.items || !chart.items.length) return '';
-  const items = chart.items;
-  const maxVal = Math.max(...items.map(it => Math.max(it.val1, it.val2 || 0)));
-  const barsHtml = items.map(it => {
-    const p1 = Math.round((it.val1 / maxVal) * 100);
-    const p2 = it.val2 ? Math.round((it.val2 / maxVal) * 100) : 0;
-    return `
-      <div style="margin-bottom:14px">
-        <div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;margin-bottom:4px">
-          <span>${it.label}</span>
-          <span style="font-family:var(--mono);color:var(--green-deep,#10b981)">${it.val1Label || it.val1}</span>
-        </div>
-        <div style="background:var(--bg-2,rgba(255,255,255,0.06));height:22px;border-radius:6px;overflow:hidden;display:flex">
-          <div style="width:${p1}%;background:linear-gradient(90deg,#10B981,#34D399);height:100%;transition:width 0.8s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:11px;font-weight:700;color:#064E3B">
-            ${p1 > 22 ? it.val1Label || it.val1 : ''}
-          </div>
-        </div>
-        ${it.val2 ? `
-        <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-top:4px;color:var(--ink-mute)">
-          <span>Secondary Indicator</span>
-          <span style="font-family:var(--mono);color:#60A5FA">${it.val2Label || it.val2}</span>
-        </div>
-        <div style="background:var(--bg-2,rgba(255,255,255,0.06));height:12px;border-radius:4px;overflow:hidden;margin-top:2px">
-          <div style="width:${p2}%;background:linear-gradient(90deg,#3B82F6,#60A5FA);height:100%"></div>
-        </div>` : ''}
-      </div>
-    `;
-  }).join('');
-
-  return `
-    <div style="background:var(--card,#121B16);border:1px solid var(--line,#22302A);border-radius:14px;padding:20px;margin:24px 0">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-        <span style="font-size:18px">📊</span>
-        <h4 style="margin:0;font-size:15px;font-weight:700">${chart.title}</h4>
-      </div>
-      ${barsHtml}
-      ${chart.note ? `<div style="font-size:11.5px;color:var(--ink-mute);font-family:var(--mono);margin-top:10px">${chart.note}</div>` : ''}
-    </div>
-  `;
-}
-
-function renderArticlePieChart(pie) {
-  if (!pie || !pie.slices || !pie.slices.length) return '';
-  const size = 180;
-  const strokeWidth = 24;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  let accumulatedPct = 0;
-
-  const circles = pie.slices.map(s => {
-    const strokeDash = `${(s.pct / 100) * circumference} ${circumference}`;
-    const offset = -(accumulatedPct / 100) * circumference;
-    accumulatedPct += s.pct;
-    return `<circle cx="${size/2}" cy="${size/2}" r="${radius}" fill="none" stroke="${s.color}" stroke-width="${strokeWidth}" stroke-dasharray="${strokeDash}" stroke-dashoffset="${offset}" stroke-linecap="round" />`;
-  }).join('');
-
-  const legend = pie.slices.map(s => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-soft,#18221D);font-size:12.5px">
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="width:10px;height:10px;border-radius:50%;background:${s.color};flex-shrink:0"></span>
-        <span style="color:var(--ink-soft)">${s.label}</span>
-      </div>
-      <span style="font-family:var(--mono);font-weight:700;color:var(--ink);margin-left:12px">${s.pct}%</span>
-    </div>
-  `).join('');
-
-  return `
-    <div style="background:var(--card,#121B16);border:1px solid var(--line,#22302A);border-radius:14px;padding:20px;margin:24px 0">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-        <span style="font-size:18px">🥧</span>
-        <h4 style="margin:0;font-size:15px;font-weight:700">${pie.title}</h4>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:24px">
-        <div style="position:relative;width:${size}px;height:${size}px;flex-shrink:0">
-          <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">
-            ${circles}
-          </svg>
-          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
-            <span style="font-size:18px;font-weight:800;font-family:var(--mono);color:var(--green)">100%</span>
-            <span style="font-size:10px;text-transform:uppercase;color:var(--ink-mute);letter-spacing:0.05em">Total Impact</span>
-          </div>
-        </div>
-        <div style="flex:1;min-width:220px">
-          ${legend}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderArticleReferences(refs) {
-  if (!refs || !refs.length) return '';
-  const cards = refs.map(r => `
-    <a href="${r.url}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg-2,rgba(255,255,255,0.04));border:1px solid var(--line,#22302A);border-radius:10px;margin-bottom:8px;transition:border-color 0.15s ease">
-      <div style="display:flex;flex-direction:column;gap:3px;max-width:85%">
-        <div style="font-size:13.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px">
-          <span>🏛️</span> ${escapeHtml(r.name)}
-        </div>
-        <div style="font-size:12px;color:var(--ink-mute);line-height:1.4">${escapeHtml(r.desc)}</div>
-      </div>
-      <span style="font-size:12px;font-weight:700;color:var(--green-deep,#10b981);white-space:nowrap;display:flex;align-items:center;gap:4px">
-        Read Paper ↗
-      </span>
-    </a>
-  `).join('');
-
-  return `
-    <div style="background:var(--card,#121B16);border:1px solid var(--line,#22302A);border-radius:14px;padding:20px;margin:28px 0">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-        <span style="font-size:18px">📖</span>
-        <h4 style="margin:0;font-size:15px;font-weight:700">Verified Agronomic References &amp; Official Publications</h4>
-      </div>
-      <p style="font-size:12.5px;color:var(--ink-mute);margin-bottom:14px">Scientific citations, ICAR/PAU agronomy bulletins, and government field frameworks referenced in this article:</p>
-      ${cards}
-    </div>
-  `;
-}
 
 function renderBlog(filter='all'){
   const grid = $('#blogGrid'); grid.innerHTML = '';
@@ -5907,63 +5352,24 @@ function renderBlog(filter='all'){
   }
   else filtered = POSTS.filter(p => p.cat === filter);
   filtered.forEach(p => {
-    const card = el(`<div class="post" data-id="${p.id}"><div class="img ${p.img}" style="background-image:url('${p.heroImg||''}');background-size:cover;background-position:center">${!p.heroImg ? p.emoji : ''}</div><div class="cat">${p.catLabel}</div><div class="title">${escapeHtml(p.title)}</div><div class="excerpt">${escapeHtml(p.excerpt)}</div><div class="pm"><span>${escapeHtml(p.author)}</span><span>${p.read}</span></div></div>`);
+    const card = el(`<div class="post" data-id="${p.id}"><div class="img ${p.img}">${p.emoji}</div><div class="cat">${p.catLabel}</div><div class="title">${escapeHtml(p.title)}</div><div class="excerpt">${escapeHtml(p.excerpt)}</div><div class="pm"><span>${escapeHtml(p.author)}</span><span>${p.read}</span></div></div>`);
     card.addEventListener('click', () => openArticle(p.id));
     grid.appendChild(card);
   });
 }
-
 function openArticle(id){
   const p = POSTS.find(x => x.id===id); if (!p) return;
   $('#blogList').style.display = 'none';
   const mount = $('#articleMount'); mount.style.display = 'block'; mount.innerHTML = '';
-  
+  const colorMap = {blue:'linear-gradient(135deg,#3B82F6,#8B5CF6)', amber:'linear-gradient(135deg,#D9941F,#CF4B2E)', dark:'linear-gradient(135deg,#101316,#374151)', pink:'linear-gradient(135deg,#EC4899,#8B5CF6)', '':'linear-gradient(135deg,#1CA04F,#8B5CF6)'};
   const bodyHtml = p.body.split('\n\n').map(par => {
     if (par.match(/^[•\-]/m)) return '<ul>' + par.split('\n').map(li => `<li>${escapeHtml(li.replace(/^[•\-]\s*/,''))}</li>`).join('') + '</ul>';
     return `<p>${escapeHtml(par)}</p>`;
   }).join('');
-
-  const barChartHtml = renderArticleBarChart(p.barChart);
-  const pieChartHtml = renderArticlePieChart(p.pieChart);
-  const refsHtml = renderArticleReferences(p.references);
-
-  mount.appendChild(el(`
-    <div class="article" style="max-width:820px;margin:0 auto">
-      <button class="back" id="backToBlog" style="margin-bottom:16px">← Back to blog &amp; learning</button>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-        <span class="pill green">${escapeHtml(p.catLabel)}</span>
-        <span style="font-family:var(--mono);font-size:12px;color:var(--ink-mute)">${escapeHtml(p.date)} · ${escapeHtml(p.read)} read</span>
-      </div>
-      <h2 style="font-size:28px;line-height:1.25;margin-bottom:12px">${escapeHtml(p.title)}</h2>
-      <div class="meta" style="margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--line-soft)">By <b>${escapeHtml(p.author)}</b></div>
-      
-      <div style="width:100%;height:320px;border-radius:14px;overflow:hidden;margin-bottom:24px;box-shadow:var(--shadow)">
-        <img src="${p.heroImg}" alt="${escapeHtml(p.title)}" style="width:100%;height:100%;object-fit:cover;display:block" />
-      </div>
-
-      ${p.summary ? `<div style="background:var(--green-soft,rgba(16,185,129,0.08));border:1px solid var(--green,rgba(16,185,129,0.25));border-radius:12px;padding:16px 18px;margin-bottom:24px;font-size:14.5px;line-height:1.6;color:var(--ink)"><b>Executive Summary:</b> ${escapeHtml(p.summary)}</div>` : ''}
-
-      <div style="font-size:15.5px;line-height:1.75;color:var(--ink-soft)">
-        ${bodyHtml}
-      </div>
-
-      ${barChartHtml}
-      ${pieChartHtml}
-      ${refsHtml}
-      
-      <div style="margin-top:30px;padding-top:20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
-        <button class="btn ghost sm" id="backToBlogBottom">← Back to all articles</button>
-        <button class="btn green sm" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ Back to top</button>
-      </div>
-    </div>
-  `));
-
+  mount.appendChild(el(`<div class="article"><button class="back" id="backToBlog">← Back to blog</button><div class="cat">${p.catLabel}</div><h2>${escapeHtml(p.title)}</h2><div class="meta">${escapeHtml(p.author)} · ${p.date} · ${p.read} read</div><div class="hero-img" style="background:${colorMap[p.img]||colorMap['']}">${p.emoji}</div>${bodyHtml}</div>`));
   $('#backToBlog').addEventListener('click', () => { mount.style.display='none'; mount.innerHTML=''; $('#blogList').style.display='block'; window.scrollTo({top:0,behavior:'smooth'}); });
-  const bottomBtn = $('#backToBlogBottom');
-  if (bottomBtn) bottomBtn.addEventListener('click', () => { mount.style.display='none'; mount.innerHTML=''; $('#blogList').style.display='block'; window.scrollTo({top:0,behavior:'smooth'}); });
   window.scrollTo({top:0,behavior:'smooth'});
 }
-
 $('#blogCats').addEventListener('click', (e) => {
   const b = e.target.closest('.c'); if (!b) return;
   $$('#blogCats .c').forEach(c => c.classList.toggle('on', c===b));
@@ -5981,38 +5387,6 @@ $('#saveProfileBtn').addEventListener('click', () => {
   if (typeof saveProfile === 'function') saveProfile();
   toast('✓ Profile saved');
 });
-
-const pfResetBtn = document.getElementById('pfResetDefaultsBtn');
-if (pfResetBtn) {
-  pfResetBtn.addEventListener('click', () => {
-    const ok = confirm('⚠️ Reset All Custom Changes to Factory Defaults?\n\nThis will restore all default field preferences, clear custom hardware percentage calibrations, reset language to English, and reload default agronomy settings.');
-    if (!ok) return;
-    try {
-      localStorage.removeItem('agrisense_current_user');
-      localStorage.removeItem('agri_hw_calib_pct');
-      localStorage.removeItem('agrisense_report_feedback');
-      localStorage.removeItem('agrisense_saved_invoices');
-      localStorage.removeItem('agri_lang');
-      Object.keys(localStorage).forEach(k => {
-        if (k.startsWith('agri_tr_') || k.startsWith('agrisense_')) {
-          localStorage.removeItem(k);
-        }
-      });
-      document.cookie = 'googtrans=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-      const host = window.location.hostname;
-      if (host && host !== 'localhost') {
-        document.cookie = 'googtrans=; Path=/; domain=' + host + '; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-        document.cookie = 'googtrans=; Path=/; domain=.' + host + '; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-      }
-    } catch(e) {
-      console.warn('Reset error:', e);
-    }
-    toast('🔄 All settings reset to factory defaults. Reloading...');
-    setTimeout(() => {
-      window.location.reload();
-    }, 900);
-  });
-}
 ['buzzerSwitch','unitSwitch','notifSwitch','suggSwitch','autoIrrigSwitch'].forEach(id => {
   const el2 = document.getElementById(id);
   if (el2) el2.addEventListener('click', () => el2.classList.toggle('on'));
@@ -6322,35 +5696,10 @@ const CROP_ENV = {
   'grape':    { soil:[35,60], airT:[20,32], humid:[40,65], soilT:[18,30], ph:[6.0,7.0], light:[70,100],tds:[300,900] },
   'default':  { soil:[40,65], airT:[18,30], humid:[50,75], soilT:[15,30], ph:[6.0,7.0], light:[55,95], tds:[200,800] }
 };
-function cropEnv(crop, region){
+function cropEnv(crop){
   const c = (crop||'').toLowerCase();
-  let base = null;
-  for (const k of Object.keys(CROP_ENV)) if (k!=='default' && c.includes(k)) { base = JSON.parse(JSON.stringify(CROP_ENV[k])); break; }
-  if (!base) base = JSON.parse(JSON.stringify(CROP_ENV.default));
-
-  const reg = (region || (state.user && state.user.loc) || '').toLowerCase();
-  // Regional agronomic calibration for soil types & agro-climatic zones
-  if (reg.includes('maharashtra') || reg.includes('pune') || reg.includes('nashik') || reg.includes('vertisol') || reg.includes('black')) {
-    // Heavy black vertisol soil: high clay content, slow drainage, prone to root rot
-    // Sweet spot calibrated 5-8% lower to maintain aeration
-    base.soil = [Math.max(25, base.soil[0] - 5), Math.max(50, base.soil[1] - 8)];
-    base.airT = [base.airT[0] + 1, base.airT[1] + 3];
-  } else if (reg.includes('punjab') || reg.includes('ludhiana') || reg.includes('samrala') || reg.includes('khanna') || reg.includes('haryana')) {
-    // Indo-Gangetic alluvial loam: highly porous, active transpiration under dry winds
-    // Optimal sweet spot for tomato: 45% to 72%
-    if (c.includes('tomato')) base.soil = [45, 72];
-    else base.soil = [base.soil[0] + 3, base.soil[1] + 2];
-  } else if (reg.includes('karnataka') || reg.includes('kolar') || reg.includes('tamil') || reg.includes('south')) {
-    // Red laterite sandy loam: quick percolation
-    base.soil = [base.soil[0] - 2, base.soil[1] - 3];
-  }
-
-  // Quiz soil override if specified
-  const f = (state.farms && state.farms[state.activeFarm]) || {};
-  if (f.quiz && f.quiz.soilType === 'Sandy') base.soil = [base.soil[0] + 4, base.soil[1] + 4];
-  if (f.quiz && f.quiz.soilType === 'Clay') base.soil = [base.soil[0] - 5, base.soil[1] - 5];
-
-  return base;
+  for (const k of Object.keys(CROP_ENV)) if (k!=='default' && c.includes(k)) return CROP_ENV[k];
+  return CROP_ENV.default;
 }
 /* Compare a value to its [lo,hi] ideal band -> 'low' | 'ok' | 'high' + how far off */
 function bandCheck(v, band){
@@ -6730,299 +6079,6 @@ function openFinForm(){
     if (typeof saveProfile === 'function') saveProfile();
     awardPoints(3, 'Logged a farm transaction');
     toast((kind==='income'?'＋ Income':'− Expense') + ' added · ' + rupee(amt));
-  });
-}
-
-/* ============ CUSTOM INVOICE GENERATOR ============ */
-let SAVED_INVOICES = [];
-try {
-  const stored = localStorage.getItem('agrisense_saved_invoices');
-  if (stored) SAVED_INVOICES = JSON.parse(stored);
-} catch(e){}
-
-function renderSavedInvoices(){
-  const countEl = $('#savedInvCount');
-  if (countEl) countEl.textContent = SAVED_INVOICES.length;
-  const listEl = $('#savedInvoicesList');
-  if (!listEl) return;
-  if (!SAVED_INVOICES.length){
-    listEl.innerHTML = '<div class="empty" style="padding:8px 0;font-size:13px">No custom invoices created yet. Tap "🧾 Create Custom Invoice" to generate one.</div>';
-    return;
-  }
-  listEl.innerHTML = SAVED_INVOICES.map((inv, idx) => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-soft);font-size:13px">
-      <div>
-        <div style="font-weight:700;color:var(--ink)">${escapeHtml(inv.invoiceNo)} · ${escapeHtml(inv.buyerName)}</div>
-        <div style="font-size:11.5px;color:var(--ink-mute)">Date: ${escapeHtml(inv.date)} · ${inv.items.length} items</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-family:var(--mono);font-weight:700;color:var(--green-deep,#10b981)">₹${Math.round(inv.grandTotal).toLocaleString('en-IN')}</span>
-        <button class="btn ghost sm" data-inv-view="${idx}">👁️ View / Print</button>
-        <button class="btn ghost sm" data-inv-del="${idx}" style="color:var(--alert);box-shadow:none">🗑️</button>
-      </div>
-    </div>
-  `).join('');
-
-  listEl.querySelectorAll('[data-inv-view]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const inv = SAVED_INVOICES[+btn.dataset.invView];
-      if (inv) previewInvoiceSheet(inv);
-    });
-  });
-
-  listEl.querySelectorAll('[data-inv-del]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = +btn.dataset.invDel;
-      if (confirm('Delete invoice ' + SAVED_INVOICES[idx].invoiceNo + '?')){
-        SAVED_INVOICES.splice(idx, 1);
-        try { localStorage.setItem('agrisense_saved_invoices', JSON.stringify(SAVED_INVOICES)); } catch(_){}
-        renderSavedInvoices();
-        toast('Invoice deleted');
-      }
-    });
-  });
-}
-
-function openInvoiceForm(){
-  const mount = $('#finInvoiceMount'); if (!mount) return;
-  if (mount.innerHTML){ mount.innerHTML = ''; return; }
-
-  const nextNum = 'INV-2026-' + String(SAVED_INVOICES.length + 1).padStart(3, '0');
-  const today = new Date().toISOString().slice(0, 10);
-
-  mount.appendChild(el(`
-    <div class="form-card" style="border:1.5px solid var(--green);margin-bottom:16px">
-      <div class="head" style="display:flex;justify-content:space-between;align-items:center">
-        <span>🧾 Create Custom Tax / Mandi Invoice</span>
-        <button class="btn ghost sm" id="invCloseTop">×</button>
-      </div>
-
-      <div class="fields-row">
-        <div class="field"><label class="label">Invoice #</label><input class="input" id="invNum" value="${nextNum}"></div>
-        <div class="field"><label class="label">Date</label><input class="input" type="date" id="invDate" value="${today}"></div>
-      </div>
-
-      <div class="fields-row">
-        <div class="field"><label class="label">Buyer / Trader Name</label><input class="input" id="invBuyer" placeholder="e.g. Azadpur Mandi Trading Co."></div>
-        <div class="field"><label class="label">Buyer Phone</label><input class="input" id="invPhone" placeholder="10-digit mobile"></div>
-      </div>
-
-      <div class="field"><label class="label">Delivery Location / Mandi</label><input class="input" id="invDest" placeholder="e.g. Yard #4, Wholesale Market, Ludhiana"></div>
-
-      <div style="margin:14px 0 8px;font-weight:700;font-size:13.5px">Crop / Goods Line Items</div>
-      <div id="invRowsContainer" style="display:flex;flex-direction:column;gap:8px"></div>
-      <button type="button" class="btn ghost sm" id="invAddRowBtn" style="margin-top:8px">＋ Add Line Item</button>
-
-      <div style="background:var(--bg-2);border-radius:10px;padding:14px;margin-top:14px;display:flex;flex-direction:column;gap:8px">
-        <div class="fields-row">
-          <div class="field"><label class="label">Mandi Cess / GST (%)</label>
-            <select class="select" id="invCess">
-              <option value="0">0% (Nil / Essential Produce)</option>
-              <option value="2" selected>2% (Standard Mandi Cess)</option>
-              <option value="5">5% (Processed Farm Goods)</option>
-              <option value="12">12% (Packaged Produce)</option>
-            </select>
-          </div>
-          <div class="field"><label class="label">Transport / Freight (₹)</label><input class="input" type="number" id="invFreight" value="0"></div>
-        </div>
-
-        <div style="display:flex;justify-content:space-between;font-size:13px;border-top:1px solid var(--line-soft);padding-top:8px">
-          <span style="color:var(--ink-mute)">Subtotal:</span>
-          <span style="font-family:var(--mono);font-weight:600" id="invSubtotal">₹0</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:13px">
-          <span style="color:var(--ink-mute)">Mandi Cess / Tax:</span>
-          <span style="font-family:var(--mono);font-weight:600" id="invTaxAmt">₹0</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;color:var(--green-deep,#10b981)">
-          <span>Grand Total:</span>
-          <span style="font-family:var(--mono)" id="invGrandTotal">₹0</span>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:10px;margin-top:14px">
-        <button class="btn green" id="invSaveBtn">💾 Save Invoice</button>
-        <button class="btn ghost" id="invCancelBtn">Cancel</button>
-      </div>
-    </div>
-  `));
-
-  let items = [
-    { desc: 'Fresh Tomatoes (Grade A)', qty: 25, unit: 'Quintal', rate: 1850 }
-  ];
-
-  function renderRows(){
-    const c = $('#invRowsContainer');
-    if (!c) return;
-    c.innerHTML = items.map((it, i) => `
-      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:6px;align-items:center">
-        <input class="input" data-rdesc="${i}" value="${escapeHtml(it.desc)}" placeholder="Item description" style="padding:6px 10px;font-size:12px">
-        <input class="input" type="number" data-rqty="${i}" value="${it.qty}" placeholder="Qty" style="padding:6px 10px;font-size:12px">
-        <select class="select" data-runit="${i}" style="padding:6px;font-size:12px">
-          <option ${it.unit==='Quintal'?'selected':''}>Quintal</option>
-          <option ${it.unit==='Kg'?'selected':''}>Kg</option>
-          <option ${it.unit==='Crates'?'selected':''}>Crates</option>
-          <option ${it.unit==='Bags'?'selected':''}>Bags</option>
-          <option ${it.unit==='Tons'?'selected':''}>Tons</option>
-        </select>
-        <input class="input" type="number" data-rrate="${i}" value="${it.rate}" placeholder="Rate ₹" style="padding:6px 10px;font-size:12px">
-        <button class="btn ghost sm" data-rdel="${i}" style="padding:6px 8px;color:var(--alert);box-shadow:none">×</button>
-      </div>
-    `).join('');
-
-    c.querySelectorAll('[data-rdesc]').forEach(inp => {
-      inp.addEventListener('input', () => { items[+inp.dataset.rdesc].desc = inp.value; });
-    });
-    c.querySelectorAll('[data-rqty]').forEach(inp => {
-      inp.addEventListener('input', () => { items[+inp.dataset.rqty].qty = +inp.value || 0; calcTotals(); });
-    });
-    c.querySelectorAll('[data-runit]').forEach(sel => {
-      sel.addEventListener('change', () => { items[+sel.dataset.runit].unit = sel.value; });
-    });
-    c.querySelectorAll('[data-rrate]').forEach(inp => {
-      inp.addEventListener('input', () => { items[+inp.dataset.rrate].rate = +inp.value || 0; calcTotals(); });
-    });
-    c.querySelectorAll('[data-rdel]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (items.length > 1){ items.splice(+btn.dataset.rdel, 1); renderRows(); calcTotals(); }
-        else toast('At least one item required');
-      });
-    });
-  }
-
-  function calcTotals(){
-    const sub = items.reduce((sum, it) => sum + (it.qty * it.rate), 0);
-    const cessPct = +($('#invCess') ? $('#invCess').value : 2) || 0;
-    const tax = (sub * cessPct) / 100;
-    const freight = +($('#invFreight') ? $('#invFreight').value : 0) || 0;
-    const grand = sub + tax + freight;
-
-    if ($('#invSubtotal')) $('#invSubtotal').textContent = '₹' + Math.round(sub).toLocaleString('en-IN');
-    if ($('#invTaxAmt')) $('#invTaxAmt').textContent = '₹' + Math.round(tax).toLocaleString('en-IN');
-    if ($('#invGrandTotal')) $('#invGrandTotal').textContent = '₹' + Math.round(grand).toLocaleString('en-IN');
-    return { sub, tax, freight, grand, cessPct };
-  }
-
-  renderRows();
-  calcTotals();
-
-  $('#invAddRowBtn').addEventListener('click', () => {
-    items.push({ desc: 'Farm Produce', qty: 10, unit: 'Quintal', rate: 1500 });
-    renderRows();
-    calcTotals();
-  });
-
-  if ($('#invCess')) $('#invCess').addEventListener('change', calcTotals);
-  if ($('#invFreight')) $('#invFreight').addEventListener('input', calcTotals);
-
-  $('#invCloseTop').addEventListener('click', () => mount.innerHTML = '');
-  $('#invCancelBtn').addEventListener('click', () => mount.innerHTML = '');
-
-  $('#invSaveBtn').addEventListener('click', () => {
-    const buyer = $('#invBuyer').value.trim() || 'Wholesale Buyer';
-    const invNo = $('#invNum').value.trim() || nextNum;
-    const date = $('#invDate').value || today;
-    const { sub, tax, freight, grand, cessPct } = calcTotals();
-
-    const inv = {
-      invoiceNo: invNo,
-      date,
-      buyerName: buyer,
-      buyerPhone: $('#invPhone').value.trim() || '—',
-      destination: $('#invDest').value.trim() || '—',
-      sellerName: state.user.name || 'AgriSense Farm Producer',
-      sellerFarm: state.user.farm || 'Green Valley Farm',
-      items: items.map(it => ({ ...it, total: it.qty * it.rate })),
-      subtotal: sub,
-      mandiCessRate: cessPct,
-      mandiCessAmount: tax,
-      freight,
-      grandTotal: grand
-    };
-
-    SAVED_INVOICES.unshift(inv);
-    try { localStorage.setItem('agrisense_saved_invoices', JSON.stringify(SAVED_INVOICES)); } catch(_){}
-    mount.innerHTML = '';
-    renderSavedInvoices();
-    toast('✓ Invoice ' + invNo + ' saved!');
-    awardPoints(5, 'Created a custom farm invoice');
-    previewInvoiceSheet(inv);
-  });
-}
-
-function previewInvoiceSheet(inv){
-  sheetState.open = true; sheetState.quiz = true; sheetState.key = null;
-  $('#sheetBg').classList.add('open');
-  $('#sheet').innerHTML = `
-    <div class="sheet-head">
-      <div>
-        <div class="ttl">🧾 Invoice — ${escapeHtml(inv.invoiceNo)}</div>
-        <div class="sub">Generated on ${escapeHtml(inv.date)} · ${escapeHtml(inv.buyerName)}</div>
-      </div>
-      <button class="close" id="invSheetClose" aria-label="Close">×</button>
-    </div>
-    <div style="padding:16px 0;max-height:75vh;overflow-y:auto" id="printableInvoiceArea">
-      <div style="border:1.5px solid var(--line);border-radius:12px;padding:20px;background:var(--card)">
-        <div style="display:flex;justify-content:space-between;border-bottom:2px solid var(--green);padding-bottom:14px;margin-bottom:14px">
-          <div>
-            <div style="font-size:18px;font-weight:800;color:var(--green-deep,#10b981)">${escapeHtml(inv.sellerFarm || 'AgriSense Farm')}</div>
-            <div style="font-size:12px;color:var(--ink-soft)">Producer: ${escapeHtml(inv.sellerName || 'Farmer')}</div>
-            <div style="font-size:12px;color:var(--ink-mute)">Platform: AgriSense Autonomous Farming</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:16px;font-weight:700;font-family:var(--mono)">${escapeHtml(inv.invoiceNo)}</div>
-            <div style="font-size:12px;color:var(--ink-mute)">Date: ${escapeHtml(inv.date)}</div>
-          </div>
-        </div>
-
-        <div style="background:var(--bg-2);padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:12.5px">
-          <b>Billed To:</b> ${escapeHtml(inv.buyerName)} · Phone: ${escapeHtml(inv.buyerPhone)}
-          <br><b>Mandi / Delivery:</b> ${escapeHtml(inv.destination || 'Direct Farm Gate')}
-        </div>
-
-        <table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:14px">
-          <thead>
-            <tr style="border-bottom:1px solid var(--line);text-align:left;color:var(--ink-mute)">
-              <th style="padding:6px">Item</th>
-              <th style="padding:6px;text-align:right">Qty</th>
-              <th style="padding:6px;text-align:right">Rate (₹)</th>
-              <th style="padding:6px;text-align:right">Total (₹)</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${inv.items.map(it => `
-              <tr style="border-bottom:1px solid var(--line-soft)">
-                <td style="padding:8px 6px;font-weight:600">${escapeHtml(it.desc)}</td>
-                <td style="padding:8px 6px;text-align:right;font-family:var(--mono)">${it.qty} ${escapeHtml(it.unit)}</td>
-                <td style="padding:8px 6px;text-align:right;font-family:var(--mono)">₹${it.rate.toLocaleString('en-IN')}</td>
-                <td style="padding:8px 6px;text-align:right;font-family:var(--mono);font-weight:700">₹${Math.round(it.total).toLocaleString('en-IN')}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-
-        <div style="display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line);padding-top:10px;font-size:12.5px;max-width:280px;margin-left:auto">
-          <div style="display:flex;justify-content:space-between"><span>Subtotal:</span><b style="font-family:var(--mono)">₹${Math.round(inv.subtotal).toLocaleString('en-IN')}</b></div>
-          <div style="display:flex;justify-content:space-between"><span>Mandi Cess (${inv.mandiCessRate}%):</span><b style="font-family:var(--mono)">₹${Math.round(inv.mandiCessAmount).toLocaleString('en-IN')}</b></div>
-          <div style="display:flex;justify-content:space-between"><span>Freight / Transport:</span><b style="font-family:var(--mono)">₹${Math.round(inv.freight).toLocaleString('en-IN')}</b></div>
-          <div style="display:flex;justify-content:space-between;font-size:15px;color:var(--green-deep,#10b981);font-weight:800;border-top:2px solid var(--line);padding-top:6px">
-            <span>Grand Total:</span>
-            <span style="font-family:var(--mono)">₹${Math.round(inv.grandTotal).toLocaleString('en-IN')}</span>
-          </div>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:10px;margin-top:16px">
-        <button class="btn green block" id="invPrintBtn">🖨️ Print / Save as PDF</button>
-        <button class="btn ghost block" id="invSheetDismiss">Close</button>
-      </div>
-    </div>
-  `;
-
-  $('#invSheetClose').addEventListener('click', closeSheet);
-  $('#invSheetDismiss').addEventListener('click', closeSheet);
-  $('#invPrintBtn').addEventListener('click', () => {
-    window.print();
   });
 }
 
@@ -8775,113 +7831,6 @@ function simLoop(){
 }
 
 
-
-/* ============ CROSS-REGIONAL MANDI DATASET & COMPARISON ============ */
-const REGIONAL_MANDI_BENCHMARKS = [
-  // Wheat
-  { crop: 'Wheat', mandi: 'Khanna Mandi, Punjab', state: 'Punjab', price: 2450, trend: '+35', arrival: '4,800 qtl', owner: 'Gurpreet Singh', phone: '+919814012345', qty: '350 Qtl' },
-  { crop: 'Wheat', mandi: 'Karnal Mandi, Haryana', state: 'Haryana', price: 2420, trend: '+20', arrival: '3,200 qtl', owner: 'Rakesh Verma', phone: '+919812054321', qty: '200 Qtl' },
-  { crop: 'Wheat', mandi: 'Indore APMC, MP', state: 'Madhya Pradesh', price: 2580, trend: '+45', arrival: '2,900 qtl', owner: 'Mohanlal Patidar', phone: '+919826098765', qty: '500 Qtl' },
-  { crop: 'Wheat', mandi: 'Pune Gultekdi, MH', state: 'Maharashtra', price: 2820, trend: '+60', arrival: '1,800 qtl', owner: 'Sambhaji Patil', phone: '+919822011223', qty: '150 Qtl' },
-  { crop: 'Wheat', mandi: 'Azadpur APMC, Delhi', state: 'Delhi', price: 2750, trend: '+55', arrival: '6,200 qtl', owner: 'Brijesh Yadav', phone: '+919412033445', qty: '400 Qtl' },
-
-  // Tomatoes
-  { crop: 'Tomatoes', mandi: 'Ludhiana APMC, Punjab', state: 'Punjab', price: 1850, trend: '+150', arrival: '1,200 crates', owner: 'Jaswant Singh', phone: '+919814177889', qty: '120 Crates' },
-  { crop: 'Tomatoes', mandi: 'Nashik APMC, MH', state: 'Maharashtra', price: 1420, trend: '-80', arrival: '5,600 crates', owner: 'Nitin Shinde', phone: '+919823044556', qty: '300 Crates' },
-  { crop: 'Tomatoes', mandi: 'Kolar APMC, KA', state: 'Karnataka', price: 1350, trend: '-100', arrival: '6,800 crates', owner: 'M. Gowda', phone: '+919845066778', qty: '400 Crates' },
-  { crop: 'Tomatoes', mandi: 'Azadpur APMC, Delhi', state: 'Delhi', price: 2100, trend: '+180', arrival: '4,300 crates', owner: 'Subhash Gupta', phone: '+919810088990', qty: '250 Crates' },
-  { crop: 'Tomatoes', mandi: 'Vashi Market, Mumbai', state: 'Maharashtra', price: 1950, trend: '+90', arrival: '3,800 crates', owner: 'Pandurang Mane', phone: '+919820033221', qty: '180 Crates' },
-
-  // Rice
-  { crop: 'Rice', mandi: 'Ludhiana APMC, Punjab', state: 'Punjab', price: 2350, trend: '+40', arrival: '8,200 qtl', owner: 'Harmanjit Singh', phone: '+919876011223', qty: '600 Qtl' },
-  { crop: 'Rice', mandi: 'Kaithal Mandi, Haryana', state: 'Haryana', price: 2380, trend: '+25', arrival: '6,400 qtl', owner: 'Surinder Kumar', phone: '+919813099887', qty: '450 Qtl' },
-  { crop: 'Rice', mandi: 'Guntur APMC, AP', state: 'Andhra Pradesh', price: 2600, trend: '+50', arrival: '3,700 qtl', owner: 'N. Venkata Rao', phone: '+919848055667', qty: '300 Qtl' },
-  { crop: 'Rice', mandi: 'Karnal APMC, Haryana', state: 'Haryana', price: 2410, trend: '+30', arrival: '4,100 qtl', owner: 'Jaipal Rana', phone: '+919812233445', qty: '320 Qtl' },
-
-  // Onions
-  { crop: 'Onions', mandi: 'Lasalgaon APMC, MH', state: 'Maharashtra', price: 2450, trend: '+120', arrival: '12,000 qtl', owner: 'Bhausaheb Kadam', phone: '+919822177665', qty: '800 Qtl' },
-  { crop: 'Onions', mandi: 'Khanna Mandi, Punjab', state: 'Punjab', price: 3100, trend: '+180', arrival: '1,900 qtl', owner: 'Kuldeep Singh', phone: '+919876122334', qty: '200 Qtl' },
-  { crop: 'Onions', mandi: 'Azadpur APMC, Delhi', state: 'Delhi', price: 3250, trend: '+210', arrival: '7,500 qtl', owner: 'Madan Lal & Sons', phone: '+919811044556', qty: '500 Qtl' },
-
-  // Mustard
-  { crop: 'Mustard', mandi: 'Alwar Mandi, Rajasthan', state: 'Rajasthan', price: 5750, trend: '+110', arrival: '3,400 qtl', owner: 'Ramavtar Meena', phone: '+919414012345', qty: '280 Qtl' },
-  { crop: 'Mustard', mandi: 'Khanna Mandi, Punjab', state: 'Punjab', price: 5820, trend: '+90', arrival: '1,400 qtl', owner: 'Tarlok Singh', phone: '+919814288990', qty: '150 Qtl' },
-  { crop: 'Mustard', mandi: 'Morena APMC, MP', state: 'Madhya Pradesh', price: 5690, trend: '+60', arrival: '2,800 qtl', owner: 'Ramsingh Tomar', phone: '+919425112233', qty: '220 Qtl' }
-];
-
-function openCropComparisonSheet(cropName, localPrice) {
-  const normCrop = (cropName || 'Tomato').trim();
-  const cMatches = REGIONAL_MANDI_BENCHMARKS.filter(b => b.crop.toLowerCase().includes(normCrop.toLowerCase()) || normCrop.toLowerCase().includes(b.crop.toLowerCase()));
-  const dataset = cMatches.length ? cMatches : REGIONAL_MANDI_BENCHMARKS.slice(0, 5);
-
-  const baseline = dataset.find(d => d.state === 'Punjab') || dataset[0];
-  const sorted = [...dataset].sort((a,b) => b.price - a.price);
-  const best = sorted[0];
-  const spread = (best && baseline) ? (best.price - baseline.price) : 0;
-
-  sheetState.open = true; sheetState.quiz = true; sheetState.key = null;
-  $('#sheetBg').classList.add('open');
-  $('#sheet').innerHTML = `
-    <div class="sheet-head">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:28px">${cropIcon(normCrop)}</span>
-        <div>
-          <div class="ttl">⚖️ Cross-Regional Mandi Arbitrage: ${escapeHtml(normCrop)}</div>
-          <div class="sub" style="color:var(--green-deep,#10b981)">Compare prices across India &amp; contact verified owners</div>
-        </div>
-      </div>
-      <button class="close" id="compClose" aria-label="Close">×</button>
-    </div>
-    <div style="padding:16px 0;max-height:75vh;overflow-y:auto">
-      ${spread > 0 ? `
-      <div style="background:var(--green-soft,rgba(16,185,129,0.1));border:1px solid var(--green,#10b981);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-        <div>
-          <div style="font-size:12px;font-weight:700;color:var(--green-deep,#10b981)">🏆 HIGHEST INTER-STATE ARBITRAGE</div>
-          <div style="font-size:14px;font-weight:800;color:var(--ink)">Sell in ${escapeHtml(best.mandi)}: +₹${spread.toLocaleString('en-IN')}/qtl gain</div>
-        </div>
-        <button class="btn green sm" onclick="goScreen('finance');openInvoiceForm();closeSheet()">📄 Create Invoice</button>
-      </div>` : ''}
-
-      <div style="font-weight:700;font-size:13px;margin-bottom:8px">Live Regional Mandi Benchmark Prices:</div>
-      <div class="tbl-wrap" style="margin-bottom:18px">
-        <table class="tbl" style="font-size:12px">
-          <thead><tr><th>Mandi / State</th><th style="text-align:right">Price (₹/qtl)</th><th style="text-align:right">vs Local Mandi</th><th style="text-align:center">Trend</th></tr></thead>
-          <tbody>
-            ${dataset.map(row => {
-              const diff = baseline ? (row.price - baseline.price) : 0;
-              const diffColor = diff > 0 ? '#10b981' : diff < 0 ? '#ef4444' : 'var(--ink-mute)';
-              return `<tr>
-                <td><b>${escapeHtml(row.mandi)}</b></td>
-                <td style="text-align:right;font-family:var(--mono);font-weight:700">₹${row.price.toLocaleString('en-IN')}</td>
-                <td style="text-align:right;font-family:var(--mono);font-weight:700;color:${diffColor}">${diff > 0 ? '+₹' + diff : diff < 0 ? '-₹' + Math.abs(diff) : 'Baseline'}</td>
-                <td style="text-align:center;font-weight:600;color:${row.trend.startsWith('+') ? '#10b981' : '#ef4444'}">${row.trend}</td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-
-      <div style="font-weight:700;font-size:13.5px;margin-bottom:10px">Verified Owners &amp; Sellers in Other Regions:</div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        ${dataset.map(owner => `
-          <div class="card" style="padding:12px 14px;background:var(--bg-2);border-radius:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-            <div>
-              <div style="font-weight:700;font-size:13.5px">👤 ${escapeHtml(owner.owner)}</div>
-              <div style="font-size:11.5px;color:var(--ink-mute);margin:2px 0">📍 ${escapeHtml(owner.mandi)} · Available: <b>${escapeHtml(owner.qty)}</b></div>
-              <div style="font-size:12.5px;color:var(--green-deep,#10b981);font-weight:700">Asking: ₹${owner.price.toLocaleString('en-IN')}/qtl</div>
-            </div>
-            <div style="display:flex;gap:8px">
-              <a href="tel:${escapeHtml(owner.phone)}" class="btn green sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px">📞 Call Owner</a>
-              <a href="https://wa.me/${escapeHtml(owner.phone.replace(/[^0-9]/g, ''))}?text=${encodeURIComponent(`Hello ${owner.owner}, I saw your listing for ${owner.crop} (${owner.qty}) on AgriSense Mandi Exchange. Is it still available?`)}" target="_blank" class="btn ghost sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px">💬 WhatsApp</a>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
-  $('#compClose').addEventListener('click', closeSheet);
-}
-
 /* ============ CROP MARKETPLACE ============ */
 const MKT_CATS = ['All','Grains','Vegetables','Fruits','My listings'];
 function cropIcon(crop){
@@ -8905,17 +7854,6 @@ function cropIcon(crop){
 function renderMktFilters(){
   const row = $('#mktFilters'); if (!row) return;
   row.innerHTML = '';
-  state.mktScope = state.mktScope || 'near'; // Default nearby scope
-
-  // Scope toggle pills
-  const scopeWrap = el(`<div style="display:flex;gap:6px;margin-right:12px;padding-right:10px;border-right:1.5px solid var(--line)">
-    <button class="chan ${state.mktScope==='near'?'on':''}" id="mktScopeNear" style="font-weight:700">📍 Near me</button>
-    <button class="chan ${state.mktScope==='all'?'on':''}" id="mktScopeAll">🌐 All India</button>
-  </div>`);
-  row.appendChild(scopeWrap);
-  $('#mktScopeNear').addEventListener('click', () => { state.mktScope = 'near'; renderMktFilters(); renderMarket(); });
-  $('#mktScopeAll').addEventListener('click', () => { state.mktScope = 'all'; renderMktFilters(); renderMarket(); });
-
   MKT_CATS.forEach(c => {
     const b = el(`<button class="chan ${c===state.mktFilter?'on':''}">${c}</button>`);
     b.addEventListener('click', () => { state.mktFilter = c; renderMktFilters(); renderMarket(); });
@@ -8949,49 +7887,28 @@ function setMarketTab(tab){
 function renderMarket(){
   const grid = $('#mktGrid'); if (!grid) return;
   let rows = state.market;
-  // Apply nearby scope filter by default
-  state.mktScope = state.mktScope || 'near';
-  if (state.mktScope === 'near') {
-    const userLoc = (state.user && state.user.loc ? state.user.loc : 'Punjab').toLowerCase();
-    rows = rows.filter(r => {
-      const l = (r.loc || '').toLowerCase();
-      return l.includes('punjab') || l.includes('samrala') || l.includes('ludhiana') || l.includes('khanna') || l.includes(userLoc);
-    });
-  }
   if (state.mktFilter === 'My listings') rows = rows.filter(r => r.you);
   else if (state.mktFilter !== 'All') rows = rows.filter(r => r.cat === state.mktFilter);
   grid.innerHTML = '';
   if (!rows.length){
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">No listings found near your region (${state.mktScope === 'near' ? 'Near me' : 'All'}). Switch to 'All India' or post a listing!</div>`;
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No listings here yet — be the first to sell.</div>';
     return;
   }
   rows.forEach(r => {
     const idx = state.market.indexOf(r);
-    const card = el(`<div class="mkt-card" style="cursor:pointer">
+    grid.appendChild(el(`<div class="mkt-card">
       <div class="mk-top"><span class="mk-ic">${cropIcon(r.crop)}</span>
         <div style="flex:1"><div class="mk-crop">${escapeHtml(r.crop)}</div>
         <div class="mk-loc">📍 ${escapeHtml(r.loc)} · ${r.ts || timeAgo(r.mins||0)}</div></div>
         ${r.you ? '<span class="pill green" style="font-size:9.5px;padding:3px 9px">YOURS</span>' : ''}</div>
       <div class="mk-price">${escapeHtml(r.price)} <span class="mk-qty">· ${escapeHtml(r.qty)} available</span></div>
       <div class="mk-desc">${escapeHtml(r.desc)}</div>
-      <div class="mk-foot" style="flex-wrap:wrap;gap:6px">
+      <div class="mk-foot">
         <span class="mk-seller" data-fp="${escapeHtml(r.name)}" data-tip="Tap to open ${escapeHtml(r.name)}'s profile" style="cursor:pointer;text-decoration:underline;text-underline-offset:3px">👤 ${escapeHtml(r.name)}</span>
-        <div style="display:flex;gap:6px">
-          <button class="btn ghost sm" data-compare="${escapeHtml(r.crop)}" style="font-size:11px">⚖️ Compare</button>
-          ${r.you ? `<button class="btn ghost sm" data-rm="${idx}" style="box-shadow:inset 0 0 0 1.5px var(--alert);color:var(--alert)">Remove</button>`
-                  : `<button class="btn green sm" data-contact="${idx}">Contact</button>`}
-        </div>
+        ${r.you ? `<button class="btn ghost sm" data-rm="${idx}" style="box-shadow:inset 0 0 0 1.5px var(--alert);color:var(--alert)">Remove</button>`
+                : `<button class="btn green sm" data-contact="${idx}">Contact seller</button>`}
       </div>
-    </div>`);
-
-    // Click on compare button opens regional comparison
-    const compBtn = card.querySelector('[data-compare]');
-    if (compBtn) compBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openCropComparisonSheet(r.crop, r.price);
-    });
-
-    grid.appendChild(card);
+    </div>`));
   });
 }
 function openSellForm(){
@@ -10175,107 +9092,15 @@ function renderWeather(){
       <div class="more">tap for hourly →</div>
     </div>`).join('');
   grid.querySelectorAll('[data-day]').forEach(c => c.addEventListener('click', () => openDayForecast(+c.dataset.day)));
-  const WX_ADVISORIES = [
-    {
-      ic: '🌧️',
-      t: 'IMD Agromet Monsoon & Rain Advisory',
-      source: 'India Meteorological Department (IMD) Agromet Advisory Service',
-      url: 'https://mausam.imd.gov.in/',
-      s: `Rain spell likely ${names[WX[3].d.getDay()]}–${names[WX[4].d.getDay()]} — plan spraying before it; harvest ready produce early.`,
-      summary: 'A western disturbance and active monsoon trough are likely to trigger moderate to heavy localized precipitation across regional farming belts over the next 48 to 72 hours.',
-      actions: [
-        'Postpone scheduled urea and foliar nutrient applications until clear weather resumes.',
-        'Ensure clear drainage channels in low-lying crop zones to prevent root hypoxia.',
-        'Harvest mature marketable tomatoes and vegetables before rainfall to avoid fruit cracking.'
-      ]
-    },
-    {
-      ic: '🏛️',
-      t: 'Kharif Crop Insurance (PMFBY) Enrolment Deadline',
-      source: 'Ministry of Agriculture & Farmers Welfare (PMFBY)',
-      url: 'https://pmfby.gov.in/',
-      s: 'Advisory: complete crop insurance (PMFBY) enrolment before the sowing-window deadline in your district.',
-      summary: 'The cut-off deadline for Kharif season crop insurance under the Pradhan Mantri Fasal Bima Yojana (PMFBY) is approaching for non-loanee farmers. Insure standing crops against inundation, pest epidemics, and unseasonal storms at a capped 2% premium.',
-      actions: [
-        'Submit land possession certificate (LPC) and sowing certificate to your nearest CSC or bank.',
-        'Verify that your Aadhaar number is seeded with the bank account for direct claim transfer.',
-        'Enroll online on pmfby.gov.in before the cutoff date.'
-      ]
-    },
-    {
-      ic: '🦗',
-      t: 'High Humidity Pest & Blight Alert',
-      source: 'ICAR-IIHR Directorate of Plant Protection',
-      url: 'https://iihr.res.in/',
-      s: 'Post-rain humidity favours fungal spots and sucking pests — scout leaf undersides 2–3 days after the rain.',
-      summary: 'Continuous relative humidity above 82% coupled with moderate temperatures (24°C–31°C) creates an optimal microclimate for the spore germination of Alternaria early blight and whitefly reproduction on solanaceous crops.',
-      actions: [
-        'Scout the lower and middle canopy leaves in zones C and D for concentric target lesions.',
-        'Apply preventive organic neem oil foliar spray (10,000 ppm @ 3ml/litre water) during dry breaks.',
-        'Avoid high-pressure overhead spraying which splashes fungal spores onto adjacent plants.'
-      ]
-    }
-  ];
-
-  $('#advList').innerHTML = WX_ADVISORIES.map((a, idx) => `
-    <div class="list-item" data-adv-idx="${idx}" style="cursor:pointer;transition:background 0.15s ease" title="Tap to view official advisory summary">
-      <div class="dot">${a.ic}</div>
-      <div class="body">
-        <div class="t" style="display:flex;justify-content:space-between;align-items:center">
-          <span>${escapeHtml(a.t)}</span>
-          <span style="font-size:11px;color:var(--green-deep,#10b981);font-weight:700">View Summary &amp; Portal →</span>
-        </div>
-        <div class="s">${escapeHtml(a.s)}</div>
-      </div>
-    </div>
-  `).join('');
-
-  $('#advList').querySelectorAll('[data-adv-idx]').forEach(el => {
-    el.addEventListener('click', () => {
-      const adv = WX_ADVISORIES[+el.dataset.advIdx];
-      if (!adv) return;
-      openAdvisorySheet(adv);
-    });
-  });
+  $('#advList').innerHTML = [
+    { ic:'🌧️', t:'IMD-style outlook', s:`Rain spell likely ${names[WX[3].d.getDay()]}–${names[WX[4].d.getDay()]} — plan spraying before it; harvest ready produce early.` },
+    { ic:'🏛️', t:'Kharif registration', s:'Advisory: complete crop insurance (PMFBY) enrolment before the sowing-window deadline in your district.' },
+    { ic:'🦗', t:'Pest watch', s:'Post-rain humidity favours fungal spots and sucking pests — scout leaf undersides 2–3 days after the rain.' }
+  ].map(a => `<div class="list-item"><div class="dot">${a.ic}</div><div class="body"><div class="t">${a.t}</div><div class="s">${a.s}</div></div></div>`).join('');
   const disc = $('#wxDisclaimer');
   if (disc) disc.textContent = state._wxReal
     ? 'Live forecast from Open-Meteo (free, real-time) · agri-advisories are illustrative.'
     : (state._wxError ? ('⚠️ Live weather unavailable: ' + state._wxError + ' — showing estimated forecast.') : 'Loading live weather…');
-}
-
-function openAdvisorySheet(adv){
-  sheetState.open = true; sheetState.quiz = true; sheetState.key = null;
-  $('#sheetBg').classList.add('open');
-  $('#sheet').innerHTML = `
-    <div class="sheet-head">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:28px">${adv.ic}</span>
-        <div>
-          <div class="ttl">${escapeHtml(adv.t)}</div>
-          <div class="sub" style="color:var(--green-deep,#10b981)">${escapeHtml(adv.source)}</div>
-        </div>
-      </div>
-      <button class="close" id="advClose" aria-label="Close">×</button>
-    </div>
-    <div style="padding:16px 0">
-      <div class="card" style="padding:14px;background:var(--bg-2);border-left:4px solid var(--green);margin-bottom:14px">
-        <div style="font-weight:700;font-size:14px;margin-bottom:6px">Agronomic Field Summary</div>
-        <p style="font-size:13.5px;line-height:1.6;color:var(--ink-soft)">${escapeHtml(adv.summary)}</p>
-      </div>
-      <div style="font-weight:700;font-size:13.5px;margin-bottom:8px">Recommended Field Actions:</div>
-      <ul style="padding-left:20px;font-size:13px;line-height:1.65;color:var(--ink-soft);margin-bottom:18px">
-        ${adv.actions.map(act => `<li>${escapeHtml(act)}</li>`).join('')}
-      </ul>
-      <div style="display:flex;gap:10px">
-        <button class="btn green block" id="advVisitBtn" style="display:flex;align-items:center;justify-content:center;gap:6px">
-          🌐 Visit Official Portal ↗
-        </button>
-      </div>
-    </div>
-  `;
-  $('#advClose').addEventListener('click', closeSheet);
-  const vBtn = $('#advVisitBtn');
-  if (vBtn) vBtn.addEventListener('click', () => window.open(adv.url, '_blank'));
 }
 
 /* ============ PER-DAY HOURLY FORECAST ============ */
@@ -10357,18 +9182,12 @@ function renderMandi(filter){
     $('#mandiFilters').appendChild(b);
   });
   const rows = state.mandi.filter(r => state._mandiFilter==='All' || r.crop===state._mandiFilter);
-  body.innerHTML = rows.map((r, i) => `<tr data-mandi-crop="${escapeHtml(r.crop)}" style="cursor:pointer" data-tip="Tap to compare prices across other regions and contact owners">
+  body.innerHTML = rows.map(r => `<tr>
       <td class="em">${cropIcon(r.crop)} ${escapeHtml(r.crop)}</td>
       <td class="mono">${escapeHtml(r.mandi)}</td>
       <td><b>₹${r.price.toLocaleString('en-IN')}</b></td>
       <td class="mandi-chg ${r.chg>=0?'up':'dn'}">${r.chg>=0?'▲':'▼'} ₹${Math.abs(r.chg)}</td>
     </tr>`).join('');
-
-  body.querySelectorAll('tr[data-mandi-crop]').forEach(tr => {
-    tr.addEventListener('click', () => {
-      openCropComparisonSheet(tr.dataset.mandiCrop);
-    });
-  });
 }
 
 /* ============ BUY INPUTS (DeHaat style) ============ */
@@ -11075,149 +9894,38 @@ function postSellInput(){
 
 /* ============ GOVT SCHEMES + PM-KISAN TRACKER ============ */
 const SCHEMES = [
-  {
-    ic: '💰',
-    nm: 'PM-KISAN',
-    ben: '₹6,000 per year, paid as 3 instalments of ₹2,000',
-    el: 'All landholding farmer families (with e-KYC completed). Excludes income-tax payers and institutional landholders.',
-    site: 'pmkisan.gov.in',
-    url: 'https://pmkisan.gov.in/',
-    track: true,
-    summary: 'Pradhan Mantri Kisan Samman Nidhi provides guaranteed direct income support of ₹6,000 per annum to all landholding farmer families across India, transferred directly into bank accounts in three equal 4-monthly instalments of ₹2,000 via PFMS direct benefit transfer.',
-    docs: ['Aadhaar Card linked with active mobile number', 'Valid Land Ownership Record (Khatauni / Patta / 7/12 extract)', 'Bank Passbook copy with active DBT/Aadhaar seeding']
-  },
-  {
-    ic: '🛡️',
-    nm: 'PMFBY — Crop Insurance',
-    ben: 'Crop insured at just 2% premium (kharif) / 1.5% (rabi)',
-    el: 'All farmers growing notified crops — loanee farmers auto-enrolled, others apply before the sowing deadline.',
-    site: 'pmfby.gov.in',
-    url: 'https://pmfby.gov.in/',
-    summary: 'Pradhan Mantri Fasal Bima Yojana offers comprehensive risk insurance cover against crop loss caused by natural non-preventable perils (drought, flood, unseasonal rains, cyclones, pest epidemics) at minimal actuarial premium rates capped at 2% for Kharif and 1.5% for Rabi crops.',
-    docs: ['Sowing Certificate issued by Patwari / Village Agriculture Officer', 'Land Record (ROR) copy / Tenancy Agreement', 'Cancelled Cheque or Bank Passbook']
-  },
-  {
-    ic: '💳',
-    nm: 'Kisan Credit Card (KCC)',
-    ben: 'Crop loans up to ₹3 lakh at ~4% effective interest',
-    el: 'Farmers, tenant farmers, sharecroppers and SHGs. Apply via any bank with land records.',
-    site: 'agricoop.gov.in',
-    url: 'https://agricoop.gov.in/',
-    summary: 'KCC provides timely credit to farmers to meet short-term agricultural expenses, cultivation inputs, machinery maintenance, and post-harvest storage requirements at subsidized interest with prompt repayment incentives.',
-    docs: ['Duly completed KCC application form', 'Identity and address proof (Aadhaar / Voter ID)', 'Land holding and cropping pattern verified by revenue authority']
-  },
-  {
-    ic: '🧪',
-    nm: 'Soil Health Card',
-    ben: 'Free soil testing + fertilizer recommendations every 2 years',
-    el: 'All farmers — sample collected by agriculture department; card shows NPK status and what to apply.',
-    site: 'soilhealth.dac.gov.in',
-    url: 'https://soilhealth.dac.gov.in/',
-    summary: 'Government scheme issuing customized soil health cards evaluating 12 nutritional parameters (N, P, K, S, Zn, Fe, Cu, Mn, Bo, pH, EC, OC) to prevent excessive chemical fertilizer usage and restore soil microbiome vitality.',
-    docs: ['Field Geo-location and survey number', 'Farmer Aadhaar number and contact details', 'Soil sample collected by field technician']
-  },
-  {
-    ic: '☀️',
-    nm: 'PM-KUSUM',
-    ben: 'Up to 60% subsidy on solar irrigation pumps',
-    el: 'Farmers replacing diesel pumps or installing standalone solar pumps; apply via state nodal agency.',
-    site: 'pmkusum.mnre.gov.in',
-    url: 'https://pmkusum.mnre.gov.in/',
-    summary: 'Pradhan Mantri Kisan Urja Suraksha evam Utthaan Mahabhiyan subsidizes installation of decentralized grid-connected and standalone solar pumps (up to 7.5 HP), eliminating diesel irrigation costs and permitting sale of surplus solar electricity to DISCOMs.',
-    docs: ['Electricity bill / Irrigation pump connection certificate', 'Land ownership proof', 'Bank account details for subsidy disbursement']
-  }
+  { ic:'💰', nm:'PM-KISAN', ben:'₹6,000 per year, paid as 3 instalments of ₹2,000', el:'All landholding farmer families (with e-KYC completed). Excludes income-tax payers and institutional landholders.', site:'pmkisan.gov.in', track:true },
+  { ic:'🛡️', nm:'PMFBY — Crop Insurance', ben:'Crop insured at just 2% premium (kharif) / 1.5% (rabi)', el:'All farmers growing notified crops — loanee farmers auto-enrolled, others apply before the sowing deadline.', site:'pmfby.gov.in' },
+  { ic:'💳', nm:'Kisan Credit Card (KCC)', ben:'Crop loans up to ₹3 lakh at ~4% effective interest', el:'Farmers, tenant farmers, sharecroppers and SHGs. Apply via any bank with land records.', site:'your bank / agricoop.gov.in' },
+  { ic:'🧪', nm:'Soil Health Card', ben:'Free soil testing + fertilizer recommendations every 2 years', el:'All farmers — sample collected by agriculture department; card shows NPK status and what to apply.', site:'soilhealth.dac.gov.in' },
+  { ic:'☀️', nm:'PM-KUSUM', ben:'Up to 60% subsidy on solar irrigation pumps', el:'Farmers replacing diesel pumps or installing standalone solar pumps; apply via state nodal agency.', site:'pmkusum.mnre.gov.in' }
 ];
-
-function openSchemeSheet(s){
-  sheetState.open = true; sheetState.quiz = true; sheetState.key = null;
-  $('#sheetBg').classList.add('open');
-  $('#sheet').innerHTML = `
-    <div class="sheet-head">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:28px">${s.ic}</span>
-        <div>
-          <div class="ttl">${escapeHtml(s.nm)}</div>
-          <div class="sub" style="color:var(--green-deep,#10b981)">Official Portal: ${escapeHtml(s.site)}</div>
-        </div>
-      </div>
-      <button class="close" id="schemeClose" aria-label="Close">×</button>
-    </div>
-    <div style="padding:16px 0">
-      <div class="card" style="padding:14px;background:var(--bg-2);border-left:4px solid var(--green);margin-bottom:14px">
-        <div style="font-weight:700;font-size:14px;margin-bottom:6px">Scheme Benefits &amp; Objectives</div>
-        <p style="font-size:13.5px;line-height:1.6;color:var(--ink-soft)">${escapeHtml(s.summary)}</p>
-      </div>
-      <div style="margin-bottom:12px">
-        <div style="font-weight:700;font-size:13px;color:var(--ink)">Key Benefit:</div>
-        <div style="font-size:13px;color:var(--green-deep,#10b981);font-weight:600">${escapeHtml(s.ben)}</div>
-      </div>
-      <div style="margin-bottom:14px">
-        <div style="font-weight:700;font-size:13px;color:var(--ink)">Who Qualifies:</div>
-        <div style="font-size:13px;color:var(--ink-soft);line-height:1.5">${escapeHtml(s.el)}</div>
-      </div>
-      ${s.docs ? `
-      <div style="font-weight:700;font-size:13px;margin-bottom:6px">Required Documents:</div>
-      <ul style="padding-left:20px;font-size:12.5px;line-height:1.6;color:var(--ink-soft);margin-bottom:18px">
-        ${s.docs.map(d => `<li>${escapeHtml(d)}</li>`).join('')}
-      </ul>` : ''}
-      <div style="display:flex;gap:10px">
-        <button class="btn green block" id="schemeVisitBtn" style="display:flex;align-items:center;justify-content:center;gap:6px">
-          🌐 Visit Official ${escapeHtml(s.nm)} Website ↗
-        </button>
-      </div>
-    </div>
-  `;
-  $('#schemeClose').addEventListener('click', closeSheet);
-  const vBtn = $('#schemeVisitBtn');
-  if (vBtn) vBtn.addEventListener('click', () => window.open(s.url, '_blank'));
-}
-
 function renderSchemes(){
   const list = $('#schemesList'); if (!list) return;
   list.innerHTML = '';
   SCHEMES.forEach(s => {
-    const card = el(`<div class="scheme" style="cursor:pointer;transition:border-color 0.15s ease">
-      <div class="top2" data-detail="1"><span class="ic4">${s.ic}</span>
+    const card = el(`<div class="scheme">
+      <div class="top2"><span class="ic4">${s.ic}</span>
         <div style="flex:1">
-          <div class="nm4" style="display:flex;justify-content:space-between;align-items:center">
-            <span>${escapeHtml(s.nm)}</span>
-            <span style="font-size:11px;color:var(--green-deep,#10b981);font-weight:700">View Summary →</span>
-          </div>
+          <div class="nm4">${escapeHtml(s.nm)}</div>
           <div class="ben">${escapeHtml(s.ben)}</div>
           <div class="el"><b>Who qualifies:</b> ${escapeHtml(s.el)}</div>
         </div></div>
       <div class="row3">
         ${s.track ? '<button class="btn green sm" data-track="1">Track my payments</button>' : ''}
-        <button class="btn ghost sm" data-site="1">🌐 Official site: ${escapeHtml(s.site)} ↗</button>
-        <button class="btn ghost sm" data-sum="1">📄 Full Summary</button>
+        <button class="btn ghost sm" data-site="1">Official site: ${escapeHtml(s.site)}</button>
       </div>
       <div data-tracker style="display:none;margin-top:12px"></div>
     </div>`);
-    
-    // Clicking site button opens official website directly
     const siteBtn = card.querySelector('[data-site]');
-    if (siteBtn) siteBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      window.open(s.url, '_blank');
-    });
-
-    // Clicking summary button or top section opens scheme detail sheet
-    const sumBtn = card.querySelector('[data-sum]');
-    if (sumBtn) sumBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openSchemeSheet(s);
-    });
-    const top2 = card.querySelector('[data-detail]');
-    if (top2) top2.addEventListener('click', () => openSchemeSheet(s));
-
+    siteBtn.addEventListener('click', () => toast('Apply & verify on ' + s.site));
     const trackBtn = card.querySelector('[data-track]');
-    if (trackBtn) trackBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
+    if (trackBtn) trackBtn.addEventListener('click', () => {
       const tr = card.querySelector('[data-tracker]');
       if (tr.style.display === 'none'){
         tr.style.display = 'block';
         tr.innerHTML = `
-          <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink-mute);margin-bottom:8px">Beneficiary: ${escapeHtml(state.user.name)} · ID ****1234 · e-KYC ✓ (live tracker)</div>
+          <div style="font-family:var(--mono);font-size:11.5px;color:var(--ink-mute);margin-bottom:8px">Beneficiary: ${escapeHtml(state.user.name)} · ID ****1234 · e-KYC ✓ (demo tracker)</div>
           <div class="pk-step"><div class="dot2">✓</div><div><div class="t5">16th instalment — ₹2,000 credited</div><div class="s5">18 Apr 2026 · A/C ****8821 (PFMS)</div></div></div>
           <div class="pk-step"><div class="dot2">✓</div><div><div class="t5">15th instalment — ₹2,000 credited</div><div class="s5">27 Dec 2025</div></div></div>
           <div class="pk-step wait"><div class="dot2">⏳</div><div><div class="t5">17th instalment — expected</div><div class="s5">Aug 2026 · keep e-KYC and land seeding updated</div></div></div>`;
@@ -11399,443 +10107,82 @@ function renderReport(text, real){
   </div>`;
 }
 const SCAN_MSGS = ['Scanning leaf surface…','Detecting spots & discolouration…','Matching against disease patterns…','Preparing your report…'];
-// Camera hardware calibration settings
-const CAM_SETTINGS = {
-  brightness: 0,
-  contrast: 0,
-  saturation: 0,
-  specialEffect: 'none',
-  wbMode: 'auto',
-  aec: true,
-  agc: true
-};
-
-function applyCamFilterToPreview(){
-  const img = $('#scanPrev');
-  if (!img) return;
-  const b = 1 + CAM_SETTINGS.brightness * 0.15;
-  const c = 1 + CAM_SETTINGS.contrast * 0.2;
-  const s = 1 + CAM_SETTINGS.saturation * 0.25;
-  let fx = '';
-  if (CAM_SETTINGS.specialEffect === 'grayscale') fx = ' grayscale(100%)';
-  else if (CAM_SETTINGS.specialEffect === 'sepia') fx = ' sepia(80%)';
-  else if (CAM_SETTINGS.specialEffect === 'negative') fx = ' invert(100%)';
-  img.style.filter = `brightness(${b}) contrast(${c}) saturate(${s})${fx}`;
-}
-
-function openCameraLabSheet(){
-  sheetState.open = true; sheetState.quiz = true; sheetState.key = null;
-  $('#sheetBg').classList.add('open');
-  $('#sheet').innerHTML = `
-    <div class="sheet-head">
-      <div>
-        <div class="ttl">⚙️ ESP32-S3 Camera &amp; AI Diagnostic Lab</div>
-        <div class="sub">Hardware sensor tuning &amp; Multi-Model consensus controls</div>
-      </div>
-      <button class="close" id="camLabClose" aria-label="Close">×</button>
-    </div>
-    <div style="padding:14px 0;max-height:75vh;overflow-y:auto">
-      <div class="card" style="padding:14px;background:var(--bg-2);margin-bottom:14px">
-        <b style="font-size:13.5px;color:var(--ink)">Hardware Optical Adjustments (ESP32-CAM OV2640 / OV5640)</b>
-        <p style="font-size:11.5px;color:var(--ink-mute);margin:4px 0 12px">Calibrate exposure, optical gain, and leaf contrast before neural ingestion.</p>
-
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div>
-            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
-              <span>Brightness: <b id="camValB">${CAM_SETTINGS.brightness}</b></span>
-              <span style="color:var(--ink-mute)">-2 to +2</span>
-            </div>
-            <input type="range" class="slider" id="camSlideB" min="-2" max="2" step="1" value="${CAM_SETTINGS.brightness}">
-          </div>
-
-          <div>
-            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
-              <span>Contrast: <b id="camValC">${CAM_SETTINGS.contrast}</b></span>
-              <span style="color:var(--ink-mute)">-2 to +2</span>
-            </div>
-            <input type="range" class="slider" id="camSlideC" min="-2" max="2" step="1" value="${CAM_SETTINGS.contrast}">
-          </div>
-
-          <div>
-            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
-              <span>Saturation: <b id="camValS">${CAM_SETTINGS.saturation}</b></span>
-              <span style="color:var(--ink-mute)">-2 to +2</span>
-            </div>
-            <input type="range" class="slider" id="camSlideS" min="-2" max="2" step="1" value="${CAM_SETTINGS.saturation}">
-          </div>
-
-          <div class="fields-row" style="margin-top:4px">
-            <div class="field"><label class="label">Optical Special Effect</label>
-              <select class="select" id="camEffectSelect" style="font-size:12px;padding:6px">
-                <option value="none" ${CAM_SETTINGS.specialEffect==='none'?'selected':''}>Normal (Full Spectrum)</option>
-                <option value="grayscale" ${CAM_SETTINGS.specialEffect==='grayscale'?'selected':''}>Grayscale (Chlorophyll Density)</option>
-                <option value="sepia" ${CAM_SETTINGS.specialEffect==='sepia'?'selected':''}>Sepia (Fungal Lesion Boost)</option>
-                <option value="negative" ${CAM_SETTINGS.specialEffect==='negative'?'selected':''}>Negative (Inverted Vein Contrast)</option>
-              </select>
-            </div>
-            <div class="field"><label class="label">White Balance</label>
-              <select class="select" id="camWbSelect" style="font-size:12px;padding:6px">
-                <option value="auto" ${CAM_SETTINGS.wbMode==='auto'?'selected':''}>Auto White Balance</option>
-                <option value="sunny" ${CAM_SETTINGS.wbMode==='sunny'?'selected':''}>Sunny (Direct Field)</option>
-                <option value="cloudy" ${CAM_SETTINGS.wbMode==='cloudy'?'selected':''}>Cloudy / Diffused</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" style="padding:14px;background:var(--bg-2);margin-bottom:14px">
-        <b style="font-size:13.5px;color:var(--ink)">Multi-Model Individual &amp; Simultaneous Test Bench</b>
-        <p style="font-size:11.5px;color:var(--ink-mute);margin:4px 0 10px">Trigger individual models independently or run simultaneous tri-consensus.</p>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn sm ghost" id="testLocalBtn">📱 Test Local AI Only</button>
-          <button class="btn sm ghost" id="testDlBtn">🖥️ Test Deep Learning Only</button>
-          <button class="btn sm ghost" id="testCloudBtn">☁️ Test OpenRouter Cloud</button>
-          <button class="btn sm green" id="testTriBtn">✨ Test Tri-Consensus</button>
-        </div>
-      </div>
-
-      <div id="labTestOutput" style="display:none;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:12.5px"></div>
-    </div>
-  `;
-
-  $('#camLabClose').addEventListener('click', closeSheet);
-
-  $('#camSlideB').addEventListener('input', (e) => {
-    CAM_SETTINGS.brightness = +e.target.value;
-    $('#camValB').textContent = CAM_SETTINGS.brightness;
-    applyCamFilterToPreview();
-  });
-  $('#camSlideC').addEventListener('input', (e) => {
-    CAM_SETTINGS.contrast = +e.target.value;
-    $('#camValC').textContent = CAM_SETTINGS.contrast;
-    applyCamFilterToPreview();
-  });
-  $('#camSlideS').addEventListener('input', (e) => {
-    CAM_SETTINGS.saturation = +e.target.value;
-    $('#camValS').textContent = CAM_SETTINGS.saturation;
-    applyCamFilterToPreview();
-  });
-  $('#camEffectSelect').addEventListener('change', (e) => {
-    CAM_SETTINGS.specialEffect = e.target.value;
-    applyCamFilterToPreview();
-  });
-  $('#camWbSelect').addEventListener('change', (e) => {
-    CAM_SETTINGS.wbMode = e.target.value;
-  });
-
-  const runLabTest = async (mode) => {
-    const out = $('#labTestOutput');
-    if (!out) return;
-    out.style.display = 'block';
-    out.innerHTML = '<div style="color:var(--green-deep,#10b981);display:flex;align-items:center;gap:6px">⏳ Running inference in mode: <b>' + mode + '</b>…</div>';
-    if (!scanData){
-      out.innerHTML = '⚠️ Please upload or take a leaf photo on the Crop Scan screen first.';
-      return;
-    }
-    try {
-      const outcome = await executeMultiModelDiagnosis(scanData, scanMime, mode);
-      out.innerHTML = `
-        <div style="font-weight:700;color:var(--green-deep,#10b981);margin-bottom:4px">✓ Test Complete [${mode}]</div>
-        <div><b>Diagnosis:</b> ${escapeHtml(outcome.primary.disease)} (${outcome.primary.confidence}%)</div>
-        <div style="font-size:11.5px;color:var(--ink-mute);margin-top:4px">Badge: ${escapeHtml(outcome.badge)}</div>
-      `;
-    } catch(err){
-      out.innerHTML = '<span style="color:var(--alert)">Test failed: ' + escapeHtml(err.message) + '</span>';
-    }
-  };
-
-  $('#testLocalBtn').addEventListener('click', () => runLabTest('local_ai'));
-  $('#testDlBtn').addEventListener('click', () => runLabTest('deep_learning'));
-  $('#testCloudBtn').addEventListener('click', () => runLabTest('openrouter'));
-  $('#testTriBtn').addEventListener('click', () => runLabTest('tri_consensus'));
-}
-
-// Local edge vision heuristic classifier
-function classifyCropLocal(b64){
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Deterministic classification based on crop and sample hash
-      const activeCrop = (state.farms[state.activeFarm] && state.farms[state.activeFarm].crop) || 'Tomato';
-      const hash = b64.slice(0, 100).split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-      
-      const diseases = [
-        { disease: 'Early Blight (Alternaria solani)', severity: 'Moderate', conf: 89, treat: 'Apply organic copper oxychloride (3g/L) or neem oil spray. Avoid overhead wetting.', timeline: '5-7 days' },
-        { disease: 'Leaf Mold & Humidity Blight', severity: 'Low', conf: 84, treat: 'Improve row ventilation and prune lower foliage touching wet soil.', timeline: '3-4 days' },
-        { disease: 'Bacterial Spot (Xanthomonas)', severity: 'High', conf: 92, treat: 'Apply streptomycin sulphate + copper hydroxide spray immediately.', timeline: '7-10 days' },
-        { disease: 'Nitrogen & Iron Chlorosis', severity: 'Mild', conf: 88, treat: 'Side-dress with enriched vermicompost and foliar ferrous sulphate (0.5%).', timeline: '4-6 days' }
-      ];
-      const pick = diseases[hash % diseases.length];
-      resolve({
-        model: 'Local Edge AI (ESP32-S3 Onboard)',
-        disease: pick.disease,
-        severity: pick.severity,
-        confidence: pick.conf,
-        treatment: pick.treat,
-        recovery: pick.timeline,
-        latencyMs: 140
-      });
-    }, 450);
-  });
-}
-
-// Deep Learning Server Inference
-async function classifyCropDeepLearning(b64){
-  const t0 = Date.now();
-  try {
-    const res = await fetch('/api/scan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image_data: b64, crop: state.farms[state.activeFarm].crop })
-    });
-    if (res.ok){
-      const data = await res.json();
-      return {
-        model: 'Deep Learning PyTorch Server',
-        disease: data.disease || 'Early Blight (Alternaria solani)',
-        severity: data.severity || 'Moderate',
-        confidence: data.confidence || 94,
-        treatment: data.treatment || 'Apply systemic fungicide (Azoxystrobin @ 1ml/L).',
-        recovery: data.recovery_days ? `${data.recovery_days} days` : '5-7 days',
-        latencyMs: Date.now() - t0
-      };
-    }
-  } catch(e){}
-
-  // Fallback high-accuracy offline deep learning model simulation
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        model: 'Deep Learning PyTorch Server (ResNet-50)',
-        disease: 'Early Blight (Alternaria solani)',
-        severity: 'Moderate',
-        confidence: 93,
-        treatment: 'Apply azoxystrobin (1ml/L) or copper hydroxide. Ensure drip lines do not splash soil.',
-        recovery: '5-7 days',
-        latencyMs: 380
-      });
-    }, 550);
-  });
-}
-
-// OpenRouter Cloud AI Vision
-async function classifyCropOpenRouter(b64, mime){
-  const t0 = Date.now();
-  const sys = 'You are an expert plant pathologist. Analyze this leaf image. Return ONLY a brief JSON object with fields: disease (string), severity (Low/Moderate/High), confidence (number 50-99), treatment (string with exact spray/dosage), recovery (string).';
-  const out = await geminiVision(b64, mime);
-  let parsed = null;
-  try {
-    const m = out.match(/\{[\s\S]*\}/);
-    if (m) parsed = JSON.parse(m[0]);
-  } catch(_){}
-
-  return {
-    model: 'OpenRouter Cloud AI (Multi-Vision LLM)',
-    disease: (parsed && parsed.disease) || 'Early Blight (Alternaria solani)',
-    severity: (parsed && parsed.severity) || 'Moderate',
-    confidence: (parsed && parsed.confidence) || 96,
-    treatment: (parsed && parsed.treatment) || out.split('\n')[0] || 'Spray preventive copper oxychloride or bio-fungicide.',
-    recovery: (parsed && parsed.recovery) || '6-8 days',
-    latencyMs: Date.now() - t0
-  };
-}
-
-// Tri-Model Simultaneous Consensus Voting Engine with Graceful Failover
-async function executeMultiModelDiagnosis(b64, mime, mode){
-  if (mode === 'local_ai'){
-    const loc = await classifyCropLocal(b64);
-    return { primary: loc, badge: '📱 Local Edge AI Execution', models: [loc], type: 'single' };
-  }
-  if (mode === 'deep_learning'){
-    const dl = await classifyCropDeepLearning(b64);
-    return { primary: dl, badge: '🖥️ Deep Learning Server Execution', models: [dl], type: 'single' };
-  }
-  if (mode === 'openrouter'){
-    const cloud = await classifyCropOpenRouter(b64, mime);
-    return { primary: cloud, badge: '☁️ OpenRouter Cloud AI Execution', models: [cloud], type: 'single' };
-  }
-
-  // mode === 'tri_consensus' -> Run all 3 simultaneously!
-  const results = await Promise.allSettled([
-    classifyCropOpenRouter(b64, mime),
-    classifyCropDeepLearning(b64),
-    classifyCropLocal(b64)
-  ]);
-
-  const successful = [];
-  results.forEach((r, idx) => {
-    if (r.status === 'fulfilled' && r.value) {
-      successful.push(r.value);
-    } else {
-      console.warn(`Model #${idx} inference failed:`, r.reason);
-    }
-  });
-
-  if (!successful.length){
-    // Absolute fallback
-    const fb = await classifyCropLocal(b64);
-    return { primary: fb, badge: '⚠️ Offline Emergency Heuristic', models: [fb], type: 'fallback' };
-  }
-
-  // Determine agreement across successful models
-  const counts = {};
-  successful.forEach(m => {
-    // Normalise disease name key
-    const key = m.disease.toLowerCase().includes('blight') ? 'Early Blight'
-              : m.disease.toLowerCase().includes('chlorosis') ? 'Chlorosis'
-              : m.disease.toLowerCase().includes('bacterial') ? 'Bacterial Spot'
-              : m.disease;
-    counts[key] = (counts[key] || 0) + 1;
-  });
-
-  let badge = '✨ 3/3 Unanimous Tri-Model Consensus';
-  let type = 'unanimous';
-  if (successful.length === 3){
-    const highestCount = Math.max(...Object.values(counts));
-    if (highestCount === 3){
-      badge = '✨ 3/3 Unanimous Tri-Model Consensus';
-      type = 'unanimous';
-    } else {
-      badge = '⚖️ 2/3 Majority Consensus Agreement';
-      type = 'majority';
-    }
-  } else if (successful.length === 2){
-    badge = '🛡️ 2/2 Active Model Agreement (Cloud AI offline - Edge & Server corroborated)';
-    type = 'failover_2';
-  } else {
-    badge = '📱 Single Active Model Fallback';
-    type = 'fallback';
-  }
-
-  // Sort by highest confidence to select primary diagnosis
-  successful.sort((a, b) => b.confidence - a.confidence);
-  const primary = successful[0];
-
-  return { primary, badge, models: successful, type };
-}
-
 async function runScan(){
   if (!scanData){ toast('Choose a photo first'); return; }
   const btn = $('#scanGo'); btn.disabled = true;
   const imgSrc = $('#scanPrev').src;
-  const selectedMode = ($('#scanModelSelect') && $('#scanModelSelect').value) || 'tri_consensus';
-
   // show scanning animation
   $('#scanResult').innerHTML = `
     <div style="text-align:center">
-      <div class="scan-anim"><img src="${imgSrc}" alt="scanning" style="${$('#scanPrev').style.filter||''}"><div class="grid"></div><div class="laser"></div></div>
-      <div class="scan-status"><span class="sp"></span><span id="scanMsg">Ingesting optical leaf spectrum…</span></div>
+      <div class="scan-anim"><img src="${imgSrc}" alt="scanning"><div class="grid"></div><div class="laser"></div></div>
+      <div class="scan-status"><span class="sp"></span><span id="scanMsg">${SCAN_MSGS[0]}</span></div>
     </div>`;
-  
-  const SCAN_MSGS = [
-    'Ingesting optical leaf spectrum…',
-    selectedMode === 'tri_consensus' ? 'Querying OpenRouter, Deep Learning & Local AI simultaneously…' : 'Running neural inference…',
-    'Analyzing chlorophyll density & lesion geometry…',
-    'Consensus voting & cross-verifying diagnosis…',
-    'Generating agronomic prescription…'
-  ];
-
   let mi = 0;
-  const msgTimer = setInterval(() => {
-    mi = (mi+1) % SCAN_MSGS.length;
-    const m = $('#scanMsg');
-    if (m) m.textContent = SCAN_MSGS[mi];
-  }, 750);
+  const msgTimer = setInterval(() => { mi = (mi+1) % SCAN_MSGS.length; const m = $('#scanMsg'); if (m) m.textContent = SCAN_MSGS[mi]; }, 850);
 
-  try {
-    const outcome = await executeMultiModelDiagnosis(scanData, scanMime, selectedMode);
-    clearInterval(msgTimer);
-
-    const pri = outcome.primary;
-    const modelsBreakdown = outcome.models.map(m => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:12.5px">
-        <div>
-          <div style="font-weight:700;color:var(--ink)">${escapeHtml(m.model)}</div>
-          <div style="font-size:11.5px;color:var(--ink-mute)">${escapeHtml(m.disease)} · ${m.latencyMs}ms</div>
-        </div>
-        <div style="text-align:right">
-          <span style="font-family:var(--mono);font-weight:700;color:var(--green-deep,#10b981)">${m.confidence}%</span>
-          <div style="font-size:10.5px;color:var(--ink-soft)">${escapeHtml(m.severity)}</div>
-        </div>
-      </div>
-    `).join('');
-
-    $('#scanResult').innerHTML = `
-      <div class="scan-result" style="text-align:left;max-width:680px;margin:18px auto 0">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
-          <span class="pill green" style="font-size:11.5px">${escapeHtml(outcome.badge)}</span>
-          <span style="font-family:var(--mono);font-size:12px;color:var(--ink-mute)">Severity: <b style="color:var(--amber,#f59e0b)">${escapeHtml(pri.severity)}</b></span>
-        </div>
-
-        <h3 style="font-size:22px;font-weight:800;color:var(--ink);margin-bottom:8px">
-          🩺 ${escapeHtml(pri.disease)}
-        </h3>
-
-        <div style="background:var(--bg-2);border-radius:10px;padding:12px 14px;margin-bottom:14px">
-          <b style="font-size:13px;color:var(--green-deep,#10b981)">💊 Recommended Treatment Protocol:</b>
-          <p style="font-size:13px;line-height:1.6;color:var(--ink);margin-top:4px">${escapeHtml(pri.treatment)}</p>
-          <div style="font-size:11.5px;color:var(--ink-mute);margin-top:6px;font-family:var(--mono)">
-            ⏱️ Expected Recovery Window: <b>${escapeHtml(pri.recovery)}</b>
-          </div>
-        </div>
-
-        <div style="margin-bottom:14px">
-          <b style="font-size:13px">Multi-Model Corroboration Breakdown (${outcome.models.length} active):</b>
-          <div style="margin-top:6px">
-            ${modelsBreakdown}
-          </div>
-        </div>
-
-        <div style="display:flex;gap:8px;justify-content:flex-end">
-          <button class="btn sm ghost" onclick="openCameraLabSheet()">⚙️ Open Camera Lab</button>
-          <button class="btn sm green" onclick="$('#scanFile').click()">📸 Scan Another Leaf</button>
-        </div>
-      </div>
-    `;
-
-    awardPoints && awardPoints(10, 'Completed crop diagnosis');
-  } catch(err){
-    clearInterval(msgTimer);
-    $('#scanResult').innerHTML = `
-      <div class="card" style="text-align:center;color:var(--alert)">
-        ⚠️ Diagnosis encountered an issue: ${escapeHtml(err.message || 'Model timeout')}. Tap Diagnose to retry with offline edge fallback.
-      </div>
-    `;
+  let out, real = false, visionErr = null;
+  const minDelay = new Promise(r => setTimeout(r, 2600)); // let the animation breathe
+  if (AI_READY){
+    try { out = await geminiVision(scanData, scanMime); real = true; }
+    catch(e){ visionErr = e.message || String(e); console.warn('vision failed:', visionErr); }
+  } else {
+    visionErr = 'No AI vision configured';
   }
+  await minDelay;
+  if (!out) out = demoDiagnosis();
+  clearInterval(msgTimer);
   btn.disabled = false;
-}
 
-function initScan(){
-  const file = $('#scanFile');
-  if (!file) return;
-  $('#scanDrop').addEventListener('click', () => file.click());
+  let report = renderReport(out, real);
+  if (!real && visionErr){
+    report += `<div style="margin-top:10px;font-family:var(--mono);font-size:11.5px;color:#D9941F;background:rgba(217,148,31,.1);border-radius:10px;padding:9px 12px;line-height:1.5">⚠️ Live AI vision unavailable: ${escapeHtml(visionErr)} — showing demo diagnosis. (Free vision models are often busy; try again.)</div>`;
+  }
+  $('#scanResult').innerHTML = report;
+  const firstLine = parseDx(out).dx;
+  addLog({ source:'ai', what:`Crop scan: ${firstLine}`, notes: real ? 'Photo analysed by AI vision' : 'Demo diagnosis' });
+  state.suggestions.unshift({ id: state.nextId++, type:'pest', title:`Scan result: ${firstLine}`, body:'See the Crop scan tab for full treatment steps.' });
+  renderSuggestions();
+  awardPoints(5, 'Crop photo scanned');
+}
+function wireScan(){
+  const drop = $('#scanDrop'), file = $('#scanFile');
+  if (!drop || drop._wired) return;
+  drop._wired = true;
+  $('#scanMode').textContent = OPENROUTER_READY ? 'Real AI photo analysis active (free vision models — may be slow or busy)' : (GEMINI_READY ? 'Real AI analysis active (Gemini vision)' : 'Demo mode — no vision model configured');
+  drop.addEventListener('click', () => file.click());
   file.addEventListener('change', () => {
-    const f0 = file.files && file.files[0];
-    if (!f0) return;
-    scanMime = f0.type || 'image/jpeg';
+    const f0 = file.files && file.files[0]; if (!f0) return;
     const rd = new FileReader();
     rd.onload = () => {
-      const dataUrl = rd.result;
-      scanData = String(dataUrl).split(',')[1] || '';
-      $('#scanPrev').src = dataUrl;
-      applyCamFilterToPreview();
-      $('#scanPrevWrap').style.display = 'block';
-      $('#scanResult').innerHTML = '';
-      window.scrollTo({ top: $('#scanPrevWrap').offsetTop - 20, behavior:'smooth' });
+      // Compress big phone photos before sending to the API (max 1024px, jpeg 85%)
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const MAX = 1024;
+          const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+          const cv = document.createElement('canvas');
+          cv.width = Math.max(1, Math.round(img.width * scale));
+          cv.height = Math.max(1, Math.round(img.height * scale));
+          cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+          const out = cv.toDataURL('image/jpeg', 0.85);
+          scanData = out.split(',')[1];
+          scanMime = 'image/jpeg';
+          $('#scanPrev').src = out;
+        } catch(e){
+          scanData = String(rd.result).split(',')[1];
+          scanMime = f0.type || 'image/jpeg';
+          $('#scanPrev').src = rd.result;
+        }
+        $('#scanPrevWrap').style.display = 'block';
+        $('#scanResult').innerHTML = '';
+      };
+      img.onerror = () => toast('Could not read that image — try another photo');
+      img.src = String(rd.result);
     };
     rd.readAsDataURL(f0);
   });
   $('#scanGo').addEventListener('click', runScan);
-  $('#scanReset').addEventListener('click', () => {
-    file.value = '';
-    scanData = null;
-    $('#scanPrevWrap').style.display = 'none';
-    $('#scanResult').innerHTML = '';
-    file.click();
-  });
-  const advBtn = $('#scanAdvancedBtn');
-  if (advBtn) advBtn.addEventListener('click', openCameraLabSheet);
+  $('#scanReset').addEventListener('click', () => { file.value=''; scanData=null; $('#scanPrevWrap').style.display='none'; $('#scanResult').innerHTML=''; file.click(); });
 }
 
 /* ============ POINTS / REWARDS ============ */
@@ -12110,39 +10457,17 @@ window.handleFirebaseLogin = function(u, isAdmin){
   }
 };
 
-
-/* ============ DYNAMIC WATER SAVED TODAY ENGINE ============ */
-function calcWaterSaved() {
-  const f = (state.farms && state.farms[state.activeFarm]) || { acres: 2.5, crop: 'Tomatoes' };
-  const acres = parseFloat(f.acres) || 2.5;
-  const sA = (state.sensors && state.sensors.soilA !== undefined) ? state.sensors.soilA : 48;
-  // Precision irrigation vs flood baseline: saving ~420 L/acre/day scaled by soil moisture retention
-  const baseSavingPerAcre = 420;
-  const moistureCoeff = Math.max(0.65, Math.min(1.45, (sA / 48)));
-  const pumpAdj = (state.pump && state.pump.on) ? 65 : 0;
-  return Math.round(acres * baseSavingPerAcre * moistureCoeff + pumpAdj);
-}
-function updateWaterSavedUI() {
-  const elW = document.getElementById('statWaterVal');
-  if (elW) {
-    const w = calcWaterSaved();
-    elW.innerHTML = `${w.toLocaleString('en-IN')}<span class="u"> L</span>`;
-  }
-}
-
 /* ============ STATUS sidebar ============ */
 function renderStatus(){
   $('#sbMode').textContent = { manual:'Manual mode', auto:'Auto mode', advanced:'Advanced mode' }[state.mode];
   $('#sbMode').classList.toggle('purple', state.mode==='auto' || state.mode==='advanced');
   $('#sbPump').textContent = state.pump.on ? `Pump: running · Zone ${state.pump.zone}` : 'Pump: idle';
-  updateWaterSavedUI();
 }
 
 /* ============ LIVE LOOP ============ */
 function wobble(){
   if (state._liveOff) return;
   learnTick();
-  updateWaterSavedUI();
   const s = state.sensors;
   const isLiveHardware = window._isHardwareLive && (Date.now() - (window._lastHardwareTime || 0) < 15000);
 
@@ -12311,40 +10636,6 @@ function snapshotEnglish(root){
 }
 
 let _translating = false;
-function triggerGoogleTranslate(langCode) {
-  if (!langCode) return;
-  const targetCode = (langCode === 'zh') ? 'zh-CN' : langCode;
-  try {
-    const host = window.location.hostname;
-    const cookieVal = targetCode === 'en' ? '' : `/en/${targetCode}`;
-    document.cookie = `googtrans=${cookieVal}; path=/;`;
-    if (host && host !== 'localhost') {
-      document.cookie = `googtrans=${cookieVal}; path=/; domain=${host};`;
-      document.cookie = `googtrans=${cookieVal}; path=/; domain=.${host};`;
-    }
-    const combo = document.querySelector('.goog-te-combo');
-    if (combo) {
-      combo.value = targetCode === 'en' ? '' : targetCode;
-      combo.dispatchEvent(new Event('change'));
-    } else {
-      let attempts = 0;
-      const interval = setInterval(() => {
-        attempts++;
-        const c = document.querySelector('.goog-te-combo');
-        if (c) {
-          c.value = targetCode === 'en' ? '' : targetCode;
-          c.dispatchEvent(new Event('change'));
-          clearInterval(interval);
-        } else if (attempts > 12) {
-          clearInterval(interval);
-        }
-      }, 250);
-    }
-  } catch(err) {
-    console.warn('Google translate trigger error:', err);
-  }
-}
-
 async function applyLang(code){
   curLang = I18N[code] ? code : (NATIVE_LANG_NAME[code] ? code : 'en');
   document.documentElement.dir = RTL.includes(curLang) ? 'rtl' : 'ltr';
@@ -12353,17 +10644,98 @@ async function applyLang(code){
   if ($('#settingsLang')) $('#settingsLang').value = curLang;
   if ($('#iLang')) $('#iLang').value = curLang;
 
-  // 1) Apply instant hand-written pack to key tagged labels
+  // 1) Apply hand-written pack instantly to tagged elements
   document.querySelectorAll('[data-i18n]').forEach(node => {
     const k = node.getAttribute('data-i18n');
     const val = (I18N[curLang] && I18N[curLang][k]);
     if (val) node.textContent = val;
   });
 
-  // 2) Trigger browser and mobile native Google Translate engine across entire UI
-  triggerGoogleTranslate(curLang);
+  // English selected → restore originals everywhere and stop
+  if (curLang === 'en'){
+    document.querySelectorAll('[data-en]').forEach(n => { n.textContent = n.dataset.en; });
+    return;
+  }
+
+  // 2) AI-translate everything else (cached so each phrase is translated only once)
+  await translateWholeUI(curLang);
 }
 
+async function translateWholeUI(code){
+  if (!OPENROUTER_READY){
+    toast('Full translation needs the AI — only tagged text changed.');
+    return;
+  }
+  snapshotEnglish(document.body);
+  state._trCache = state._trCache || {};
+  // load any saved cache for this language from localStorage (survives page reloads → fewer AI calls)
+  if (!state._trCache[code]){
+    try { const saved = localStorage.getItem('agri_tr_'+code); if (saved) state._trCache[code] = JSON.parse(saved); } catch(_){}
+  }
+  const cache = (state._trCache[code] = state._trCache[code] || {});
+
+  // gather unique English strings currently on screen that aren't cached yet
+  const nodes = Array.from(document.querySelectorAll('[data-en]'));
+  const need = [];
+  const seen = new Set();
+  nodes.forEach(n => {
+    const en = (n.dataset.en||'').trim();
+    if (!en) return;
+    if (cache[en] != null){ n.textContent = cache[en]; return; } // already known
+    if (!seen.has(en)){ seen.add(en); need.push(en); }
+  });
+  if (!need.length){ applyCached(code); return; }
+
+  if (_translating) return;
+  _translating = true;
+  toast('🌐 Translating to ' + langName(code) + '… (' + need.length + ' phrases)');
+
+  let done = 0, failed = 0;
+  const persistCache = () => { try { localStorage.setItem('agri_tr_'+code, JSON.stringify(cache)); } catch(_){} };
+  try {
+    const BATCH = 30;
+    for (let i=0; i<need.length; i+=BATCH){
+      const slice = need.slice(i, i+BATCH);
+      try {
+        const translated = await translateBatch(slice, langName(code));
+        slice.forEach((en, idx) => { if (translated[idx]){ cache[en] = translated[idx]; done++; } else failed++; });
+      } catch(be){ failed += slice.length; }
+      applyCached(code); persistCache();
+    }
+    if (failed > 0 && done === 0) toast('⚠️ Translation unavailable now (AI busy / daily limit). Tap the language again shortly.');
+    else if (failed > 0) toast('Translated most of the screen — tap the language again to finish the rest.');
+    else toast('✅ Translated to ' + langName(code));
+  } catch(e){
+    console.warn('UI translate failed:', e.message);
+    toast('⚠️ Translation unavailable (AI busy). Try again shortly.');
+  }
+  _translating = false;
+}
+// Apply whatever is in the cache to the live DOM
+function applyCached(code){
+  const cache = (state._trCache && state._trCache[code]) || {};
+  document.querySelectorAll('[data-en]').forEach(n => {
+    const en = (n.dataset.en||'').trim();
+    if (cache[en] != null) n.textContent = cache[en];
+  });
+}
+// Translate an array of strings → returns array of translations (same order)
+async function translateBatch(strings, targetLangName){
+  // number the lines so the model returns them in order
+  const numbered = strings.map((s,i) => `${i+1}. ${s.replace(/\n/g,' ')}`).join('\n');
+  const sys = `You are a UI translator for a farming app. Translate each numbered line into ${targetLangName}. Rules: keep the SAME numbering, translate ONLY the text after the number, keep it short and natural for an app interface, do not add notes or quotes, keep emojis/symbols as-is. Return ONLY the numbered lines.`;
+  const out = await openrouterChat([
+    { role:'system', content: sys },
+    { role:'user', content: numbered }
+  ]);
+  // parse "1. translation" lines back into an array
+  const map = {};
+  out.split('\n').forEach(line => {
+    const m = line.match(/^\s*(\d+)[.)]\s*(.+)$/);
+    if (m) map[parseInt(m[1],10)-1] = m[2].trim();
+  });
+  return strings.map((_, i) => map[i] || null);
+}
 function buildLangSelects(){
   const opts = LANGS.map(l => `<option value="${l.code}">${l.name}</option>`).join('');
   if ($('#langSelect')) $('#langSelect').innerHTML = opts;

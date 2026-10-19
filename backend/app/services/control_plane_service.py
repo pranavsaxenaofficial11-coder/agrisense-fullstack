@@ -189,14 +189,7 @@ class ControlPlaneService:
         pipe["execution_count"] = pipe.get("execution_count", 0) + 1
 
         if pipeline_id == "mandi_scraper":
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    asyncio.create_task(LiveOpenDataService.get_live_mandi_and_msp())
-                else:
-                    loop.run_until_complete(LiveOpenDataService.get_live_mandi_and_msp())
-            except Exception:
-                pass
+            LiveOpenDataService.get_live_mandi_and_msp()
 
         self.log_event("PIPELINE", "SUCCESS", f"Manual trigger executed for '{pipe['name']}'.")
         return {"status": "success", "message": f"Triggered {pipe['name']} successfully", "pipeline": pipe}
