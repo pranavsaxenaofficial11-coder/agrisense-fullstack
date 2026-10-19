@@ -11,7 +11,7 @@ export const AIPage: React.FC = () => {
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: 'assistant',
-      content: "Namaste Pranav! I am your AgriSense AI Agronomist. I'm connected to your field sensors. Zone A moisture is 38.4%, and current ambient temperature is 28.5°C. What would you like guidance on today?"
+      content: "Namaste Pranav! I am your AgriUpdate AI Agronomist. I'm connected to your field sensors. Zone A moisture is 38.4%, and current ambient temperature is 28.5°C. What would you like guidance on today?"
     }
   ]);
   const [input, setInput] = useState('');
@@ -67,7 +67,7 @@ export const AIPage: React.FC = () => {
         </div>
 
         <div className="badge badge-success">
-          Model: Llama-3.3-70B (AgriSense Fine-Tuned)
+          Model: Llama-3.3-70B (AgriUpdate Fine-Tuned)
         </div>
       </div>
 
@@ -144,7 +144,7 @@ export const AIPage: React.FC = () => {
             <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(16,185,129,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Bot size={18} color="#10b981" />
             </div>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>AgriSense AI is analyzing sensor telemetry...</span>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>AgriUpdate AI is analyzing sensor telemetry...</span>
           </div>
         )}
       </div>

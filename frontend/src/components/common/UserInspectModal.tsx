@@ -118,7 +118,7 @@ export const UserInspectModal: React.FC<UserInspectModalProps> = ({ userIdentifi
                 </span>
               </div>
               <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#9CA3AF' }}>
-                {data?.user_profile?.email || `${userIdentifier.toLowerCase()}@agrisense.io`} • {data?.user_profile?.phone || 'Active Session'}
+                {data?.user_profile?.email || `${userIdentifier.toLowerCase()}@agrisense-269.pages.dev`} • {data?.user_profile?.phone || 'Active Session'}
               </p>
             </div>
           </div>
