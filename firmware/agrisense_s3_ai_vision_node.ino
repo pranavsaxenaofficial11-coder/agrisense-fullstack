@@ -338,7 +338,8 @@ void handleDiagnose() {
     return;
   }
 
-  VisionDiagnosis res = runAdvancedFoliarAnalysis(fb);
+  VisionDiagnosis res;
+  runAdvancedFoliarAnalysis(fb, res);
   scanCounter++;
 
   // Save to MicroSD if available
