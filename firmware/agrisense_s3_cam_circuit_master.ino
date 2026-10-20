@@ -353,14 +353,31 @@ void handleControl() {
   sensor_t *s = esp_camera_sensor_get();
 
   if (s != NULL) {
-    if (var == "brightness") s->set_brightness(s, val);
-    else if (var == "contrast") s->set_contrast(s, val);
-    else if (var == "saturation") s->set_saturation(s, val);
-    else if (var == "sharpness") s->set_sharpness(s, val);
-    else if (var == "exposure") s->set_ae_level(s, val);
-    else if (var == "framesize") changeCameraResolution((framesize_t)val);
+    // Parameter validation and bounds constraint
+    if (var == "brightness") s->set_brightness(s, constrain(val, -2, 2));
+    else if (var == "contrast") s->set_contrast(s, constrain(val, -2, 2));
+    else if (var == "saturation") s->set_saturation(s, constrain(val, -2, 2));
+    else if (var == "sharpness") s->set_sharpness(s, constrain(val, -2, 2));
+    else if (var == "exposure") s->set_ae_level(s, constrain(val, -2, 2));
+    else if (var == "wb_mode") { if (s->set_wb_mode) s->set_wb_mode(s, constrain(val, 0, 4)); }
+    else if (var == "vflip") { if (s->set_vflip) s->set_vflip(s, val ? 1 : 0); }
+    else if (var == "hflip") { if (s->set_hmirror) s->set_hmirror(s, val ? 1 : 0); }
+    else if (var == "framesize") changeCameraResolution((framesize_t)constrain(val, 0, 13));
     else if (var == "quality") {
-      jpegQuality = constrain(val, 35, 95);
+      jpegQuality = constrain(val, 10, 63);
+      if (s->set_quality) s->set_quality(s, jpegQuality);
+    }
+    else if (var == "reset") {
+      // Restore hardware camera factory defaults
+      if (s->set_brightness) s->set_brightness(s, 0);
+      if (s->set_contrast) s->set_contrast(s, 0);
+      if (s->set_saturation) s->set_saturation(s, 0);
+      if (s->set_sharpness) s->set_sharpness(s, 0);
+      if (s->set_ae_level) s->set_ae_level(s, 0);
+      if (s->set_wb_mode) s->set_wb_mode(s, 0);
+      if (s->set_vflip) s->set_vflip(s, 0);
+      if (s->set_hmirror) s->set_hmirror(s, 0);
+      jpegQuality = 12;
       if (s->set_quality) s->set_quality(s, jpegQuality);
     }
   }
