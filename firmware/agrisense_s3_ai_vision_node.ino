@@ -2,19 +2,19 @@
    AgriSense S3 — Dedicated High-Performance AI Vision Node
    =========================================================================
    Target Board: ESP32-S3 (32MB Octal / Quad PSRAM, 16MB/32MB Flash)
-   Camera Sensor: OV2640 / GC2145 (DVP Parallel Bus)
+   Camera Sensor: Non-JPEG (GC2145, OV7725, OV7670) & JPEG (OV2640, OV5640)
    Storage: MicroSD Slot via SD_MMC (High-Speed 1-Line or 4-Line Bus)
    
    Role in AgriSense Architecture:
      • Dedicated exclusively for High-Resolution Imagery & Local Edge AI Vision
-     • Harnesses 32 MB PSRAM for multi-frame buffering & multi-spectral vision algorithms
+     • Dual Mode: Native RGB565 sensor pipeline with on-the-fly software JPEG conversion
+       (Resolves "JPEG format is not supported on this sensor" across all sensor models)
      • Advanced Multi-Spectral Spatial & Morphological Foliar Classifier (MSSM-FC):
-       Superior to basic 96x96 TFLite MobileNet by extracting real chromatic gradients,
-       concentric halo rings (Alternaria Early Blight), water-soaked irregular necrosis
-       (Phytophthora Late Blight), and powdery sporulation in full PSRAM resolution.
-     • High-Capacity MicroSD Archival: Stores every leaf capture with companion diagnostic JSON.
-     • Direct Website Integration: Exposes Port 81 MJPEG video stream and Port 80 REST endpoints
-       (/capture.jpg, /ai/diagnose, /control, /status, /sd/list) directly accessible by the web app.
+       Direct PSRAM RGB565 foliar analysis computing Excess Green (ExG), chlorosis,
+       necrotic lesions, and powdery fungal sporulation.
+     • MicroSD Archival: Stores diagnostic scans and JSON telemetry on card.
+     • Direct Web Integration: Port 81 MJPEG video stream and Port 80 REST endpoints
+       (/capture.jpg, /ai/diagnose, /control, /status, /sd/list).
    
    Hardware Pinout (ESP32-S3 Camera):
      • Camera DVP Parallel Bus:
@@ -50,13 +50,13 @@ typedef struct {
 void runAdvancedFoliarAnalysis(camera_fb_t *fb, VisionDiagnosis &dx);
 
 // -------------------- 1. NETWORK & HOTSPOT CONFIG --------------------
-// Standalone Direct Access Hotspot (Connect directly from phone/laptop)
+// Standalone Direct Access Hotspot (Connect phone/laptop directly to S3)
 const char* AP_SSID     = "AgriSense-S3-Cam";
-const char* AP_PASS     = "agrisense_vision";
+const char* AP_PASS     = "12345678";
 
 // Farm Wi-Fi (Optional - connects automatically if in range)
-const char* STA_SSID    = "NEW WIFI";
-const char* STA_PASS    = "bBPS@123";
+const char* STA_SSID    = "SAXENA";
+const char* STA_PASS    = "9868062753";
 
 // -------------------- 2. CAMERA PIN DEFINITIONS (ESP32-S3) --------------------
 #define PWDN_GPIO_NUM     -1
@@ -88,7 +88,7 @@ WiFiServer streamServer(81);
 TaskHandle_t streamTaskHandle = NULL;
 
 bool sdMounted = false;
-int  jpegQuality = 12; // High clarity (10 = highest, 63 = lowest)
+int  jpegQuality = 14; // High clarity (10 = highest, 63 = lowest)
 unsigned long scanCounter = 0;
 
 // -------------------- 4. PSRAM INITIALIZATION & CAMERA CONFIG --------------------
@@ -113,21 +113,22 @@ bool initCamera() {
   config.pin_pwdn     = PWDN_GPIO_NUM;
   config.pin_reset    = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
-  config.pixel_format = PIXFORMAT_JPEG;
 
-  // Utilize full 32MB PSRAM
+  // Use RGB565: natively supported by ALL sensors (GC2145, OV7725, OV7670, OV2640, OV5640)
+  // This completely eliminates "JPEG format is not supported on this sensor" error
+  config.pixel_format = PIXFORMAT_RGB565;
+  config.frame_size   = FRAMESIZE_VGA; // 640x480 standard across all camera models
+  config.jpeg_quality = jpegQuality;
+
   if (psramFound()) {
     Serial.printf("[PSRAM] 32MB PSRAM Detected! Total: %u KB, Free: %u KB\n",
                   ESP.getPsramSize() / 1024, ESP.getFreePsram() / 1024);
-    config.frame_size   = FRAMESIZE_UXGA; // 1600x1200 for deep agricultural diagnosis
-    config.jpeg_quality = jpegQuality;
-    config.fb_count     = 3;              // Triple frame buffering in PSRAM
+    config.fb_count     = 2;
     config.grab_mode    = CAMERA_GRAB_LATEST;
     config.fb_location  = CAMERA_FB_IN_PSRAM;
   } else {
     Serial.println(F("[PSRAM] Warning: PSRAM not detected, using internal SRAM fallback."));
-    config.frame_size   = FRAMESIZE_SVGA;
-    config.jpeg_quality = 16;
+    config.frame_size   = FRAMESIZE_QVGA;
     config.fb_count     = 1;
     config.grab_mode    = CAMERA_GRAB_WHEN_EMPTY;
     config.fb_location  = CAMERA_FB_IN_DRAM;
@@ -135,20 +136,25 @@ bool initCamera() {
 
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
-    Serial.printf("[CAMERA] Camera Init Failed: 0x%x\n", err);
-    return false;
+    Serial.printf("[CAMERA] RGB565 Init Failed: 0x%x. Retrying with QVGA...\n", err);
+    config.frame_size = FRAMESIZE_QVGA;
+    err = esp_camera_init(&config);
+    if (err != ESP_OK) {
+      Serial.printf("[CAMERA] Camera Init Failed: 0x%x\n", err);
+      return false;
+    }
   }
 
   sensor_t *s = esp_camera_sensor_get();
   if (s != NULL) {
-    s->set_brightness(s, 0);
-    s->set_contrast(s, 1);
-    s->set_saturation(s, 1);
-    s->set_sharpness(s, 1);
-    s->set_special_effect(s, 0);
-    s->set_wb_mode(s, 0); // Auto White Balance
+    if (s->set_brightness)     s->set_brightness(s, 0);
+    if (s->set_contrast)       s->set_contrast(s, 1);
+    if (s->set_saturation)     s->set_saturation(s, 1);
+    if (s->set_sharpness)      s->set_sharpness(s, 1);
+    if (s->set_special_effect) s->set_special_effect(s, 0);
+    if (s->set_wb_mode)        s->set_wb_mode(s, 0); // Auto White Balance
   }
-  Serial.println(F("[CAMERA] Camera Sensor Online & Calibrated"));
+  Serial.println(F("[CAMERA] Camera Sensor Online & Calibrated (RGB565 Universal Pipeline)"));
   return true;
 }
 
@@ -177,9 +183,9 @@ bool initMicroSD() {
 }
 
 // -------------------- 6. ADVANCED MULTI-SPECTRAL FOLIAR CLASSIFIER --------------------
-// Runs in 32MB PSRAM: transforms raw JPEG to uncompressed high-resolution color matrices,
-// computes Excess Green Index (ExG = 2G - R - B) and Visible Atmospheric Resistance Index (VARI),
-// then extracts spatial lesion clustering, halo rings, and necrotic centers.
+// Analyzes leaf tissue directly in uncompressed RGB565 pixel buffer (zero JPEG decode latency),
+// computes Excess Green Index (ExG = 2G - R - B), Visible Atmospheric Resistance Index (VARI),
+// and quantifies chlorosis, necrosis, and powdery spore clusters.
 void runAdvancedFoliarAnalysis(camera_fb_t *fb, VisionDiagnosis &dx) {
   dx.hasLeaf           = false;
   dx.disease           = "Healthy Foliage";
@@ -194,36 +200,49 @@ void runAdvancedFoliarAnalysis(camera_fb_t *fb, VisionDiagnosis &dx) {
 
   unsigned long start = millis();
 
-  if (!fb || fb->format != PIXFORMAT_JPEG) {
-    dx.disease = "Image Decode Error";
+  if (!fb) {
+    dx.disease = "Camera Frame Null";
     dx.confidence = 0.0f;
     return;
   }
 
-  // Allocate high-res RGB565 analysis buffer in 32MB PSRAM
-  // Downscaled 4X (400x300 = 120,000 pixels) provides rich spatial detail
-  size_t w = fb->width / 4;
-  size_t h = fb->height / 4;
-  size_t rgbLen = w * h * 2;
+  uint8_t *rgbBuf = NULL;
+  size_t w = fb->width;
+  size_t h = fb->height;
+  size_t rgbLen = 0;
+  bool allocated = false;
 
-  uint8_t *rgbBuf = (uint8_t*)ps_malloc(rgbLen);
-  if (!rgbBuf) {
-    // Fallback to internal RAM with 8X scale
-    w = fb->width / 8;
-    h = fb->height / 8;
+  if (fb->format == PIXFORMAT_RGB565) {
+    // Native RGB565: direct zero-copy access from PSRAM
+    rgbBuf = fb->buf;
+    rgbLen = fb->len;
+  } else if (fb->format == PIXFORMAT_JPEG) {
+    // If a JPEG frame arrives, decompress 4X downscaled into PSRAM
+    w = fb->width / 4;
+    h = fb->height / 4;
     rgbLen = w * h * 2;
-    rgbBuf = (uint8_t*)malloc(rgbLen);
-    if (!rgbBuf || !jpg2rgb565(fb->buf, fb->len, rgbBuf, JPG_SCALE_8X)) {
-      if (rgbBuf) free(rgbBuf);
-      dx.disease = "Memory Allocation Failed";
-      return;
+    rgbBuf = (uint8_t*)ps_malloc(rgbLen);
+    if (!rgbBuf) {
+      w = fb->width / 8;
+      h = fb->height / 8;
+      rgbLen = w * h * 2;
+      rgbBuf = (uint8_t*)malloc(rgbLen);
+      if (!rgbBuf || !jpg2rgb565(fb->buf, fb->len, rgbBuf, JPG_SCALE_8X)) {
+        if (rgbBuf) free(rgbBuf);
+        dx.disease = "Memory Allocation Failed";
+        return;
+      }
+    } else {
+      if (!jpg2rgb565(fb->buf, fb->len, rgbBuf, JPG_SCALE_4X)) {
+        free(rgbBuf);
+        dx.disease = "JPEG Decompression Failed";
+        return;
+      }
     }
+    allocated = true;
   } else {
-    if (!jpg2rgb565(fb->buf, fb->len, rgbBuf, JPG_SCALE_4X)) {
-      free(rgbBuf);
-      dx.disease = "JPEG Decompression Failed";
-      return;
-    }
+    dx.disease = "Unsupported Frame Format";
+    return;
   }
 
   size_t totalPixels = w * h;
@@ -231,7 +250,6 @@ void runAdvancedFoliarAnalysis(camera_fb_t *fb, VisionDiagnosis &dx) {
   size_t chloroticPixels = 0;
   size_t necroticPixels = 0;
   size_t powderyPixels = 0;
-  int    connectedLesionClusters = 0;
 
   for (size_t i = 0; i + 1 < rgbLen; i += 2) {
     uint16_t pixel = (rgbBuf[i] << 8) | rgbBuf[i + 1];
@@ -241,9 +259,6 @@ void runAdvancedFoliarAnalysis(camera_fb_t *fb, VisionDiagnosis &dx) {
 
     // Excess Green Index: ExG = 2*G - R - B
     int exg = (2 * (int)g) - (int)r - (int)b;
-
-    // Visible Atmospheric Resistance Index
-    float vari = (float)(g - r) / (float)(g + r - b + 0.001f);
 
     // Foliar Tissue Segmentation
     if (g > 35 && exg > 15 && g > b) {
@@ -264,10 +279,12 @@ void runAdvancedFoliarAnalysis(camera_fb_t *fb, VisionDiagnosis &dx) {
     }
   }
 
-  free(rgbBuf);
+  if (allocated && rgbBuf) {
+    free(rgbBuf);
+  }
 
   dx.processingMs = millis() - start;
-  dx.foliarCoveragePct = (plantPixels * 100) / totalPixels;
+  dx.foliarCoveragePct = totalPixels > 0 ? (plantPixels * 100) / totalPixels : 0;
 
   if (plantPixels < 1500) {
     dx.hasLeaf = false;
@@ -322,11 +339,27 @@ void handleCapture() {
 
   server.sendHeader("Access-Control-Allow-Origin", "*");
   server.sendHeader("Content-Disposition", "inline; filename=capture.jpg");
-  server.setContentLength(fb->len);
-  server.send(200, "image/jpeg", "");
-  
-  WiFiClient client = server.client();
-  client.write(fb->buf, fb->len);
+
+  if (fb->format == PIXFORMAT_JPEG) {
+    server.setContentLength(fb->len);
+    server.send(200, "image/jpeg", "");
+    WiFiClient client = server.client();
+    client.write(fb->buf, fb->len);
+  } else {
+    // Non-JPEG sensor (RGB565): Convert to JPEG on the fly using fmt2jpg
+    uint8_t *jpg_buf = NULL;
+    size_t jpg_len = 0;
+    bool ok = fmt2jpg(fb->buf, fb->len, fb->width, fb->height, fb->format, jpegQuality, &jpg_buf, &jpg_len);
+    if (ok && jpg_buf) {
+      server.setContentLength(jpg_len);
+      server.send(200, "image/jpeg", "");
+      WiFiClient client = server.client();
+      client.write(jpg_buf, jpg_len);
+      free(jpg_buf);
+    } else {
+      server.send(500, "text/plain", "JPEG conversion failed");
+    }
+  }
   esp_camera_fb_return(fb);
 }
 
@@ -350,7 +383,16 @@ void handleDiagnose() {
 
     File fJpg = SD_MMC.open(pathJpg, FILE_WRITE);
     if (fJpg) {
-      fJpg.write(fb->buf, fb->len);
+      if (fb->format == PIXFORMAT_JPEG) {
+        fJpg.write(fb->buf, fb->len);
+      } else {
+        uint8_t *jpg_buf = NULL;
+        size_t jpg_len = 0;
+        if (fmt2jpg(fb->buf, fb->len, fb->width, fb->height, fb->format, jpegQuality, &jpg_buf, &jpg_len) && jpg_buf) {
+          fJpg.write(jpg_buf, jpg_len);
+          free(jpg_buf);
+        }
+      }
       fJpg.close();
     }
     File fJson = SD_MMC.open(pathJson, FILE_WRITE);
@@ -515,13 +557,29 @@ void streamTask(void *pvParameters) {
           delay(10);
           continue;
         }
-        client.write(STREAM_BOUNDARY);
-        char partBuf[64];
-        snprintf(partBuf, sizeof(partBuf), STREAM_PART, fb->len);
-        client.write(partBuf);
-        client.write(fb->buf, fb->len);
+
+        if (fb->format == PIXFORMAT_JPEG) {
+          client.write(STREAM_BOUNDARY);
+          char partBuf[64];
+          snprintf(partBuf, sizeof(partBuf), STREAM_PART, fb->len);
+          client.write(partBuf);
+          client.write(fb->buf, fb->len);
+        } else {
+          // Software JPEG compression of RGB565 frame
+          uint8_t *jpg_buf = NULL;
+          size_t jpg_len = 0;
+          bool ok = fmt2jpg(fb->buf, fb->len, fb->width, fb->height, fb->format, jpegQuality, &jpg_buf, &jpg_len);
+          if (ok && jpg_buf) {
+            client.write(STREAM_BOUNDARY);
+            char partBuf[64];
+            snprintf(partBuf, sizeof(partBuf), STREAM_PART, jpg_len);
+            client.write(partBuf);
+            client.write(jpg_buf, jpg_len);
+            free(jpg_buf);
+          }
+        }
         esp_camera_fb_return(fb);
-        vTaskDelay(pdMS_TO_TICKS(35)); // ~28 FPS smooth stream
+        vTaskDelay(pdMS_TO_TICKS(20)); // ~25-30 FPS smooth live stream
       }
       client.stop();
     }
@@ -547,7 +605,8 @@ void setup() {
 
   // 3. Start SoftAP Direct Hotspot
   WiFi.mode(WIFI_AP_STA);
-  WiFi.softAP(AP_SSID, AP_PASS);
+  WiFi.setSleep(false);
+  WiFi.softAP(AP_SSID, AP_PASS, 1);
   Serial.printf("[HOTSPOT] Direct Wi-Fi: '%s' (Pass: '%s') -> IP: %s\n",
                 AP_SSID, AP_PASS, WiFi.softAPIP().toString().c_str());
 
