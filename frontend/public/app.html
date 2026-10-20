@@ -2342,17 +2342,29 @@ function googleTranslateElementInit() {
         <input type="file" id="scanFile" accept="image/*" style="display:none">
 
         <!-- Direct ESP32-S3 AI Vision Node Banner -->
-        <div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding:12px 16px;background:linear-gradient(135deg,rgba(56,189,248,0.12) 0%,var(--card) 100%);border:1px solid rgba(56,189,248,0.3);border-radius:14px;margin-bottom:14px">
-          <div style="display:flex;align-items:center;gap:12px">
-            <span style="font-size:24px">📷</span>
-            <div>
-              <div style="font-weight:700;font-size:14px;color:var(--ink)">Dedicated ESP32-S3 AI Camera Node</div>
-              <div style="font-size:12px;color:var(--ink-mute)">32MB PSRAM High-Res Vision &amp; On-Chip Foliar Analysis</div>
+        <div class="card" style="padding:14px 16px;background:linear-gradient(135deg,rgba(56,189,248,0.12) 0%,var(--card) 100%);border:1px solid rgba(56,189,248,0.3);border-radius:14px;margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="font-size:26px">📷</span>
+              <div>
+                <div style="font-weight:700;font-size:14.5px;color:var(--ink)">Connected ESP32-S3 AI Camera Node</div>
+                <div style="font-size:12px;color:var(--ink-mute)">32MB PSRAM Vision Buffers · On-Chip Foliar Analysis · Direct Wi-Fi Sync</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input class="input sm" id="s3CamIp" value="192.168.4.1" placeholder="S3 IP / Hotspot" style="width:125px;font-family:var(--mono);font-size:11.5px;padding:4px 8px">
+              <button class="btn green sm" id="s3DirectScanBtn">📸 Capture from S3</button>
+              <button class="btn ghost sm" id="s3ToggleStreamBtn">▶ Live Viewfinder</button>
             </div>
           </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input class="input sm" id="s3CamIp" value="192.168.4.1" placeholder="S3 IP / Hotspot" style="width:130px;font-family:var(--mono);font-size:11.5px;padding:4px 8px">
-            <button class="btn green sm" id="s3DirectScanBtn">📸 Capture from S3</button>
+
+          <!-- S3 Live Viewfinder Stream Box -->
+          <div id="s3StreamBox" style="display:none;margin-top:14px;background:#000;border-radius:12px;overflow:hidden;border:1px solid rgba(56,189,248,0.4);position:relative">
+            <img id="s3StreamImg" src="" style="width:100%;max-height:380px;object-fit:contain;display:block;margin:0 auto" alt="ESP32-S3 Live Stream">
+            <div style="position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:10px;background:linear-gradient(transparent,rgba(0,0,0,0.8));padding:10px 0">
+              <button class="btn green sm" id="s3SnapFromStreamBtn" style="box-shadow:0 4px 12px rgba(16,185,129,0.4)">📸 Snap &amp; Diagnose</button>
+              <button class="btn ghost sm" id="s3CloseStreamBtn" style="background:rgba(255,255,255,0.15);color:#fff">✕ Close</button>
+            </div>
           </div>
         </div>
 
@@ -12493,46 +12505,102 @@ async function runScan(){
 }
 
 function initScan(){
-  const s3Btn = document.getElementById('s3DirectScanBtn');
-  if (s3Btn && !s3Btn._wired){
-    s3Btn._wired = true;
-    s3Btn.addEventListener('click', async () => {
-      const ip = (document.getElementById('s3CamIp') && document.getElementById('s3CamIp').value.trim()) || '192.168.4.1';
-      toast('Connecting to ESP32-S3 Camera at ' + ip + '…');
-      try {
-        const capUrl = 'http://' + ip + '/capture.jpg?t=' + Date.now();
-        const diagUrl = 'http://' + ip + '/ai/diagnose?t=' + Date.now();
-        
-        // Fetch pristine capture from S3
-        const res = await fetch(capUrl, { mode: 'cors' });
-        if (!res.ok) throw new Error('Camera HTTP ' + res.status);
-        const blob = await res.blob();
-        
-        // Preview image
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          scanData = e.target.result;
-          scanMime = blob.type || 'image/jpeg';
-          renderScanPreview();
-          toast('✓ Captured image from ESP32-S3 Camera! Running AI consensus…');
-          
-          // Also fetch S3 on-chip diagnosis
-          try {
-            const diagRes = await fetch(diagUrl, { mode: 'cors' });
-            if (diagRes.ok) {
-              const diagJson = await diagRes.json();
-              console.log('ESP32-S3 Edge Diagnosis:', diagJson);
-              toast('🌿 S3 Edge Model: ' + diagJson.diagnosis + ' (' + Math.round(diagJson.confidence) + '%)');
-            }
-          } catch(_){}
+  // Trigger direct capture from ESP32-S3 and immediately mount on the webpage preview
+  const executeS3Capture = async () => {
+    const ip = (document.getElementById('s3CamIp') && document.getElementById('s3CamIp').value.trim()) || '192.168.4.1';
+    toast('📡 Fetching high-resolution photo from ESP32-S3 (' + ip + ')…');
+    try {
+      const capUrl = 'http://' + ip + '/capture.jpg?t=' + Date.now();
+      const diagUrl = 'http://' + ip + '/ai/diagnose?t=' + Date.now();
 
-          // Run cloud AI analysis
-          analyzeScan();
-        };
-        reader.readAsDataURL(blob);
-      } catch (err) {
-        toast('Could not reach ESP32-S3 at ' + ip + '. Ensure your device is connected to the S3 Wi-Fi hotspot or local network.');
+      const res = await fetch(capUrl, { mode: 'cors' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const blob = await res.blob();
+
+      const rd = new FileReader();
+      rd.onload = async () => {
+        const dataUrl = rd.result;
+        scanMime = blob.type || 'image/jpeg';
+        scanData = String(dataUrl).split(',')[1] || '';
+
+        // Directly display image in the webpage scan preview card
+        const prev = $('#scanPrev');
+        if (prev) prev.src = dataUrl;
+        const wrap = $('#scanPrevWrap');
+        if (wrap) {
+          wrap.style.display = 'block';
+          window.scrollTo({ top: wrap.offsetTop - 20, behavior: 'smooth' });
+        }
+        const resEl = $('#scanResult');
+        if (resEl) resEl.innerHTML = '<div class="card" style="text-align:center;padding:16px"><div style="font-size:24px">🧠</div><b>Running Tri-Model AI Consensus…</b><br><span style="font-size:12px;color:var(--ink-mute)">Querying ESP32-S3 On-Chip Model + OpenRouter Cloud Vision</span></div>';
+
+        toast('✓ Image captured directly from ESP32-S3!');
+
+        // Query on-chip 32MB PSRAM diagnosis
+        try {
+          const diagRes = await fetch(diagUrl, { mode: 'cors' });
+          if (diagRes.ok) {
+            const diagJson = await diagRes.json();
+            window._lastS3Diagnosis = diagJson;
+            toast('🌿 ESP32-S3 Edge Diagnosis: ' + diagJson.diagnosis + ' (' + Math.round(diagJson.confidence) + '%)');
+          }
+        } catch(_) {}
+
+        // Run full diagnostic pipeline
+        if (typeof runScan === 'function') runScan();
+      };
+      rd.readAsDataURL(blob);
+    } catch (err) {
+      toast('⚠️ Could not connect to ESP32-S3 at ' + ip + '. Please ensure you are connected to the "AgriSense-S3-Cam" Wi-Fi hotspot.');
+    }
+  };
+
+  const s3Btn = document.getElementById('s3DirectScanBtn');
+  if (s3Btn && !s3Btn._wired) {
+    s3Btn._wired = true;
+    s3Btn.addEventListener('click', executeS3Capture);
+  }
+
+  // Live Stream Viewfinder Toggle
+  const s3StreamBtn = document.getElementById('s3ToggleStreamBtn');
+  const s3StreamBox = document.getElementById('s3StreamBox');
+  const s3StreamImg = document.getElementById('s3StreamImg');
+  const s3CloseBtn = document.getElementById('s3CloseStreamBtn');
+  const s3SnapBtn = document.getElementById('s3SnapFromStreamBtn');
+
+  if (s3StreamBtn && !s3StreamBtn._wired) {
+    s3StreamBtn._wired = true;
+    s3StreamBtn.addEventListener('click', () => {
+      const ip = (document.getElementById('s3CamIp') && document.getElementById('s3CamIp').value.trim()) || '192.168.4.1';
+      if (s3StreamBox.style.display === 'none') {
+        s3StreamBox.style.display = 'block';
+        s3StreamImg.src = 'http://' + ip + ':81/stream';
+        s3StreamBtn.textContent = '⏹ Stop Stream';
+        toast('▶ Live ESP32-S3 Viewfinder active');
+      } else {
+        s3StreamBox.style.display = 'none';
+        s3StreamImg.src = '';
+        s3StreamBtn.textContent = '▶ Live Viewfinder';
       }
+    });
+  }
+
+  if (s3CloseBtn && !s3CloseBtn._wired) {
+    s3CloseBtn._wired = true;
+    s3CloseBtn.addEventListener('click', () => {
+      if (s3StreamBox) s3StreamBox.style.display = 'none';
+      if (s3StreamImg) s3StreamImg.src = '';
+      if (s3StreamBtn) s3StreamBtn.textContent = '▶ Live Viewfinder';
+    });
+  }
+
+  if (s3SnapBtn && !s3SnapBtn._wired) {
+    s3SnapBtn._wired = true;
+    s3SnapBtn.addEventListener('click', () => {
+      executeS3Capture();
+      if (s3StreamBox) s3StreamBox.style.display = 'none';
+      if (s3StreamImg) s3StreamImg.src = '';
+      if (s3StreamBtn) s3StreamBtn.textContent = '▶ Live Viewfinder';
     });
   }
   const camInput = $('#scanFileCamera');
