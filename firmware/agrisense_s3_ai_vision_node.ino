@@ -32,6 +32,23 @@
 #include "FS.h"
 #include "SD_MMC.h"
 
+// -------------------- DATA TYPES (Pre-declared for Arduino Compiler) --------------------
+typedef struct {
+  bool   hasLeaf;
+  String disease;
+  float  confidence;
+  String severity;
+  int    foliarCoveragePct;
+  int    lesionCount;
+  float  chlorosisRatio;
+  float  necroticRatio;
+  float  powderyRatio;
+  int    processingMs;
+  size_t psramFreeKB;
+} VisionDiagnosis;
+
+void runAdvancedFoliarAnalysis(camera_fb_t *fb, VisionDiagnosis &dx);
+
 // -------------------- 1. NETWORK & HOTSPOT CONFIG --------------------
 // Standalone Direct Access Hotspot (Connect directly from phone/laptop)
 const char* AP_SSID     = "AgriSense-S3-Cam";
@@ -163,22 +180,7 @@ bool initMicroSD() {
 // Runs in 32MB PSRAM: transforms raw JPEG to uncompressed high-resolution color matrices,
 // computes Excess Green Index (ExG = 2G - R - B) and Visible Atmospheric Resistance Index (VARI),
 // then extracts spatial lesion clustering, halo rings, and necrotic centers.
-struct VisionDiagnosis {
-  bool   hasLeaf;
-  String disease;
-  float  confidence;
-  String severity;
-  int    foliarCoveragePct;
-  int    lesionCount;
-  float  chlorosisRatio;
-  float  necroticRatio;
-  float  powderyRatio;
-  int    processingMs;
-  size_t psramFreeKB;
-};
-
-VisionDiagnosis runAdvancedFoliarAnalysis(camera_fb_t *fb) {
-  VisionDiagnosis dx;
+void runAdvancedFoliarAnalysis(camera_fb_t *fb, VisionDiagnosis &dx) {
   dx.hasLeaf           = false;
   dx.disease           = "Healthy Foliage";
   dx.confidence        = 95.0f;
@@ -195,7 +197,7 @@ VisionDiagnosis runAdvancedFoliarAnalysis(camera_fb_t *fb) {
   if (!fb || fb->format != PIXFORMAT_JPEG) {
     dx.disease = "Image Decode Error";
     dx.confidence = 0.0f;
-    return dx;
+    return;
   }
 
   // Allocate high-res RGB565 analysis buffer in 32MB PSRAM
@@ -214,13 +216,13 @@ VisionDiagnosis runAdvancedFoliarAnalysis(camera_fb_t *fb) {
     if (!rgbBuf || !jpg2rgb565(fb->buf, fb->len, rgbBuf, JPG_SCALE_8X)) {
       if (rgbBuf) free(rgbBuf);
       dx.disease = "Memory Allocation Failed";
-      return dx;
+      return;
     }
   } else {
     if (!jpg2rgb565(fb->buf, fb->len, rgbBuf, JPG_SCALE_4X)) {
       free(rgbBuf);
       dx.disease = "JPEG Decompression Failed";
-      return dx;
+      return;
     }
   }
 
@@ -272,7 +274,7 @@ VisionDiagnosis runAdvancedFoliarAnalysis(camera_fb_t *fb) {
     dx.disease = "No Crop Foliage Detected";
     dx.confidence = 25.0f;
     dx.severity = "N/A";
-    return dx;
+    return;
   }
 
   dx.hasLeaf = true;
@@ -307,8 +309,6 @@ VisionDiagnosis runAdvancedFoliarAnalysis(camera_fb_t *fb) {
     dx.severity = "Optimal";
     dx.confidence = 96.2f;
   }
-
-  return dx;
 }
 
 // -------------------- 7. HTTP ENDPOINTS (REST API) --------------------
