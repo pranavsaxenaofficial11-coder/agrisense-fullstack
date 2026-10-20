@@ -2324,14 +2324,32 @@ function googleTranslateElementInit() {
       <section class="screen" data-screen="scan">
         <h1 class="h1" data-i18n="scan_title">Crop scan</h1>
         <p class="sub" data-i18n="sub_scan">Photograph a sick leaf or plant and get a diagnosis with treatment steps — like Plantix, powered by AI vision.</p>
-        <input type="file" id="scanFile" accept="image/*" capture="environment" style="display:none">
-        <div class="scan-drop" id="scanDrop">
-          <div class="bigic">📷</div>
-          <div class="t6">Tap to take or upload a photo</div>
-          <div class="s6" id="scanMode">checking AI mode…</div>
+        <!-- Separate file inputs: one with capture for live camera, one without for gallery upload -->
+        <input type="file" id="scanFileCamera" accept="image/*" capture="environment" style="display:none">
+        <input type="file" id="scanFileUpload" accept="image/*" style="display:none">
+        <input type="file" id="scanFile" accept="image/*" style="display:none">
+
+        <!-- Distinct dual options for taking photo vs uploading from device -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:14px;margin:16px 0">
+          <div class="scan-drop" id="scanCameraCard" style="cursor:pointer;border:2px dashed var(--green);background:var(--green-soft);border-radius:14px;padding:22px 16px;text-align:center;transition:transform .15s ease">
+            <div style="font-size:38px;margin-bottom:6px">📸</div>
+            <div style="font-size:15px;font-weight:700;color:var(--ink)">Take a Photo</div>
+            <div style="font-size:12px;color:var(--ink-soft);margin-top:3px">Use live device camera to scan leaf</div>
+            <button class="btn green sm" type="button" style="margin-top:12px;pointer-events:none">📸 Open Camera</button>
+          </div>
+
+          <div class="scan-drop" id="scanUploadCard" style="cursor:pointer;border:2px dashed var(--purple,#a78bfa);background:var(--purple-soft,rgba(167,139,250,.12));border-radius:14px;padding:22px 16px;text-align:center;transition:transform .15s ease">
+            <div style="font-size:38px;margin-bottom:6px">📁</div>
+            <div style="font-size:15px;font-weight:700;color:var(--ink)">Upload Image / Pic</div>
+            <div style="font-size:12px;color:var(--ink-soft);margin-top:3px">Choose picture from gallery or storage</div>
+            <button class="btn ghost sm" type="button" style="margin-top:12px;pointer-events:none;border-color:var(--purple);color:var(--purple)">📁 Browse Gallery</button>
+          </div>
         </div>
+
+        <div id="scanMode" style="text-align:center;font-size:11.5px;color:var(--ink-mute);margin-bottom:8px">⚡ Simultaneous Tri-Model Consensus Ready (OpenRouter Cloud + Deep Learning + Local Edge)</div>
+
         <div id="scanPrevWrap" style="display:none;margin-top:14px;text-align:center">
-          <img class="scan-prev" id="scanPrev" alt="crop photo">
+          <img class="scan-prev" id="scanPrev" alt="crop photo" style="max-height:280px;border-radius:12px;border:2px solid var(--green)">
           <div style="margin:12px auto;max-width:440px;background:var(--bg-2);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px">
             <span style="font-size:12px;font-weight:700">AI Execution Mode:</span>
             <select class="select" id="scanModelSelect" style="max-width:240px;font-size:11.5px;padding:5px 8px">
@@ -2343,7 +2361,8 @@ function googleTranslateElementInit() {
           </div>
           <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">
             <button class="btn green" id="scanGo">✨ Diagnose Plant Health</button>
-            <button class="btn ghost" id="scanReset">Choose another</button>
+            <button class="btn ghost" id="scanNewCamera">📸 Take New Photo</button>
+            <button class="btn ghost" id="scanNewUpload">📁 Upload Different Pic</button>
             <button class="btn ghost" id="scanAdvancedBtn">⚙️ Advanced Camera &amp; AI Lab</button>
           </div>
         </div>
@@ -2805,7 +2824,7 @@ const state = {
   })(),
   role: 'farmer',
   pump: { on: true, zone: 'B3', startMs: Date.now()-4*60*1000, durMin: 22, reason: 'Auto: soil moisture 19% < trigger 30% · no rain in 72h forecast' },
-  sensors: { soilA: 32, soilB: 19, airTemp: 31, airHumidity: 38, soilTemp: 26, light: 78, rain: 0, pressure: 1009, waterTank: 73, airQuality: 28, waterTemp: 23.5, smoke: 14, tds: 340, soilPH: 6.5, nitrogen: 180, phosphorus: 22, potassium: 165, leafWet: 30, co2: 430, flow: 0, soilEC: 1.1, wind: 8, uv: 6, windDir: 180, soilC: 28, soilD: 35, dewPoint: 19, par: 850, soilO2: 19, waterFlow: 0, waterPH: 7.0, pestMic: 12, vibration: 2, ndvi: 0.72, sapFlow: 45, stemDia: 12.4, pestCount: 3, frost: 8 },
+  sensors: { soilA: 32, soilB: 24, soilAvg: 28, airTemp: 31, airHumidity: 38, soilTemp: 26, light: 78, rain: 0, pressure: 1009, waterTank: 73, airQuality: 28, waterTemp: 23.5, smoke: 14, tds: 340, soilPH: 6.5, nitrogen: 180, phosphorus: 22, potassium: 165, leafWet: 30, co2: 430, flow: 0, soilEC: 1.1, wind: 8, uv: 6, windDir: 180, soilC: 28, soilD: 35, dewPoint: 19, par: 850, soilO2: 19, waterFlow: 0, waterPH: 7.0, pestMic: 12, vibration: 2, ndvi: 0.72, sapFlow: 45, stemDia: 12.4, pestCount: 3, frost: 8 },
   history: { soilA: [], soilB: [], airTemp: [], airHumidity: [], soilTemp: [], light: [], rain: [], pressure: [], waterTank: [], airQuality: [], waterTemp: [], smoke: [], tds: [], soilPH: [], nitrogen: [], phosphorus: [], potassium: [], leafWet: [], co2: [], flow: [], soilEC: [], wind: [], uv: [], windDir: [], soilC: [], soilD: [], dewPoint: [], par: [], soilO2: [], waterFlow: [], waterPH: [], pestMic: [], vibration: [], ndvi: [], sapFlow: [], stemDia: [], pestCount: [], frost: [] },
   dayHistory: {},
   schedule: [
@@ -3646,8 +3665,11 @@ function parseHardwareLine(line) {
       const d = JSON.parse(line);
       if (d.airTemp != null) state.sensors.airTemp = +d.airTemp;
       if (d.airHum != null) state.sensors.airHumidity = +d.airHum;
-      if (d.soilAvg != null) state.sensors.soilA = +d.soilAvg;
-      if (d.soil1 != null) state.sensors.soilB = +d.soil1;
+      if (d.soil1 != null) state.sensors.soilA = +d.soil1;
+      if (d.soil2 != null) state.sensors.soilB = +d.soil2;
+      if (d.soilAvg != null) state.sensors.soilAvg = +d.soilAvg;
+      else if (d.soil1 != null && d.soil2 != null) state.sensors.soilAvg = Math.round((+d.soil1 + +d.soil2) / 2);
+      else if (d.soil1 != null) state.sensors.soilAvg = +d.soil1;
       if (d.light != null) state.sensors.light = +d.light;
       if (d.rain != null) state.sensors.rain = +d.rain;
       if (d.tankPct != null) state.sensors.waterTank = +d.tankPct;
@@ -4088,10 +4110,11 @@ $('#hdrPill3').addEventListener('click', () => jumpTo('home', '#suggMount'));
 
 /* ============ SENSORS ============ */
 const SENSOR_DEFS = [
-  { key:'soilA', tip:'How much water is in Zone A soil. Below the crop trigger, irrigation starts.', ic:'💧', lbl:'Soil moisture · Zone A', unit:'%', warn:v=>v<activeAgro().trig, alert:v=>v<activeAgro().trig-10, d:0 },
-  { key:'soilB', tip:'How much water is in Zone B soil. Below the crop trigger, irrigation starts.', ic:'💧', lbl:'Soil moisture · Zone B', unit:'%', warn:v=>v<activeAgro().trig, alert:v=>v<activeAgro().trig-10, d:0 , future:true },
-  { key:'airTemp', tip:'Air temperature at the field. High values stress the crop.', ic:'🌡️', lbl:'Air temperature', unit:'°C', warn:v=>v>33||v<10, d:1 },
-  { key:'airHumidity', tip:'Moisture in the air. Very high humidity raises fungal risk.', ic:'💨', lbl:'Air humidity', unit:'%', warn:v=>v>75||v<25, d:0 },
+  { key:'soilA', tip:'Soil moisture sensor 1 (or Zone A primary probe). Below crop trigger, automated irrigation activates.', ic:'💧', lbl:'Soil Moisture 1', unit:'%', warn:v=>v<activeAgro().trig, alert:v=>v<activeAgro().trig-10, d:0 },
+  { key:'soilB', tip:'Soil moisture sensor 2 (or Zone B probe). Dual-probe root zone telemetry.', ic:'💧', lbl:'Soil Moisture 2', unit:'%', warn:v=>v<activeAgro().trig, alert:v=>v<activeAgro().trig-10, d:0 },
+  { key:'soilAvg', tip:'Average soil moisture computed across active sensors for closed-loop pump control.', ic:'🌱', lbl:'Soil Moisture (Average)', unit:'%', warn:v=>v<activeAgro().trig, alert:v=>v<activeAgro().trig-10, d:0 },
+  { key:'airTemp', tip:'Air temperature at the field. High values stress the crop.', ic:'🌡️', lbl:'Air Temperature', unit:'°C', warn:v=>v>33||v<10, d:1 },
+  { key:'airHumidity', tip:'Moisture in the air. High humidity increases blight risk.', ic:'💨', lbl:'Air Humidity', unit:'%', warn:v=>v>75||v<25, d:0 },
   { key:'soilTemp', tip:'Temperature at root depth — affects nutrient uptake.', ic:'🌱', lbl:'Soil temperature', unit:'°C', warn:v=>{const a=activeAgro();return v>a.soilHi||v<a.soilLo;}, d:1 },
   { key:'light', tip:'Sunlight level reaching the crop right now.', ic:'🌞', lbl:'Light level', unit:'%', d:0 },
   { key:'pressure', tip:'Barometric pressure. A steady drop often means rain is coming.', ic:'🌪️', lbl:'Barometric pressure', unit:'hPa', warn:v=>v<1005, d:0 , future:true },
@@ -4136,7 +4159,7 @@ function sparkSVG(data, color){
 }
 // Which category each sensor belongs to (for grouped home view)
 const SENSOR_CATS = {
-  soilA:'Soil', soilB:'Soil', soilC:'Soil', soilD:'Soil', soilTemp:'Soil', soilPH:'Soil', nitrogen:'Soil', phosphorus:'Soil', potassium:'Soil', soilEC:'Soil', soilO2:'Soil',
+  soilA:'Soil', soilB:'Soil', soilAvg:'Soil', soilC:'Soil', soilD:'Soil', soilTemp:'Soil', soilPH:'Soil', nitrogen:'Soil', phosphorus:'Soil', potassium:'Soil', soilEC:'Soil', soilO2:'Soil',
   airTemp:'Air & Climate', airHumidity:'Air & Climate', pressure:'Air & Climate', light:'Air & Climate', uv:'Air & Climate', rain:'Air & Climate', co2:'Air & Climate', airQuality:'Air & Climate', smoke:'Air & Climate', wind:'Air & Climate', windDir:'Air & Climate', dewPoint:'Air & Climate', frost:'Air & Climate',
   waterTank:'Water', waterTemp:'Water', tds:'Water', flow:'Water', waterFlow:'Water', waterPH:'Water',
   leafWet:'Plant & Growth', par:'Plant & Growth', ndvi:'Plant & Growth', sapFlow:'Plant & Growth', stemDia:'Plant & Growth',
@@ -11787,9 +11810,10 @@ async function runScan(){
           </div>
         </div>
 
-        <div style="display:flex;gap:8px;justify-content:flex-end">
+        <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
           <button class="btn sm ghost" onclick="openCameraLabSheet()">⚙️ Open Camera Lab</button>
-          <button class="btn sm green" onclick="$('#scanFile').click()">📸 Scan Another Leaf</button>
+          <button class="btn sm ghost" onclick="($('#scanFileUpload')||$('#scanFile')).click()">📁 Upload Another Pic</button>
+          <button class="btn sm green" onclick="($('#scanFileCamera')||$('#scanFile')).click()">📸 Take Another Photo</button>
         </div>
       </div>
     `;
@@ -11807,36 +11831,78 @@ async function runScan(){
 }
 
 function initScan(){
-  const file = $('#scanFile');
-  if (!file) return;
-  $('#scanDrop').addEventListener('click', () => file.click());
-  file.addEventListener('change', () => {
-    const f0 = file.files && file.files[0];
+  const camInput = $('#scanFileCamera');
+  const upInput = $('#scanFileUpload');
+  const legacyInput = $('#scanFile');
+
+  const handleFile = (f0) => {
     if (!f0) return;
     scanMime = f0.type || 'image/jpeg';
     const rd = new FileReader();
     rd.onload = () => {
       const dataUrl = rd.result;
       scanData = String(dataUrl).split(',')[1] || '';
-      $('#scanPrev').src = dataUrl;
-      applyCamFilterToPreview();
-      $('#scanPrevWrap').style.display = 'block';
-      $('#scanResult').innerHTML = '';
-      window.scrollTo({ top: $('#scanPrevWrap').offsetTop - 20, behavior:'smooth' });
+      const prev = $('#scanPrev');
+      if (prev) prev.src = dataUrl;
+      if (typeof applyCamFilterToPreview === 'function') applyCamFilterToPreview();
+      const wrap = $('#scanPrevWrap');
+      if (wrap) wrap.style.display = 'block';
+      const res = $('#scanResult');
+      if (res) res.innerHTML = '';
+      if (wrap) window.scrollTo({ top: wrap.offsetTop - 20, behavior:'smooth' });
     };
     rd.readAsDataURL(f0);
+  };
+
+  if (camInput) camInput.onchange = () => handleFile(camInput.files && camInput.files[0]);
+  if (upInput) upInput.onchange = () => handleFile(upInput.files && upInput.files[0]);
+  if (legacyInput) legacyInput.onchange = () => handleFile(legacyInput.files && legacyInput.files[0]);
+
+  const camCard = $('#scanCameraCard');
+  if (camCard) camCard.onclick = () => camInput && camInput.click();
+
+  const upCard = $('#scanUploadCard');
+  if (upCard) upCard.onclick = () => upInput && upInput.click();
+
+  const scanDrop = $('#scanDrop');
+  if (scanDrop) scanDrop.onclick = () => (upInput || legacyInput).click();
+
+  [camCard, upCard, scanDrop].filter(Boolean).forEach(card => {
+    card.ondragover = (e) => { e.preventDefault(); card.style.transform = 'scale(1.02)'; };
+    card.ondragleave = () => { card.style.transform = 'none'; };
+    card.ondrop = (e) => {
+      e.preventDefault();
+      card.style.transform = 'none';
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]){
+        handleFile(e.dataTransfer.files[0]);
+      }
+    };
   });
-  $('#scanGo').addEventListener('click', runScan);
-  $('#scanReset').addEventListener('click', () => {
-    file.value = '';
+
+  const goBtn = $('#scanGo');
+  if (goBtn) goBtn.onclick = runScan;
+
+  const newCamBtn = $('#scanNewCamera');
+  if (newCamBtn) newCamBtn.onclick = () => camInput && camInput.click();
+
+  const newUpBtn = $('#scanNewUpload');
+  if (newUpBtn) newUpBtn.onclick = () => upInput && upInput.click();
+
+  const resetBtn = $('#scanReset');
+  if (resetBtn) resetBtn.onclick = () => {
     scanData = null;
-    $('#scanPrevWrap').style.display = 'none';
-    $('#scanResult').innerHTML = '';
-    file.click();
-  });
+    const wrap = $('#scanPrevWrap');
+    if (wrap) wrap.style.display = 'none';
+    const res = $('#scanResult');
+    if (res) res.innerHTML = '';
+  };
+
   const advBtn = $('#scanAdvancedBtn');
-  if (advBtn) advBtn.addEventListener('click', openCameraLabSheet);
+  if (advBtn) advBtn.onclick = openCameraLabSheet;
 }
+
+window.initScan = initScan;
+window.wireScan = initScan;
 
 /* ============ POINTS / REWARDS ============ */
 const LEVELS = ['Seedling','Sprout','Grower','Cultivator','Harvester','Field Master'];

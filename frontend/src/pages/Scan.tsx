@@ -302,8 +302,12 @@ export const ScanPage: React.FC = () => {
         )}
 
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <label className="agri-btn-outline" style={{ cursor: 'pointer' }}>
-            <Upload size={16} /> Upload Crop Leaf Photo
+          <label className="agri-btn-outline" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', borderColor: '#10b981', color: '#34d399' }}>
+            <Camera size={16} /> Take Photo (Camera)
+            <input type="file" accept="image/*" capture="environment" onChange={handleFileChange} style={{ display: 'none' }} />
+          </label>
+          <label className="agri-btn-outline" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', borderColor: '#38bdf8', color: '#38bdf8' }}>
+            <Upload size={16} /> Upload Picture from Device
             <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
           </label>
         </div>
