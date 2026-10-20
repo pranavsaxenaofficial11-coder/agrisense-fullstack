@@ -28,8 +28,8 @@
 
 // -------------------- 1. WI-FI & CLOUD CONFIGURATION --------------------
 // Change to your farm Wi-Fi or mobile hotspot SSID & Password
-const char* WIFI_SSID     = "NEW WIFI";
-const char* WIFI_PASSWORD = "bBPS@123";
+const char* WIFI_SSID     = "SAXENA";
+const char* WIFI_PASSWORD = "9868062753";
 
 // Google Apps Script Web App Endpoint
 const char* WEB_APP_URL = 
