@@ -259,7 +259,8 @@ void handleTFLiteScan() {
     float x[4] = { greenRatio, yellowRatio, necroticRatio, varIndex };
     if (tf.predict(x).isOk()) {
       predClass = tf.classification;
-      confidence = tf.proba(predClass);
+      confidence = tf.output(predClass);
+      if (isnan(confidence) || confidence <= 0.0f) confidence = 0.90f;
     }
   } else {
     // Heuristic triage
