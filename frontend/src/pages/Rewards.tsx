@@ -62,7 +62,7 @@ export const RewardsPage: React.FC = () => {
           {[
             { reward: '10% Discount on Bio-NPK Fertilizer', cost: '500 Points', partner: 'IFFCO Samrala' },
             { reward: 'Free Soil NPK Lab Testing Kit', cost: '800 Points', partner: 'PAU Agri Labs' },
-            { reward: '1-Hour Drone Health Flight Survey', cost: '1,200 Points', partner: 'AgriSense UAV Fleet' },
+            { reward: '1-Hour Drone Health Flight Survey', cost: '1,200 Points', partner: 'AgriUpdate UAV Fleet' },
           ].map((r, i) => (
             <div key={i} style={{ border: '1px solid var(--border-subtle)', borderRadius: '10px', padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>

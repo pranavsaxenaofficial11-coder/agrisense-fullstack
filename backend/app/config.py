@@ -17,6 +17,7 @@ class Settings(BaseModel):
     OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     GMAPS_KEY: str = os.getenv("GMAPS_KEY", "")
+    DATA_GOV_IN_API_KEY: str = os.getenv("DATA_GOV_IN_API_KEY", "")
     CORS_ORIGINS: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",

@@ -111,7 +111,7 @@ export const Sidebar: React.FC<NavigationProps> = ({ currentScreen, onSelectScre
         </div>
         <div>
           <h1 style={{ fontSize: '1.15rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#f1f5f3' }}>
-            Agri<span style={{ color: 'var(--primary)' }}>Sense</span>
+            Agri<span style={{ color: 'var(--primary)' }}>Update</span>
           </h1>
           <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Precision IoT & AI Farm</p>
         </div>
@@ -183,7 +183,7 @@ export const Header: React.FC<{
   pumpRunning: boolean;
   onTogglePump: () => void;
 }> = ({ currentScreen, waterTankLevel, pumpRunning, onTogglePump }) => {
-  const currentTitle = navItems.find((n) => n.id === currentScreen)?.label || 'AgriSense';
+  const currentTitle = navItems.find((n) => n.id === currentScreen)?.label || 'AgriUpdate';
 
   return (
     <header style={{

@@ -101,11 +101,11 @@ def calculate_mandi_arbitrage(crop: str = "Tomato", quantity_qtl: float = 25.0):
     }
 
 @router.get("/live-mandi-rates")
-def get_live_mandi_rates():
+async def get_live_mandi_rates():
     """
     Returns live APMC Mandi commodity rates and CACP Minimum Support Prices (MSP).
     """
     from app.services.live_open_data_service import LiveOpenDataService
-    return LiveOpenDataService.get_live_mandi_and_msp()
+    return await LiveOpenDataService.get_live_mandi_and_msp()
 
 
