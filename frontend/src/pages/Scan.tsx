@@ -60,9 +60,16 @@ export const ScanPage: React.FC = () => {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const blob = await res.blob();
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         setImage(reader.result as string);
         setShowAdvModal(false);
+        try {
+          const diagRes = await fetch(`${base}/ai/diagnose?t=${Date.now()}`);
+          if (diagRes.ok) {
+            const diagJson = await diagRes.json();
+            console.log('ESP32-S3 Edge Diagnosis:', diagJson);
+          }
+        } catch (_) {}
       };
       reader.readAsDataURL(blob);
     } catch (err: any) {

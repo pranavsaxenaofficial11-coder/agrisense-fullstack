@@ -1,4 +1,4 @@
-# 🌱 AgriSense AI — Smart Autonomous Precision Agriculture Platform
+# 🌾 AgriSense AI — Smart Autonomous Precision Agriculture Platform
 ### *Official Submission for Bharat Innovation Challenge 2026*
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
@@ -6,148 +6,130 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5.0-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?style=flat&logo=python)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/Build-Passing%20(428ms)-success.svg)]()
+[![Build Status](https://img.shields.io/badge/Build-Passing-success.svg)]()
 
-> **AgriSense AI** is a production-grade, full-stack precision agritech platform designed to empower smallholder Indian farmers with automated closed-loop irrigation, real-time Soil Health Indexing (SHI), live government mandi price benchmarking, and multimodal Gemini 2.0 AI agronomist advisory in native regional languages.
-
----
-
-## 🏆 Bharat Innovation Challenge 2026 Pitch Deck
-
-* 📥 **PowerPoint Presentation (.pptx)**: [`AgriSense_Bharat_Innovation_Challenge_2026.pptx`](./AgriSense_Bharat_Innovation_Challenge_2026.pptx)
-* 🌐 **Interactive Web Slide Viewer**: Open [`frontend/public/bharat_challenge_deck.html`](./frontend/public/bharat_challenge_deck.html) in any modern browser for full-screen keyboard navigation ($\leftarrow / \rightarrow$).
+> **AgriSense AI** is a production-grade, full-stack precision agritech platform designed to empower smallholder Indian farmers with automated closed-loop irrigation, real-time Soil Health Indexing (SHI), live government mandi price benchmarking, distributed dual-ESP edge hardware, and multimodal AI agronomist advisory in native regional languages.
 
 ---
 
-## 🏛️ System Architecture
+## 📽️ Bharat Innovation Challenge 2026 Pitch Deck
+
+* 📊 **PowerPoint Presentation (.pptx)**: [`AgriSense_Bharat_Innovation_Challenge_2026.pptx`](./AgriSense_Bharat_Innovation_Challenge_2026.pptx)
+* 🖥️ **Interactive Web Slide Viewer**: Open [`frontend/public/bharat_challenge_deck.html`](./frontend/public/bharat_challenge_deck.html) in any modern browser for full-screen keyboard navigation ($\leftarrow / \rightarrow$).
+
+---
+
+## ⚡ Distributed Dual-ESP Hardware Architecture
+
+AgriSense partitions field edge computing across two dedicated microcontroller nodes for maximum reliability and zero telemetry interruption:
 
 ```
-┌───────────────────────────────────────────────────────────────────────────┐
-│                           FARMER & BUYER CLIENTS                          │
-│     React 19 Web App • Progressive Web App (PWA) • Admin Control Plane    │
-└─────────────────────┬───────────────────────────────┬─────────────────────┘
-                      │                               │
-            (Identity & Auth)               (REST API & Telemetry)
-                      ▼                               ▼
-        ┌───────────────────────────┐   ┌───────────────────────────────────┐
-        │  GOOGLE FIREBASE AUTH     │   │     FASTAPI BACKEND ENGINE        │
-        │                           │   │                                   │
-        │ • Multi-Provider Sign-In  │   │ • Composite Soil Health (SHI)     │
-        │ • Password Hashing        │   │ • Live Agroclimatic & VPD Models  │
-        │ • Email Verification      │   │ • ESP32 IoT Actuator Controller   │
-        │ • Token Exchange          │   │ • Gemini 2.0 Flash Multimodal AI  │
-        └───────────────────────────┘   │ • Safe Read-Only SQL Console      │
-                                        └─────────┬─────────────────────────┘
-                                                  │
-                      ┌───────────────────────────┴─────────────────────────┐
-                      ▼                                                     ▼
-        ┌───────────────────────────┐                         ┌───────────────────────────┐
-        │    SQLITE (WAL) STORAGE   │                         │    LIVE OPEN-DATA FEEDS   │
-        │                           │                         │                           │
-        │ • Atomic Sensor Logs      │                         │ • ISRIC SoilGrids 2.0     │
-        │ • 4-Zone Relay Controls   │                         │ • Central Water Commission│
-        │ • Audit Trails & Logins   │                         │ • Agmarknet APMC Rates    │
-        │ • DPDP 1-Click Purge      │                         │ • Open-Meteo Solar & VPD  │
-        └───────────────────────────┘                         └───────────────────────────┘
+                  ┌─────────────────────────────────────────────────────────┐
+                  │                 AgriSense Full-Stack                    │
+                  │   (React 19 Dashboard · Cloudflare Pages · FastAPI)     │
+                  └────────────────────────────┬────────────────────────────┘
+                                               │
+                       ┌───────────────────────┴───────────────────────┐
+                       ▼                                               ▼
+         ┌───────────────────────────┐                   ┌───────────────────────────┐
+         │     ESP32 DevKit V1       │                   │         ESP32-S3          │
+         │   (Dedicated Sensor Hub)  │                   │  (Dedicated AI Vision)    │
+         ├───────────────────────────┤                   ├───────────────────────────┤
+         │ • DHT11 (Air Temp & Hum)  │                   │ • 32 MB Octal PSRAM       │
+         │ • Dual Soil Moisture (1&2)│                   │ • OV2640 / GC2145 Camera  │
+         │ • LDR Solar & Rain Probes │                   │ • High-Speed MicroSD Slot │
+         │ • Active-LOW Relays       │                   │ • Multi-Spectral AI Model │
+         │ • 2-Way Google Sheets     │                   │ • Port 81 MJPEG Live Stream│
+         │ • Web Serial Fallback     │                   │ • Direct Website Scan API │
+         └─────────────┬─────────────┘                   └─────────────┬─────────────┘
+                       │                                               │
+                       │ (GET /sts=write every 3.5s)                   │ (REST capture & AI)
+                       ▼                                               ▼
+         ┌───────────────────────────┐                   ┌───────────────────────────┐
+         │       Google Sheets       │                   │    AgriSense Dashboard    │
+         │   (Cloud Telemetry Hub)   │◄──────────────────┤    (Crop Scan & Lab)      │
+         └───────────────────────────┘  (Polls every 4s) └───────────────────────────┘
 ```
 
----
+### Node 1: ESP32 DevKit V1 — Dedicated Sensor Hub & Google Sheets Ingest
+* **Firmware**: [`firmware/agrisense_devkit_v1_sensors_sheets.ino`](./firmware/agrisense_devkit_v1_sensors_sheets.ino)
+* **Pin Mapping**:
+  * DHT11 Temperature & Humidity: `GPIO 4`
+  * Soil Moisture Sensor 1: `GPIO 34` (Analog ADC1)
+  * Soil Moisture Sensor 2: `GPIO 35` (Analog ADC1)
+  * LDR Solar / Light Sensor: `GPIO 32` (Analog ADC1)
+  * Raindrop Precipitation Sensor: `GPIO 33` (Analog ADC1)
+  * Submersible Pump Relay: `GPIO 25` (Active LOW)
+  * Cooling Fan Relay: `GPIO 26` (Active LOW)
+* **Google Sheets Telemetry Bridge**:
+  * Pushes calibrated sensor packets every 3.5 seconds to Google Apps Script.
+  * Ingests remote manual pump/fan override commands returned in the HTTP response.
+  * Web app polls the Google Sheets webhook every 4.5 seconds to display live hardware state.
+* **Autonomous Edge Failsafe**:
+  * Automatically shuts down irrigation if soil moisture exceeds 85% or if continuous pump runtime exceeds 15 minutes.
 
-## 🌟 Key Features & Live Agronomic Feeds
-
-### 1. 🌿 Real-Time Soil Health Index (SHI)
-* Computes an agronomic composite score (e.g. **89.8 / 100 — Grade A+ Prime Fertile**) by synthesizing live root-zone telemetry with depth-stratified chemical data from **ISRIC SoilGrids 2.0**.
-* **Sub-indices**: Organic Matter ($18.2\text{ g/kg}$ SOC), Reaction pH ($7.4$), Available Moisture ($38\%$), and Total Nitrogen ($1.2\text{ g/kg}$).
-
-### 2. 🚰 Autonomous Irrigation & Closed-Loop Actuation
-* **4-Zone Solenoid Relay Control**: Dynamic micro-dosing per zone based on soil moisture thresholds.
-* **Submersible Pump Controller**: Auto shutoff based on reservoir water level and line pressure.
-* **Water Savings**: Delivers up to **38% water conservation** compared to flood irrigation.
-
-### 3. 🌾 Live APMC Mandi Rates & CACP MSP Benchmark
-* Ingests live APMC modal prices across Punjab and North India markets.
-* Compares spot auction rates directly against Government Minimum Support Prices (MSP) to eliminate middleman exploitation.
-
-### 4. 🧠 Multimodal Gemini 2.0 AI Agronomist
-* **Vision Diagnostics**: Analyzes smartphone leaf photos to identify fungal blights, bacterial wilts, and nutrient deficiencies.
-* **Vernacular Voice Advisory**: Native speech synthesis in **Punjabi (ਗੁਰਮੁਖੀ)**, **Hindi (हिंदी)**, and English for zero-literacy barriers.
-
-### 5. 🗄️ Control Plane, Database Explorer & SQL Console
-* **Safe Read-Only SQL Console**: Query records with sub-millisecond execution times and automatic `SELECT`/`PRAGMA` safety enforcement.
-* **Compact Explorer**: Formatted data grid with live 30-character cell previews and hover tooltips for audit trails and JSON columns.
-
-### 6. 🛡️ DPDP Act 2023 Compliance & Data Purge
-* **1-Click Cascade Account Deletion**: Permanently purges profiles, direct messages, forum discussions, market listings, and audit trails across SQLite and MongoDB.
-
----
-
-## 📁 Repository Structure
-
-```text
-agrisense-fullstack/
-├── backend/                                # FastAPI High-Performance Backend
-│   ├── app/
-│   │   ├── main.py                         # Application entrypoint & CORS middleware
-│   │   ├── config.py                       # Configuration & environment loader
-│   │   ├── database.py                     # SQLAlchemy session & SQLite engine
-│   │   ├── mongodb.py                      # MongoDB Atlas cluster fallback driver
-│   │   ├── models/                         # ORM Models (User, SensorReading, Market, etc.)
-│   │   ├── routes/                         # REST API Endpoints:
-│   │   │   ├── analytics.py                # SHI, ISRIC SoilGrids, CWC Dams, VPD feeds
-│   │   │   ├── sensors.py                  # IoT microclimate & zone telemetry
-│   │   │   ├── controls.py                 # Actuator relays & pump controls
-│   │   │   ├── market.py                   # B2B listings & Agmarknet mandi rates
-│   │   │   ├── user.py                     # User profiles, heartbeats & cascade purge
-│   │   │   └── control_plane.py            # Pipelines, system info & safe SQL console
-│   │   └── views/
-│   │       └── dashboard.py                # Standalone Administrative Control Plane UI
-│   ├── requirements.txt                    # Python dependencies
-│   ├── test_api.py                         # Complete 18-route automated test suite
-│   └── sync_all_firebase.py                # Genuine Firebase Firestore sync script
-│
-├── frontend/                               # React 19 + TypeScript (Vite)
-│   ├── src/
-│   │   ├── api/services.ts                 # Fully-typed API client services
-│   │   ├── pages/                          # Modular screens (Home, Controls, Market, etc.)
-│   │   ├── components/                     # Reusable UI components & layouts
-│   │   └── index.css                       # Emerald dark-mode design system
-│   ├── public/
-│   │   ├── bharat_challenge_deck.html      # Interactive presentation slide viewer
-│   │   └── AgriSense_Bharat_Innovation_Challenge_2026.pptx
-│   └── package.json
-│
-├── AgriSense_Bharat_Innovation_Challenge_2026.pptx # Official PowerPoint Pitch Deck
-├── create_bharat_challenge_deck.py         # Python slide deck generator
-└── README.md
-```
+### Node 2: ESP32-S3 — Dedicated 32MB PSRAM AI Vision Node
+* **Firmware**: [`firmware/agrisense_s3_ai_vision_node.ino`](./firmware/agrisense_s3_ai_vision_node.ino)
+* **Memory & Storage**:
+  * Harnesses full **32 MB PSRAM** for triple frame buffering (`fb_count = 3`, `UXGA 1600x1200`) and image transformation matrices.
+  * High-speed **MicroSD Slot** (`SD_MMC` on GPIO 38, 39, 40) automatically saves all raw leaf images (`/scans/scan_*.jpg`) and diagnostic JSON logs.
+* **On-Chip Multi-Spectral Foliar Vision Engine (MSSM-FC)**:
+  * Superior to basic 96x96 MobileNet TFLite by operating directly on high-resolution PSRAM color matrices.
+  * Uses Excess Green Index ($ExG = 2G - R - B$) and Visible Atmospheric Resistance Index (VARI) for foliage segmentation.
+  * Detects concentric halo target spots (Alternaria Early Blight), water-soaked irregular necrosis (Phytophthora Late Blight), powdery sporulation, and nutritional chlorosis.
+* **Direct Web Integration**:
+  * Port 81: High-speed live MJPEG video stream (`http://<S3_IP>:81/stream`).
+  * Port 80: REST endpoints (`/capture.jpg`, `/ai/diagnose`, `/control`, `/status`, `/sd/list`).
+  * One-click "📸 Capture from S3" directly inside the web dashboard.
 
 ---
 
-## ⚡ Quickstart & Local Setup
+## 💧 Defensible Water Conservation Model
 
-### 1. Backend Setup (FastAPI)
+AgriSense replaces arbitrary static estimates with a verified agricultural micro-irrigation efficiency model:
+
+* **Precision Drip Delivery**:
+  $$\text{Drip Volume (L)} = \text{Pump Runtime (min)} \times \text{Calibrated Flow Rate (25 L/min)}$$
+* **Flood Baseline Conservation**:
+  Conventional furrow/flood irrigation operates at ~38% efficiency due to deep percolation and evaporation. Precision drip operates at ~92% efficiency.
+  $$\text{Conserved Volume} = \text{Drip Volume} \times 1.45 \quad (\approx 61\%\text{ water saved})$$
+* **Sensor & Weather Hold Savings**:
+  When rain is forecast/detected or soil moisture is at field capacity (>55%), automated logic holds back scheduled irrigation bursts, crediting ~190 L/acre per cycle.
+* **Interactive Audit**: Tapping the `Water saved today` card opens a full operational breakdown modal.
+
+---
+
+## 🏛️ Government Schemes & Dynamic Agromet Advisories
+
+* **State-Filtered Central & State Schemes**: Interactive filtering across National (PM-KISAN, PMFBY, KCC, Soil Health Card, PM-KUSUM) and state-specific programs (Punjab CRM, MahaDBT, Haryana, Karnataka). Every scheme links directly to official government portals with verified deadlines and required document checklists.
+* **Contextual Weather Advisories**: Real-time synthesis of Open-Meteo forecasts with active farm sensors and crop growth stage. Clearly distinguishes official IMD Agromet alerts from AgriSense sensor recommendations.
+* **Structured AI Farm Report Feedback**: Farmer-in-the-loop evaluation form (utility, diagnosis accuracy, actions tried, outcome, user corrections) archived with model version metadata for agronomic review.
+
+---
+
+## 🚀 Quickstart & Development
+
+### 1. Backend Setup (FastAPI + Python 3.12+)
 
 ```powershell
 # Navigate to backend
 cd backend
 
-# (Optional) Create and activate virtual environment
+# Create & activate virtual environment
 python -m venv venv
-venv\Scripts\activate   # Windows
-# source venv/bin/activate # Linux/macOS
+.\venv\Scripts\Activate.ps1
 
-# Install dependencies
+# Install requirements
 pip install -r requirements.txt
 
-# Start FastAPI server with live auto-reload
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+# Launch FastAPI development server
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-* **Interactive OpenAPI (Swagger)**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-* **Administrative Control Plane**: [http://127.0.0.1:8000/dashboard](http://127.0.0.1:8000/dashboard)
-* **System Health Check**: [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
+* **Interactive API Docs (Swagger UI)**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+* **Backend Health Check**: [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
 
-### 2. Frontend Setup (React 19 + TypeScript)
+### 2. Frontend Setup (React 19 + TypeScript + Vite)
 
 ```powershell
 # Navigate to frontend
@@ -160,35 +142,16 @@ npm install
 npm run dev
 ```
 
-* **Live Application**: [http://localhost:5173/](http://localhost:5173/)
-* **Presentation Deck Viewer**: [http://localhost:5173/bharat_challenge_deck.html](http://localhost:5173/bharat_challenge_deck.html)
+* **Live Dashboard**: [http://localhost:5173/app.html](http://localhost:5173/app.html)
+* **Presentation Deck**: [http://localhost:5173/bharat_challenge_deck.html](http://localhost:5173/bharat_challenge_deck.html)
 
-### 3. Run Automated Test Suite
+### 3. Build & Production Deployment
 
-```powershell
-cd backend
-python test_api.py
-```
-> Validates all 18 routes (SQLite WAL, MongoDB cluster, ISRIC SoilGrids, CWC dam bulletins, Agmarknet rates, AI engine, SQL console, and cascade purge).
-
----
-
-## 🌐 Production Deployment
-
-### Frontend (Cloudflare Pages / Vercel)
 ```powershell
 cd frontend
 npm run build
-# Deploy dist/ to Cloudflare Pages or Vercel
 ```
-
-### Backend (Linux systemd / Docker)
-```powershell
-# Copy systemd unit to systemd directory
-sudo cp backend/agrisense.service /etc/systemd/system/agrisense.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now agrisense
-```
+Vite compiles the production bundle into `dist/` and copies `app.html` directly into `dist/app.html`.
 
 ---
 
