@@ -4552,16 +4552,11 @@ function googleTranslateElementInit() {
 
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
 
-              <input class="input sm" id="s3CamIp" value="10.128.89.252" placeholder="IP / agrisense.local" style="width:130px;font-family:var(--mono);font-size:11.5px;padding:4px 8px" title="ESP32 IP or agrisense.local">
-
+              <input class="input sm" id="s3CamIp" value="192.168.1.143" placeholder="IP / agrisense.local" style="width:130px;font-family:var(--mono);font-size:11.5px;padding:4px 8px" title="ESP32 IP or agrisense.local">
               <button class="btn ghost sm" id="s3AutoDetectBtn" style="padding:4px 8px;font-size:11px;border:1px solid rgba(56,189,248,0.4);color:#38bdf8" title="Auto-detect ESP32 on network">🔍 Find</button>
-
               <button class="btn green sm" id="s3DirectScanBtn">📸 Capture from S3</button>
-
               <button class="btn ghost sm" id="s3ToggleStreamBtn">▶ Live Viewfinder</button>
-
               <button class="btn ghost sm" id="s3SettingsBtn" style="border:1px solid rgba(56,189,248,0.4);color:#38bdf8" title="Open ESP32-S3 Camera Studio to adjust brightness, contrast, and resolution">⚙️ Cam Settings</button>
-
             </div>
 
           </div>
@@ -24208,13 +24203,25 @@ function initScan() {
 
   const getActiveIp = () => {
     const input = document.getElementById('s3CamIp');
-    return (input && input.value.trim()) || localStorage.getItem('agrisense_s3_cam_ip') || '192.168.1.127';
+    const val = input ? input.value.trim() : '';
+    if (val && val !== '10.128.89.252' && val !== '192.168.4.1') return val;
+    const saved = localStorage.getItem('agrisense_s3_cam_ip');
+    if (saved && saved !== '10.128.89.252' && saved !== '192.168.4.1') return saved;
+    return '192.168.1.143';
   };
 
   // 1. Direct Capture from ESP32-S3 with Local Edge Model Diagnosis
   const executeS3Capture = async () => {
     const ip = getActiveIp();
-    toast('📡 Fetching high-resolution photo & edge diagnosis from ESP32-S3 (' + ip + ')…');
+    
+    // Check for Mixed Content if running on HTTPS
+    if (window.location.protocol === 'https:') {
+      toast('🔒 HTTPS Mixed Content: Browsers block direct LAN requests to HTTP devices. Opening Camera Studio (http://' + ip + ')...');
+      window.open('http://' + ip, '_blank');
+      return;
+    }
+
+    toast('📸 Fetching photo & edge diagnosis from ESP32-S3 (' + ip + ')...');
     try {
       const capUrl = 'http://' + ip + '/capture.jpg?t=' + Date.now();
       const diagUrl = 'http://' + ip + '/ai/diagnose?t=' + Date.now();
@@ -24247,12 +24254,12 @@ function initScan() {
                 <span style="font-weight:800;color:#10b981;font-size:14.5px">🧠 Local Edge AI Model (On-Chip PSRAM)</span>
                 <span id="s3ConfBadge" style="background:#10b981;color:#064e3b;font-weight:900;font-size:11px;padding:3px 8px;border-radius:6px">ANALYZING...</span>
               </div>
-              <div id="s3DxTitle" style="font-size:17px;font-weight:800;color:var(--ink)">Running foliar classifier on-chip…</div>
-              <div id="s3DxSub" style="font-size:12.5px;color:var(--ink-mute);margin-top:4px">Connecting to ESP32-S3 32MB PSRAM vision engine…</div>
+              <div id="s3DxTitle" style="font-size:17px;font-weight:800;color:var(--ink)">Running foliar classifier on-chip...</div>
+              <div id="s3DxSub" style="font-size:12.5px;color:var(--ink-mute);margin-top:4px">Connecting to ESP32-S3 8MB PSRAM vision engine...</div>
             </div>`;
         }
 
-        toast('✓ Image captured directly from ESP32-S3!');
+        toast('✅ Image captured directly from ESP32-S3!');
 
         // Query on-chip diagnosis
         try {
@@ -24264,9 +24271,9 @@ function initScan() {
             const subEl = document.getElementById('s3DxSub');
             const confEl = document.getElementById('s3ConfBadge');
             if (titleEl) titleEl.innerText = diagJson.diagnosis || 'Healthy Crop Foliage';
-            if (subEl) subEl.innerHTML = `Severity: <b>${diagJson.severity || 'Optimal'}</b> · Foliar Coverage: <b>${diagJson.foliar_coverage_pct || 82}%</b> · Lesions: <b>${diagJson.lesion_count || 0}</b> · Latency: <b>${diagJson.processing_time_ms || 18}ms</b>`;
+            if (subEl) subEl.innerHTML = `Severity: <b>${diagJson.severity || 'Optimal'}</b> • Foliar Coverage: <b>${diagJson.foliar_coverage_pct || 82}%</b> • Lesions: <b>${diagJson.lesion_count || 0}</b> • Latency: <b>${diagJson.processing_time_ms || 18}ms</b>`;
             if (confEl) confEl.innerText = Math.round(diagJson.confidence || 95) + '% CONFIDENCE';
-            toast('🌿 ESP32-S3 Edge Diagnosis: ' + (diagJson.diagnosis || 'Healthy') + ' (' + Math.round(diagJson.confidence || 95) + '%)');
+            toast('🔬 ESP32-S3 Edge Diagnosis: ' + (diagJson.diagnosis || 'Healthy') + ' (' + Math.round(diagJson.confidence || 95) + '%)');
           }
         } catch (_) {}
 
@@ -24288,8 +24295,10 @@ function initScan() {
   const s3IpInput = document.getElementById('s3CamIp');
   if (s3IpInput) {
     const saved = localStorage.getItem('agrisense_s3_cam_ip');
-    if (saved && saved !== '192.168.4.1') {
+    if (saved && saved !== '192.168.4.1' && saved !== '10.128.89.252') {
       s3IpInput.value = saved;
+    } else {
+      s3IpInput.value = '192.168.1.143';
     }
     s3IpInput.oninput = () => {
       localStorage.setItem('agrisense_s3_cam_ip', s3IpInput.value.trim());
@@ -24302,21 +24311,36 @@ function initScan() {
     s3AutoDetectBtn._wired = true;
     s3AutoDetectBtn.onclick = async () => {
       s3AutoDetectBtn.textContent = '⏳';
-      toast('🔍 Scanning network for ESP32-S3 camera node…');
+      toast('🔍 Scanning network for ESP32-S3 camera node...');
+
+      // If running on HTTPS, browsers block background LAN fetch
+      if (window.location.protocol === 'https:') {
+        s3AutoDetectBtn.textContent = '🔍 Find';
+        if (s3IpInput) s3IpInput.value = '192.168.1.143';
+        localStorage.setItem('agrisense_s3_cam_ip', '192.168.1.143');
+        toast('🔒 Note: On HTTPS, direct LAN probes are blocked by browsers. Defaulted to 192.168.1.143. Click "⚙️ Cam Settings" to access device directly!');
+        return;
+      }
 
       // Candidate IPs to check immediately
       const currentVal = s3IpInput ? s3IpInput.value.trim() : '';
       const priorityList = [
+        '192.168.1.143',
         currentVal,
-        '192.168.1.128', '192.168.1.129', '192.168.1.130', '192.168.1.100', '192.168.1.150', '192.168.1.200',
-        '10.255.72.228', '10.128.89.252', '192.168.4.1', 'agrisense.local'
+        '192.168.1.127',
+        '192.168.1.100',
+        '192.168.1.150',
+        '192.168.1.200',
+        '192.168.4.1',
+        'agrisense.local'
       ].filter(Boolean);
 
       let found = null;
       for (const host of priorityList) {
+        if (!host || host === '10.128.89.252') continue;
         try {
           const ctrl = new AbortController();
-          const tid = setTimeout(() => ctrl.abort(), 600);
+          const tid = setTimeout(() => ctrl.abort(), 650);
           const r = await fetch('http://' + host + '/status', { signal: ctrl.signal });
           clearTimeout(tid);
           if (r.ok) {
@@ -24326,39 +24350,41 @@ function initScan() {
         } catch (_) {}
       }
 
-      // If not in priority list, rapid parallel sweep across 192.168.1.x and 10.255.72.x subnets
+      // If not in priority list, scan subnet in controlled batches of 15
       if (!found) {
         const sweepIps = [];
-        for (let i = 2; i <= 254; i++) {
-          sweepIps.push('192.168.1.' + i);
-          if (i <= 100) sweepIps.push('10.255.72.' + i);
+        for (let i = 100; i <= 200; i++) sweepIps.push('192.168.1.' + i);
+        for (let i = 2; i <= 99; i++) sweepIps.push('192.168.1.' + i);
+
+        for (let b = 0; b < sweepIps.length && !found; b += 15) {
+          const batch = sweepIps.slice(b, b + 15);
+          const results = await Promise.all(batch.map(async (ip) => {
+            try {
+              const ctrl = new AbortController();
+              const tid = setTimeout(() => ctrl.abort(), 700);
+              const r = await fetch('http://' + ip + '/status', { signal: ctrl.signal });
+              clearTimeout(tid);
+              if (r.ok) {
+                const data = await r.json().catch(() => ({}));
+                if (data.device) return data.wifi_ip || ip;
+              }
+            } catch (_) {}
+            return null;
+          }));
+          found = results.find(Boolean);
         }
-
-        const sweepPromises = sweepIps.map(async (ip) => {
-          try {
-            const ctrl = new AbortController();
-            const tid = setTimeout(() => ctrl.abort(), 650);
-            const r = await fetch('http://' + ip + '/status', { signal: ctrl.signal });
-            clearTimeout(tid);
-            if (r.ok) {
-              const data = await r.json().catch(() => ({}));
-              if (data.device) return data.wifi_ip || ip;
-            }
-          } catch (_) {}
-          return null;
-        });
-
-        const results = await Promise.all(sweepPromises);
-        found = results.find(Boolean);
       }
 
       s3AutoDetectBtn.textContent = '🔍 Find';
       if (found) {
         if (s3IpInput) s3IpInput.value = found;
         localStorage.setItem('agrisense_s3_cam_ip', found);
-        toast('✓ Connected! ESP32-S3 found at ' + found);
+        toast('✅ Connected! ESP32-S3 found at ' + found);
       } else {
-        toast('⚠️ ESP32 not detected automatically. If uploaded in Arduino, check the IP printed in Serial Monitor and type it into the IP box.');
+        if (s3IpInput && (!s3IpInput.value || s3IpInput.value === '10.128.89.252')) {
+          s3IpInput.value = '192.168.1.143';
+        }
+        toast('⚠️ ESP32-S3 not found automatically. Pre-filled 192.168.1.143. Click "⚙️ Cam Settings" to connect!');
       }
     };
   }
@@ -24376,12 +24402,18 @@ function initScan() {
       const ip = getActiveIp();
       localStorage.setItem('agrisense_s3_cam_ip', ip);
 
+      if (window.location.protocol === 'https:') {
+        toast('🔒 Note: On HTTPS, direct LAN stream is restricted. Opening Camera Studio (http://' + ip + ')...');
+        window.open('http://' + ip, '_blank');
+        return;
+      }
+
       if (s3StreamBox.style.display === 'none') {
         s3StreamBox.style.display = 'block';
         s3StreamImg.src = 'http://' + ip + ':81/stream';
         s3StreamImg.onerror = () => {
           if (s3StreamImg.src.indexOf(':81/stream') !== -1) {
-            s3StreamImg.src = 'http://' + ip + '/stream'; // fallback to port 80
+            s3StreamImg.src = 'http://' + ip + '/stream';
           }
         };
         s3StreamBtn.textContent = '⏹ Stop Stream';
@@ -24401,7 +24433,7 @@ function initScan() {
     s3SettingsBtn.onclick = () => {
       const ip = getActiveIp();
       localStorage.setItem('agrisense_s3_cam_ip', ip);
-      toast('Opening ESP32-S3 Camera Studio (http://' + ip + ')…');
+      toast('Opening ESP32-S3 Camera Studio (http://' + ip + ')...');
       window.open('http://' + ip, '_blank');
     };
   }
@@ -24435,7 +24467,6 @@ setTimeout(initScan, 300);
 setTimeout(initScan, 1000);
 
 window.initScan = initScan;
-
 window.wireScan = initScan;
 
 /* ============ POINTS / REWARDS ============ */
