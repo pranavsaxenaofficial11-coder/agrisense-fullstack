@@ -28,8 +28,8 @@
 
 // -------------------- 1. WI-FI & CLOUD CONFIGURATION --------------------
 // Change to your farm Wi-Fi or mobile hotspot SSID & Password
-const char* WIFI_SSID     = "SAXENA";
-const char* WIFI_PASSWORD = "9868062753";
+const char* WIFI_SSID     = "Redmi Note 10 Pro Max"; // Hotspot SSID (Note: ensure 2.4 GHz band is enabled on hotspot)
+const char* WIFI_PASSWORD = "YOUR_HOTSPOT_PASSWORD"; // <-- Replace with your Redmi Note 10 Pro Max password
 
 // Google Apps Script Web App Endpoint
 const char* WEB_APP_URL = 
@@ -245,7 +245,7 @@ void setup() {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+  while (WiFi.status() != WL_CONNECTED && attempts < 40) {
     delay(500);
     Serial.print(".");
     attempts++;

@@ -26,7 +26,7 @@ Eloquent::TF::Sequential<TF_NUM_OPS, ARENA_SIZE> tf;
 bool tfliteModelReady = false;
 
 // -------------------- 1. WI-FI & CLOUD CONFIG --------------------
-const char* WIFI_SSID     = "SAXENA";
+const char* WIFI_SSID     = "Redmi Note 10 Pro Max"; // Hotspot SSID (Note: ensure 2.4 GHz band is enabled on hotspot)
 const char* WIFI_PASS     = "9868062753";
 
 // Google Apps Script Web App URL (Safe adjacent strings prevent wrapping bugs)

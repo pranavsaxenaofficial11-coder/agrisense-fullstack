@@ -61,6 +61,17 @@ class WebsiteUsage(BaseModel):
     total_activity_events: int = 0
     preferred_theme: str = "Greenery Dark Mode"
 
+class UserRegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+    business_name: Optional[str] = None
+    role: Optional[str] = "farmer"
+
+class UserLoginRequest(BaseModel):
+    email: str
+    password: str
+
 class MessagesAndPosts(BaseModel):
     community_posts: list[dict] = []
     direct_messages: list[dict] = []

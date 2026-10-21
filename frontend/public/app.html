@@ -3880,84 +3880,6 @@ document.addEventListener('click', (e) => {
   eye.classList.toggle('on', !showing);
   eye.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
 });
-$('#signInBtn').addEventListener('click', async () => {
-  const email = $('#siEmail').value.trim(); const pass = $('#siPass').value.trim();
-  if (!email || !pass){ $('#siErr').textContent = 'Please enter both email and password.'; $('#siErr').classList.add('show'); return; }
-  $('#siErr').classList.remove('show');
-  
-  const btn = $('#signInBtn'); const old = btn.textContent; btn.textContent = 'Signing in…'; btn.disabled = true;
-
-  const admitUser = (uEmail) => {
-    btn.textContent = old; btn.disabled = false;
-    const foundUser = inferUserFromEmail(uEmail);
-    state.user = { ...state.user, ...foundUser };
-    try { localStorage.setItem('agrisense_current_user', JSON.stringify(state.user)); } catch(e){}
-    const isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(uEmail.toLowerCase());
-    state.isAdmin = isAdmin || uEmail.toLowerCase().includes('pranav') || uEmail.toLowerCase().includes('admin');
-    recordLoginDemo(state.user.name, uEmail, 'Email');
-    showApp();
-    toast(`Welcome back, ${state.user.name.split(' ')[0]}!`);
-  };
-
-  if (window.AgriAuth && window.AgriAuth.enabled){
-    try {
-      const u = await window.AgriAuth.signInEmail(email, pass);
-      btn.textContent = old; btn.disabled = false;
-      // Successfully authenticated via Firebase
-      if (typeof handleFirebaseLogin === 'function') {
-        const isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(email.toLowerCase());
-        handleFirebaseLogin({ name: u.displayName || inferUserFromEmail(email).name, email: email }, isAdmin);
-      } else {
-        admitUser(email);
-      }
-      return;
-    } catch (e){
-      console.warn("Firebase sign-in notice, applying seamless account entry:", e && e.code);
-      // Seamless entry: Never lock out farmers if Firebase throws credential or network errors
-      admitUser(email);
-      return;
-    }
-  }
-  // Direct entry
-  admitUser(email);
-});
-$('#signUpBtn').addEventListener('click', async () => {
-  const name = $('#suName').value.trim();
-  const email = $('#suEmail').value.trim();
-  const recovery = $('#suRecovery') ? $('#suRecovery').value.trim() : '';
-  const farm = $('#suFarm').value.trim() || 'My Farm';
-  const loc = $('#suLoc').value.trim() || 'India';
-  const pass = $('#suPass').value.trim();
-  if (!name || !email || !pass){ $('#suErr').textContent = 'Please fill all required fields.'; $('#suErr').classList.add('show'); return; }
-  if (pass.length < 6){ $('#suErr').textContent = 'Password must be at least 6 characters.'; $('#suErr').classList.add('show'); return; }
-  $('#suErr').classList.remove('show');
-  state.user = { name, email, farm, loc, recoveryEmail: recovery };
-  state.onboarded = false;
-  if (window.AgriAuth && window.AgriAuth.enabled){
-    const btn = $('#signUpBtn'); const old = btn.textContent; btn.textContent = 'Creating…'; btn.disabled = true;
-    try {
-      await window.AgriAuth.signUpEmail(name, email, pass);
-      try { if (window.AgriAuth.saveProfile) await window.AgriAuth.saveProfile({ name, farm, loc, recoveryEmail: recovery }); } catch(e){}
-      btn.textContent = old; btn.disabled = false;
-      state.isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(email.toLowerCase());
-      recordLoginDemo(name, email, 'Email · new account');
-      showApp(); toast(`Account created — welcome, ${name.split(' ')[0]}!`);
-      return;
-    } catch (e){
-      btn.textContent = old; btn.disabled = false;
-      console.warn("Firebase signup notice, applying direct account creation:", e && e.code);
-      state.isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(email.toLowerCase());
-      recordLoginDemo(name, email, 'Email · new account');
-      showApp(); toast(`Account created — welcome, ${name.split(' ')[0]}!`);
-      return;
-    }
-  }
-  // demo fallback
-  state.isAdmin = true;
-  recordLoginDemo(name, email, 'Email · new account');
-  showApp(); toast(`Account created — welcome, ${name.split(' ')[0]}!`);
-});
-
 // friendly Firebase auth error messages
 function friendlyAuthError(e){
   const c = (e && e.code) || '';
@@ -3970,6 +3892,193 @@ function friendlyAuthError(e){
   if (c.includes('network')) return 'Network problem — check your internet connection.';
   return (e && e.message) ? e.message.replace('Firebase: ', '') : 'Something went wrong — please try again.';
 }
+
+// Cryptographic Security Helpers (SHA-256 Hashing & Salted Credential Store)
+async function sha256Hex(message) {
+  try {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch (err) {
+    let hash = 0;
+    for (let i = 0; i < message.length; i++) {
+      hash = ((hash << 5) - hash) + message.charCodeAt(i);
+      hash |= 0;
+    }
+    return 'fallback_' + Math.abs(hash).toString(16);
+  }
+}
+
+function getSecureLocalAccounts() {
+  try {
+    const raw = localStorage.getItem('agrisense_secure_accounts');
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveSecureLocalAccount(email, userRecord) {
+  try {
+    const accounts = getSecureLocalAccounts();
+    accounts[email.toLowerCase().trim()] = userRecord;
+    localStorage.setItem('agrisense_secure_accounts', JSON.stringify(accounts));
+  } catch (e) {
+    console.warn('Failed to save secure local account:', e);
+  }
+}
+
+#signInBtn.addEventListener('click', async () => {
+  const email = #siEmail.value.trim(); const pass = #siPass.value.trim();
+  if (!email || !pass){ #siErr.textContent = 'Please enter both email and password.'; #siErr.classList.add('show'); return; }
+  #siErr.classList.remove('show');
+  
+  const btn = #signInBtn; const old = btn.textContent; btn.textContent = 'Signing in…'; btn.disabled = true;
+
+  const admitUser = (uEmail) => {
+    btn.textContent = old; btn.disabled = false;
+    const foundUser = inferUserFromEmail(uEmail);
+    state.user = { ...state.user, ...foundUser };
+    try { localStorage.setItem('agrisense_current_user', JSON.stringify(state.user)); } catch(e){}
+    const isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(uEmail.toLowerCase());
+    state.isAdmin = isAdmin || uEmail.toLowerCase().includes('pranav') || uEmail.toLowerCase().includes('admin');
+    recordLoginDemo(state.user.name, uEmail, 'Email');
+    showApp();
+    toast(Welcome back, !);
+  };
+
+  if (window.AgriAuth && window.AgriAuth.enabled){
+    try {
+      const u = await window.AgriAuth.signInEmail(email, pass);
+      btn.textContent = old; btn.disabled = false;
+
+      // Update secure local account store with verified credentials for offline access
+      const salt = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
+      const passHash = await sha256Hex(salt + ':' + pass);
+      saveSecureLocalAccount(email, { name: u.displayName || inferUserFromEmail(email).name, email, salt, passHash });
+
+      // Successfully authenticated via Firebase
+      if (typeof handleFirebaseLogin === 'function') {
+        const isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(email.toLowerCase());
+        handleFirebaseLogin({ name: u.displayName || inferUserFromEmail(email).name, email: email }, isAdmin);
+      } else {
+        admitUser(email);
+      }
+      return;
+    } catch (e){
+      btn.textContent = old; btn.disabled = false;
+      const code = (e && e.code) || '';
+      console.warn('Firebase sign-in error:', code, e.message);
+
+      // SECURITY ENFORCEMENT: Never admit user on wrong password, invalid credential, or missing user!
+      if (code.includes('wrong-password') || code.includes('invalid-credential') || code.includes('user-not-found') || code.includes('invalid-email') || code.includes('too-many-requests')) {
+        #siErr.textContent = friendlyAuthError(e);
+        #siErr.classList.add('show');
+        return;
+      }
+
+      // Offline fallback: If network failed completely, verify with stored local cryptographic hash
+      if (code.includes('network') || !navigator.onLine) {
+        const localAcc = getSecureLocalAccounts()[email.toLowerCase().trim()];
+        if (localAcc && localAcc.salt && localAcc.passHash) {
+          const checkHash = await sha256Hex(localAcc.salt + ':' + pass);
+          if (checkHash === localAcc.passHash) {
+            admitUser(email);
+            return;
+          } else {
+            #siErr.textContent = 'Incorrect password. Access denied.';
+            #siErr.classList.add('show');
+            return;
+          }
+        }
+      }
+
+      // Reject all other auth failures
+      #siErr.textContent = friendlyAuthError(e);
+      #siErr.classList.add('show');
+      return;
+    }
+  }
+
+  // Standalone / Offline mode: Authenticate against salted cryptographic hash
+  const localAcc = getSecureLocalAccounts()[email.toLowerCase().trim()];
+  if (!localAcc) {
+    btn.textContent = old; btn.disabled = false;
+    #siErr.textContent = 'No account found with this email. Please click Sign Up to create your account.';
+    #siErr.classList.add('show');
+    return;
+  }
+  const checkHash = await sha256Hex(localAcc.salt + ':' + pass);
+  if (checkHash !== localAcc.passHash) {
+    btn.textContent = old; btn.disabled = false;
+    #siErr.textContent = 'Incorrect password. Access denied.';
+    #siErr.classList.add('show');
+    return;
+  }
+  admitUser(email);
+});
+
+#signUpBtn.addEventListener('click', async () => {
+  const name = #suName.value.trim();
+  const email = #suEmail.value.trim();
+  const recovery = #suRecovery ? #suRecovery.value.trim() : '';
+  const farm = #suFarm.value.trim() || 'My Farm';
+  const loc = #suLoc.value.trim() || 'India';
+  const pass = #suPass.value.trim();
+
+  if (!name || name.length < 2){ #suErr.textContent = 'Please enter your full name (at least 2 letters).'; #suErr.classList.add('show'); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ #suErr.textContent = 'Please enter a valid email address.'; #suErr.classList.add('show'); return; }
+  if (!pass || pass.length < 6){ #suErr.textContent = 'Password must be at least 6 characters.'; #suErr.classList.add('show'); return; }
+  #suErr.classList.remove('show');
+
+  const btn = #signUpBtn; const old = btn.textContent; btn.textContent = 'Creating account…'; btn.disabled = true;
+
+  // Salt & Hash password for secure local persistence
+  const salt = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
+  const passHash = await sha256Hex(salt + ':' + pass);
+
+  state.user = { name, email, farm, loc, recoveryEmail: recovery };
+  state.onboarded = false;
+
+  if (window.AgriAuth && window.AgriAuth.enabled){
+    try {
+      await window.AgriAuth.signUpEmail(name, email, pass);
+      try { if (window.AgriAuth.saveProfile) await window.AgriAuth.saveProfile({ name, farm, loc, recoveryEmail: recovery }); } catch(e){}
+      saveSecureLocalAccount(email, { name, email, farm, loc, salt, passHash, createdAt: new Date().toISOString() });
+      btn.textContent = old; btn.disabled = false;
+      state.isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(email.toLowerCase());
+      try { localStorage.setItem('agrisense_current_user', JSON.stringify(state.user)); } catch(e){}
+      recordLoginDemo(name, email, 'Email · new account');
+      showApp(); toast(Account created — welcome, !);
+      return;
+    } catch (e){
+      btn.textContent = old; btn.disabled = false;
+      console.warn('Firebase signup error:', e && e.code, e && e.message);
+      // STRICT SECURITY: Do not bypass signup errors
+      #suErr.textContent = friendlyAuthError(e);
+      #suErr.classList.add('show');
+      return;
+    }
+  }
+
+  // Standalone / Offline mode signup
+  const accounts = getSecureLocalAccounts();
+  if (accounts[email.toLowerCase().trim()]) {
+    btn.textContent = old; btn.disabled = false;
+    #suErr.textContent = 'An account with that email already exists. Please sign in instead.';
+    #suErr.classList.add('show');
+    return;
+  }
+
+  saveSecureLocalAccount(email, { name, email, farm, loc, salt, passHash, createdAt: new Date().toISOString() });
+  btn.textContent = old; btn.disabled = false;
+  state.isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(email.toLowerCase());
+  try { localStorage.setItem('agrisense_current_user', JSON.stringify(state.user)); } catch(e){}
+  recordLoginDemo(name, email, 'Email · new account');
+  showApp(); toast(Account created — welcome, !);
+});
+
 
 // "please verify your email" screen
 function showVerifyNotice(email, isNew){

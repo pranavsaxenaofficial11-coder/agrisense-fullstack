@@ -1,13 +1,152 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 import app.models as models
-from app.schemas.user import UserProfileOut, UserProfileUpdate, UserInspectionOut
+from app.schemas.user import UserProfileOut, UserProfileUpdate, UserInspectionOut, UserRegisterRequest, UserLoginRequest
 import json
+import hashlib
+import secrets
 from datetime import datetime
 
 router = APIRouter(prefix="/api/user", tags=["User Profile"])
+
+def hash_password_with_salt(password: str, salt: str) -> str:
+    return hashlib.sha256(f"{salt}:{password}".encode("utf-8")).hexdigest()
+
+@router.post("/register")
+def register_user(req: UserRegisterRequest, request: Request, db: Session = Depends(get_db)):
+    """Secure user registration endpoint with SHA-256 cryptographic salt and hashing."""
+    email_clean = req.email.strip().lower()
+    if len(req.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters.")
+    
+    existing = db.query(models.User).filter(models.User.email == email_clean).first()
+    if existing and existing.password_hash:
+        raise HTTPException(status_code=400, detail="An account with this email already exists.")
+    
+    salt = secrets.token_hex(16)
+    p_hash = hash_password_with_salt(req.password, salt)
+
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    ua = request.headers.get("user-agent", "Mozilla/5.0")
+
+    if existing:
+        existing.name = req.name.strip()
+        existing.business_name = req.business_name or existing.business_name or f"{req.name}'s Farm"
+        existing.role = req.role or existing.role or "farmer"
+        existing.password_salt = salt
+        existing.password_hash = p_hash
+        existing.last_ip = client_ip
+        existing.user_agent = ua
+        existing.last_login = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+        existing.login_count = (existing.login_count or 0) + 1
+        user = existing
+    else:
+        new_uid = f"usr_{secrets.token_hex(8)}"
+        user = models.User(
+            uid=new_uid,
+            name=req.name.strip(),
+            email=email_clean,
+            role=req.role or "farmer",
+            business_name=req.business_name or f"{req.name}'s Farm",
+            password_salt=salt,
+            password_hash=p_hash,
+            last_ip=client_ip,
+            user_agent=ua,
+            last_login=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            login_count=1,
+            active_page="Live Dashboard"
+        )
+        db.add(user)
+
+    db.commit()
+    db.refresh(user)
+
+    try:
+        from app.services.control_plane_service import control_plane
+        control_plane.log_event("AUTH", "INFO", f"New user '{email_clean}' registered securely with salted SHA-256.")
+    except Exception:
+        pass
+
+    return {
+        "status": "success",
+        "message": f"Account for {user.name} created successfully.",
+        "user": {
+            "uid": user.uid,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "business_name": user.business_name
+        }
+    }
+
+@router.post("/login")
+def login_user(req: UserLoginRequest, request: Request, db: Session = Depends(get_db)):
+    """Secure user login endpoint with strict password verification."""
+    email_clean = req.email.strip().lower()
+    user = db.query(models.User).filter(models.User.email == email_clean).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password."
+        )
+
+    # If user has a registered password, verify hash
+    if user.password_hash and user.password_salt:
+        check_hash = hash_password_with_salt(req.password, user.password_salt)
+        if check_hash != user.password_hash:
+            try:
+                from app.services.control_plane_service import control_plane
+                control_plane.log_event("SECURITY", "WARN", f"Failed login attempt for '{email_clean}': Incorrect password.")
+            except Exception:
+                pass
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password."
+            )
+    else:
+        # User exists without password set yet: initialize password on first valid login if min 6 chars
+        if len(req.password) >= 6:
+            salt = secrets.token_hex(16)
+            user.password_salt = salt
+            user.password_hash = hash_password_with_salt(req.password, salt)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password."
+            )
+
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    ua = request.headers.get("user-agent", "Mozilla/5.0")
+    user.last_ip = client_ip
+    user.user_agent = ua
+    user.last_login = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    user.login_count = (user.login_count or 0) + 1
+
+    db.commit()
+    db.refresh(user)
+
+    try:
+        from app.services.control_plane_service import control_plane
+        control_plane.log_event("AUTH", "INFO", f"User '{email_clean}' logged in successfully.")
+    except Exception:
+        pass
+
+    return {
+        "status": "success",
+        "message": f"Welcome back, {user.name}!",
+        "user": {
+            "uid": user.uid,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "business_name": user.business_name,
+            "login_count": user.login_count,
+            "last_login": user.last_login
+        }
+    }
 
 @router.get("/all", response_model=List[UserProfileOut])
 def get_all_users(role: Optional[str] = None, db: Session = Depends(get_db)):

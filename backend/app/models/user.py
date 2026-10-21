@@ -11,6 +11,8 @@ class User(Base):
     role = Column(String(50), default="farmer") # farmer, wholesaler, vendor, factory, customer, expert
     business_name = Column(String(150), nullable=True, default=None)
     email = Column(String(120), nullable=True, default=None)
+    password_hash = Column(String(256), nullable=True, default=None)
+    password_salt = Column(String(64), nullable=True, default=None)
     phone = Column(String(30), nullable=True, default=None)
     state = Column(String(60), nullable=True, default=None)
     district = Column(String(60), nullable=True, default=None)

@@ -38,7 +38,7 @@
 
 // -------------------- WI-FI CONFIG (Optional) --------------------
 // If you want wireless mode, fill these in. Otherwise, leave them to use USB mode!
-const char* WIFI_SSID     = "YOUR_WIFI_OR_HOTSPOT";
+const char* WIFI_SSID     = "Redmi Note 10 Pro Max"; // Hotspot SSID (Note: ensure 2.4 GHz band is enabled on hotspot)
 const char* WIFI_PASS     = "YOUR_WIFI_PASSWORD";
 
 // Server endpoint for local backend:

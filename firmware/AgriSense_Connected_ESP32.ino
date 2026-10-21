@@ -25,8 +25,8 @@
 // ====================================================================
 // 1. NETWORK SETTINGS (Optional — leave as-is for USB-only mode)
 // ====================================================================
-const char* WIFI_SSID     = "YOUR_WIFI_OR_HOTSPOT_NAME";     // Enter your Wi-Fi or Mobile Hotspot name
-const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";         // Enter your Wi-Fi password
+const char* WIFI_SSID     = "Redmi Note 10 Pro Max"; // Hotspot SSID (Note: ensure 2.4 GHz band is enabled on hotspot)     // Enter your Wi-Fi or Mobile Hotspot name
+const char* WIFI_PASSWORD = "YOUR_HOTSPOT_PASSWORD"; // <-- Replace with your Redmi Note 10 Pro Max password         // Enter your Wi-Fi password
 
 // Backend Server Endpoint (Replace with your Laptop IP when testing on same Wi-Fi)
 // Example: "http://192.168.1.15:8000/api/sensors/ingest"
@@ -113,7 +113,7 @@ void setup() {
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     
     int retries = 0;
-    while (WiFi.status() != WL_CONNECTED && retries < 15) {
+    while (WiFi.status() != WL_CONNECTED && retries < 40) {
       delay(500);
       Serial.print(".");
       retries++;
