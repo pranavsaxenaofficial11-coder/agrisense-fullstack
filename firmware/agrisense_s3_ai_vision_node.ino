@@ -331,6 +331,356 @@ void runAdvancedFoliarAnalysis(camera_fb_t *fb, VisionDiagnosis &dx) {
 }
 
 // -------------------- 7. HTTP ENDPOINTS (REST API) --------------------
+void handleRoot() {
+  static const char PROGMEM html[] = R"rawliteral(<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>AgriSense S3 Unified Studio</title>
+  <style>
+    :root {
+      --bg: #090d16; --card: rgba(26, 34, 52, 0.95); --primary: #38bdf8;
+      --accent: #10b981; --border: rgba(255, 255, 255, 0.12);
+      --danger: #ef4444; --warning: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body { background: var(--bg); color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 12px; display: flex; justify-content: center; }
+    .studio { width: 100%; max-width: 680px; background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+    
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .nav h1 { font-size: 1.15rem; color: var(--primary); font-weight: 700; letter-spacing: 0.5px; }
+    .live-tag { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; font-size: 0.72rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; display: flex; align-items: center; gap: 6px; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #34d399; animation: pulse 1.2s infinite; }
+    @keyframes pulse { 0%{opacity:1;} 50%{opacity:0.3;} 100%{opacity:1;} }
+
+    /* Viewport */
+    .viewport { position: relative; width: 100%; aspect-ratio: 4/3; background: #000; border-radius: 14px; overflow: hidden; border: 2px solid var(--primary); box-shadow: inset 0 0 25px rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; }
+    img#cam { width: 100%; height: 100%; object-fit: contain; display: block; transform-origin: center center; transition: transform 0.08s ease-out; image-rendering: auto; }
+    .hud { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; pointer-events: none; z-index: 5; }
+    .fps-tag { background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); color: #4ade80; padding: 4px 10px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; font-weight: bold; border: 1px solid rgba(255,255,255,0.15); }
+    .res-tag { background: rgba(0,0,0,0.75); color: #38bdf8; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.1); font-weight: 700; }
+
+    /* Telemetry Grid */
+    .section-title { font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 800; letter-spacing: 0.8px; margin: 16px 0 8px 2px; }
+    .sensor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .sensor-card { background: rgba(15, 23, 42, 0.75); border: 1px solid var(--border); border-radius: 12px; padding: 10px 8px; text-align: center; }
+    .sensor-card .title { font-size: 0.72rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+    .sensor-card .val { font-size: 1.15rem; font-weight: 800; color: #f1f5f9; font-family: monospace; }
+    .sensor-card .sub { font-size: 0.68rem; color: #64748b; margin-top: 2px; }
+
+    /* Actuator Bar */
+    .actuator-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .act-card { background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .act-info h4 { font-size: 0.82rem; color: #cbd5e1; font-weight: 700; }
+    .act-info span { font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 3px; }
+    .badge-on { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
+    .badge-off { background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); }
+    .btn-toggle { background: #1e293b; color: #f8fafc; border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: 0.15s; }
+    .btn-toggle:active { background: var(--primary); color: #090d16; }
+
+    /* Speed & Quality Grids */
+    .speed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .btn { background: #1e293b; color: #e2e8f0; border: 1px solid var(--border); padding: 9px 4px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: 0.15s; text-align: center; }
+    .btn:active, .btn.active { background: var(--primary); color: #090d16; border-color: var(--primary); font-weight: 800; }
+
+    .control-card { background: rgba(15, 23, 42, 0.75); border-radius: 12px; padding: 12px; border: 1px solid var(--border); margin-top: 6px; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .row:last-child { margin-bottom: 0; }
+    .row label { font-size: 0.8rem; font-weight: 600; color: #cbd5e1; min-width: 105px; }
+    .row input[type=range] { flex: 1; accent-color: var(--primary); height: 6px; border-radius: 3px; cursor: pointer; }
+    .val-badge { font-family: monospace; font-size: 0.75rem; color: #38bdf8; min-width: 42px; text-align: right; }
+
+    .btn-action { display: block; width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: #fff; text-decoration: none; text-align: center; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 0.88rem; margin-top: 12px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); border: none; cursor: pointer; }
+    .hint { font-size: 0.72rem; color: #64748b; text-align: center; margin-top: 8px; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <div class="studio">
+    <div class="nav">
+      <h1>🌱 AgriSense S3 Studio</h1>
+      <div class="live-tag"><div class="live-dot"></div>DUAL-CORE ONLINE</div>
+    </div>
+
+    <!-- Live Video Viewport -->
+    <div class="viewport">
+      <div class="hud">
+        <div id="fpsDisplay" class="fps-tag">⚡ LIVE FEED</div>
+        <div id="zoomDisplay" class="res-tag">320x240 (30 FPS)</div>
+        <button onclick="reloadStream()" style="background: rgba(0,0,0,0.75); border: 1px solid rgba(255,255,255,0.3); color: #38bdf8; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; font-weight: 700; pointer-events: auto;">🔄 Refresh</button>
+      </div>
+      <img id="cam" src="" crossOrigin="anonymous" alt="Connecting to Camera Stream..." />
+    </div>
+
+    <!-- Real-Time Sensor Telemetry -->
+    <div class="section-title">📊 Live Field Telemetry (ESP32-S3 Sensors)</div>
+    <div class="sensor-grid">
+      <div class="sensor-card">
+        <div class="title">🌡️ Air Temp</div>
+        <div id="valTemp" class="val">--.- °C</div>
+        <div class="sub">Auto fan: >34°C</div>
+      </div>
+      <div class="sensor-card">
+        <div class="title">💧 Humidity</div>
+        <div id="valHum" class="val">-- %</div>
+        <div class="sub">Ambient RH</div>
+      </div>
+      <div class="sensor-card">
+        <div class="title">🌱 Soil Avg</div>
+        <div id="valSoilAvg" class="val">-- %</div>
+        <div id="valSoilSub" class="sub">S1: --% | S2: --%</div>
+      </div>
+      <div class="sensor-card">
+        <div class="title">☀️ Light (LDR)</div>
+        <div id="valLight" class="val">-- %</div>
+        <div class="sub">Canopy Lux</div>
+      </div>
+      <div class="sensor-card">
+        <div class="title">🌧️ Rain</div>
+        <div id="valRain" class="val">-- %</div>
+        <div id="valRainSub" class="sub">No Rain</div>
+      </div>
+      <div class="sensor-card">
+        <div class="title">💾 8GB MicroSD</div>
+        <div id="valSD" class="val" style="font-size: 0.85rem; color:#38bdf8;">Checking...</div>
+        <div class="sub">CSV + Photos</div>
+      </div>
+    </div>
+
+    <!-- Actuators Control -->
+    <div class="section-title">⚡ Smart Actuation (Auto & Manual Override)</div>
+    <div class="actuator-grid">
+      <div class="act-card">
+        <div class="act-info">
+          <h4>🚰 Water Pump</h4>
+          <span id="badgePump" class="badge-off">STANDBY</span>
+        </div>
+        <button id="btnPumpToggle" class="btn-toggle" onclick="togglePump()">Override ON</button>
+      </div>
+      <div class="act-card">
+        <div class="act-info">
+          <h4>🌀 Cooling Fan</h4>
+          <span id="badgeFan" class="badge-off">STANDBY</span>
+        </div>
+        <button id="btnFanToggle" class="btn-toggle" onclick="toggleFan()">Override ON</button>
+      </div>
+    </div>
+
+    <!-- Camera Modes -->
+    <div class="section-title">⚡ Speed & Clarity Engine</div>
+    <div class="speed-grid" style="margin-bottom: 8px;">
+      <button class="btn speed-btn active" id="btnExtremeFPS" onclick="setSpeedMode('extreme', this)">⚡ 30+ FPS (320p)</button>
+      <button class="btn speed-btn" id="btnTurboFPS" onclick="setSpeedMode('turbo', this)">🚀 Turbo Balanced</button>
+      <button class="btn speed-btn" id="btnClarityMode" onclick="setSpeedMode('clarity', this)">💎 HD 640p (Detail)</button>
+    </div>
+
+    <div class="section-title">💎 Image Quality & Anti-Aliased Zoom</div>
+    <div class="speed-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <button class="btn quality-btn" id="btnQHigh" onclick="setQuality(82, this)">💎 Ultra-Clear (Q82)</button>
+      <button class="btn quality-btn active" id="btnQBal" onclick="setQuality(72, this)">⚡ Balanced (Q72)</button>
+      <button class="btn quality-btn" id="btnQSpeed" onclick="setQuality(58, this)">🚀 High Speed (Q58)</button>
+    </div>
+
+    <div class="control-card">
+      <div class="row">
+        <label>🔎 Digital Zoom</label>
+        <input type="range" min="1.0" max="3.0" value="1.0" step="0.1" oninput="setZoom(this.value)">
+        <span id="v_zoom" class="val-badge">1.0x</span>
+      </div>
+      <div class="row">
+        <label>✨ Botanical Pop</label>
+        <button id="popBtn" class="btn" style="flex:1; padding: 6px;" onclick="toggleBotanicalPop(this)">Vibrant Foliage Green</button>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
+      <button id="sdBtn" class="btn-action" style="margin-top:0; background: #0284c7;" onclick="saveToSD()">💾 Save Photo & Log to SD</button>
+      <button class="btn-action" style="margin-top:0;" onclick="saveSnapshot()">📸 Save to Phone</button>
+    </div>
+    <div id="actionNotice" style="font-size: 0.74rem; color: #38bdf8; text-align: center; margin-top: 6px; font-weight: 600;"></div>
+    <div class="hint">💡 <b>AgriSense S3 Dual-Core:</b> Live video runs on Core 0 Port 81. Sensor polling & web dashboard run concurrently on Core 1 Port 80.</div>
+  </div>
+
+  <script>
+    const cam = document.getElementById('cam');
+    const fpsDisplay = document.getElementById('fpsDisplay');
+    const zoomDisplay = document.getElementById('zoomDisplay');
+
+    const streamPort = 81;
+    const streamHost = window.location.hostname || '192.168.4.1';
+    const streamUrl = 'http://' + streamHost + ':' + streamPort + '/';
+    cam.src = streamUrl;
+
+    function reloadStream() {
+      cam.src = streamUrl + '?t=' + Date.now();
+    }
+
+    let streamRetryTimer = null;
+    cam.onerror = () => {
+      if (!streamRetryTimer) {
+        streamRetryTimer = setTimeout(() => {
+          streamRetryTimer = null;
+          reloadStream();
+        }, 800);
+      }
+    };
+
+    // Live Telemetry from ESP32 Hardware
+    function updateTelemetry() {
+      fetch('/status?t=' + Date.now())
+        .then(r => r.json())
+        .then(data => {
+          if (!data) return;
+          if (data.fps !== undefined) fpsDisplay.innerText = '⚡ ' + data.fps.toFixed(1) + ' FPS';
+          if (data.airTemp !== undefined) document.getElementById('valTemp').innerText = data.airTemp.toFixed(1) + ' °C';
+          if (data.airHum !== undefined) document.getElementById('valHum').innerText = data.airHum.toFixed(0) + ' %';
+          if (data.soilAvg !== undefined) {
+            document.getElementById('valSoilAvg').innerText = data.soilAvg + ' %';
+          }
+          if (data.pump !== undefined) {
+            const badge = document.getElementById('badgePump');
+            const btn = document.getElementById('btnPumpToggle');
+            if (data.pump) {
+              badge.className = 'badge-on'; badge.innerText = 'WATERING (ON)';
+              btn.innerText = 'Turn OFF';
+            } else {
+              badge.className = 'badge-off'; badge.innerText = 'STANDBY (OFF)';
+              btn.innerText = 'Override ON';
+            }
+          }
+          if (data.fan !== undefined) {
+            const badge = document.getElementById('badgeFan');
+            const btn = document.getElementById('btnFanToggle');
+            if (data.fan) {
+              badge.className = 'badge-on'; badge.innerText = 'COOLING (ON)';
+              btn.innerText = 'Turn OFF';
+            } else {
+              badge.className = 'badge-off'; badge.innerText = 'STANDBY (OFF)';
+              btn.innerText = 'Override ON';
+            }
+          }
+        }).catch(() => {});
+
+      fetch('/sensors?t=' + Date.now())
+        .then(r => r.json())
+        .then(data => {
+          if (!data) return;
+          if (data.soil1 !== undefined && data.soil2 !== undefined) {
+            document.getElementById('valSoilSub').innerText = 'S1: ' + data.soil1 + '% | S2: ' + data.soil2 + '%';
+          }
+          if (data.light !== undefined) document.getElementById('valLight').innerText = data.light + ' %';
+          if (data.rain !== undefined) {
+            document.getElementById('valRain').innerText = data.rain + ' %';
+            document.getElementById('valRainSub').innerText = data.rain > 30 ? 'Rain Detected!' : 'Clear / Dry';
+          }
+        }).catch(() => {});
+    }
+    setInterval(updateTelemetry, 1500);
+
+    // Zoom & Style
+    let curZoom = 1.0;
+    let botanicalActive = false;
+
+    function applyStyle() {
+      let filterStr = botanicalActive ? 'contrast(1.08) saturate(1.15)' : '';
+      cam.style.filter = filterStr;
+      cam.style.transform = 'scale(' + curZoom + ')';
+    }
+
+    function setZoom(v) {
+      curZoom = v;
+      document.getElementById('v_zoom').innerText = v + 'x';
+      zoomDisplay.innerText = v + 'x ZOOM';
+      applyStyle();
+    }
+
+    function toggleBotanicalPop(el) {
+      botanicalActive = !botanicalActive;
+      el.classList.toggle('active', botanicalActive);
+      applyStyle();
+    }
+
+    function sendHW(varName, val) {
+      fetch('/control?var=' + varName + '&val=' + val).catch(() => {});
+    }
+
+    function setSpeedMode(mode, el) {
+      document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+      if (el) el.classList.add('active');
+
+      if (mode === 'extreme') {
+        zoomDisplay.innerText = '320p Extreme (30+ FPS)';
+        sendHW('framesize', 5);
+        sendHW('quality', 58);
+      } else if (mode === 'turbo') {
+        zoomDisplay.innerText = '320p Turbo (20+ FPS)';
+        sendHW('framesize', 5);
+        sendHW('quality', 72);
+      } else if (mode === 'clarity') {
+        zoomDisplay.innerText = '640p HD (Detail)';
+        sendHW('framesize', 8);
+        sendHW('quality', 82);
+      }
+    }
+
+    function setQuality(qVal, el) {
+      document.querySelectorAll('.quality-btn').forEach(b => b.classList.remove('active'));
+      if (el) el.classList.add('active');
+      sendHW('quality', qVal);
+    }
+
+    // Actuator overrides
+    let pumpManual = false;
+    function togglePump() {
+      pumpManual = !pumpManual;
+      fetch('/relay/pump?state=' + (pumpManual ? 'on' : 'auto')).then(updateTelemetry);
+    }
+
+    let fanManual = false;
+    function toggleFan() {
+      fanManual = !fanManual;
+      fetch('/relay/fan?state=' + (fanManual ? 'on' : 'auto')).then(updateTelemetry);
+    }
+
+    // MicroSD Status
+    fetch('/sd/status').then(r => r.json()).then(d => {
+      const el = document.getElementById('valSD');
+      if (d.mounted) {
+        el.innerText = d.totalMB.toFixed(0) + ' MB Ready';
+      } else {
+        el.innerText = 'Not Detected';
+        el.style.color = '#94a3b8';
+      }
+    }).catch(() => {});
+
+    function saveToSD() {
+      const n = document.getElementById('actionNotice');
+      n.innerText = 'Saving photo & logging telemetry to 8GB MicroSD...';
+      fetch('/sd/save')
+        .then(r => r.json())
+        .then(d => {
+          if (d.success) n.innerText = 'Saved: ' + d.file + ' (Logged to CSV)';
+          else n.innerText = 'SD Error: ' + (d.error || 'Failed');
+        }).catch(() => { n.innerText = 'Save request failed.'; });
+    }
+
+    function saveSnapshot() {
+      window.open('/capture.jpg', '_blank');
+    }
+  </script>
+</body>
+</html>
+)rawliteral";
+
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.send(200, "text/html", html);
+}
+
+// ==========================================
+// 9. SETUP
+// ==========================================
+
 void handleCapture() {
   camera_fb_t *fb = esp_camera_fb_get();
   if (!fb) {
@@ -650,6 +1000,9 @@ void setup() {
   }
 
   // 5. REST Endpoints on Port 80
+  server.on("/", handleRoot);
+  server.on("/cam", handleRoot);
+  server.on("/settings", handleRoot);
   server.on("/capture.jpg", handleCapture);
   server.on("/ai/diagnose", handleDiagnose);
   server.on("/tflite_scan", handleDiagnose); // Backwards-compatible alias

@@ -2355,6 +2355,7 @@ function googleTranslateElementInit() {
               <input class="input sm" id="s3CamIp" value="192.168.4.1" placeholder="S3 IP / Hotspot" style="width:125px;font-family:var(--mono);font-size:11.5px;padding:4px 8px">
               <button class="btn green sm" id="s3DirectScanBtn">📸 Capture from S3</button>
               <button class="btn ghost sm" id="s3ToggleStreamBtn">▶ Live Viewfinder</button>
+              <button class="btn ghost sm" id="s3SettingsBtn" style="border:1px solid rgba(56,189,248,0.4);color:#38bdf8" title="Open ESP32-S3 Camera Studio to adjust brightness, contrast, and resolution">⚙️ Cam Settings</button>
             </div>
           </div>
 
@@ -12701,6 +12702,17 @@ function initScan(){
         s3StreamImg.src = '';
         s3StreamBtn.textContent = '▶ Live Viewfinder';
       }
+    });
+  }
+
+  const s3SettingsBtn = document.getElementById('s3SettingsBtn');
+  if (s3SettingsBtn && !s3SettingsBtn._wired) {
+    s3SettingsBtn._wired = true;
+    s3SettingsBtn.addEventListener('click', () => {
+      const ip = (document.getElementById('s3CamIp') && document.getElementById('s3CamIp').value.trim()) || '192.168.4.1';
+      localStorage.setItem('agrisense_s3_cam_ip', ip);
+      toast('Opening ESP32-S3 Camera Tuning Studio (http://' + ip + ')…');
+      window.open('http://' + ip, '_blank');
     });
   }
 
