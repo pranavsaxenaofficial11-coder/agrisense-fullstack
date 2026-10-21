@@ -24201,6 +24201,11 @@ async function runScan(){
 }
 
 function initScan(){
+  window.addEventListener('beforeunload', () => {
+    const sImg = document.getElementById('s3StreamImg');
+    if (sImg) sImg.src = '';
+  });
+
 
   // Trigger direct capture from ESP32-S3 and immediately mount on the webpage preview
 
@@ -24428,9 +24433,15 @@ function initScan(){
 
         s3StreamImg.src = 'http://' + ip + ':81/stream';
 
+        s3StreamImg.onerror = () => {
+          if (s3StreamImg.src.indexOf(':81/stream') !== -1) {
+            s3StreamImg.src = 'http://' + ip + '/stream';
+          }
+        };
+
         s3StreamBtn.textContent = '⏹ Stop Stream';
 
-        toast('▶ Connected to ESP32-S3 high-speed stream (' + ip + ':81)');
+        toast('▶ Connected to ESP32-S3 stream (' + ip + ')');
 
       } else {
 
