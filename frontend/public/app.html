@@ -3929,12 +3929,12 @@ function saveSecureLocalAccount(email, userRecord) {
   }
 }
 
-#signInBtn.addEventListener('click', async () => {
-  const email = #siEmail.value.trim(); const pass = #siPass.value.trim();
-  if (!email || !pass){ #siErr.textContent = 'Please enter both email and password.'; #siErr.classList.add('show'); return; }
-  #siErr.classList.remove('show');
+$('#signInBtn').addEventListener('click', async () => {
+  const email = $('#siEmail').value.trim(); const pass = $('#siPass').value.trim();
+  if (!email || !pass){ $('#siErr').textContent = 'Please enter both email and password.'; $('#siErr').classList.add('show'); return; }
+  $('#siErr').classList.remove('show');
   
-  const btn = #signInBtn; const old = btn.textContent; btn.textContent = 'Signing in…'; btn.disabled = true;
+  const btn = $('#signInBtn'); const old = btn.textContent; btn.textContent = 'Signing in…'; btn.disabled = true;
 
   const admitUser = (uEmail) => {
     btn.textContent = old; btn.disabled = false;
@@ -3945,7 +3945,7 @@ function saveSecureLocalAccount(email, userRecord) {
     state.isAdmin = isAdmin || uEmail.toLowerCase().includes('pranav') || uEmail.toLowerCase().includes('admin');
     recordLoginDemo(state.user.name, uEmail, 'Email');
     showApp();
-    toast(Welcome back, !);
+    toast(`Welcome back, ${state.user.name.split(' ')[0]}!`);
   };
 
   if (window.AgriAuth && window.AgriAuth.enabled){
@@ -3973,8 +3973,8 @@ function saveSecureLocalAccount(email, userRecord) {
 
       // SECURITY ENFORCEMENT: Never admit user on wrong password, invalid credential, or missing user!
       if (code.includes('wrong-password') || code.includes('invalid-credential') || code.includes('user-not-found') || code.includes('invalid-email') || code.includes('too-many-requests')) {
-        #siErr.textContent = friendlyAuthError(e);
-        #siErr.classList.add('show');
+        $('#siErr').textContent = friendlyAuthError(e);
+        $('#siErr').classList.add('show');
         return;
       }
 
@@ -3987,16 +3987,16 @@ function saveSecureLocalAccount(email, userRecord) {
             admitUser(email);
             return;
           } else {
-            #siErr.textContent = 'Incorrect password. Access denied.';
-            #siErr.classList.add('show');
+            $('#siErr').textContent = 'Incorrect password. Access denied.';
+            $('#siErr').classList.add('show');
             return;
           }
         }
       }
 
       // Reject all other auth failures
-      #siErr.textContent = friendlyAuthError(e);
-      #siErr.classList.add('show');
+      $('#siErr').textContent = friendlyAuthError(e);
+      $('#siErr').classList.add('show');
       return;
     }
   }
@@ -4005,34 +4005,34 @@ function saveSecureLocalAccount(email, userRecord) {
   const localAcc = getSecureLocalAccounts()[email.toLowerCase().trim()];
   if (!localAcc) {
     btn.textContent = old; btn.disabled = false;
-    #siErr.textContent = 'No account found with this email. Please click Sign Up to create your account.';
-    #siErr.classList.add('show');
+    $('#siErr').textContent = 'No account found with this email. Please click Sign Up to create your account.';
+    $('#siErr').classList.add('show');
     return;
   }
   const checkHash = await sha256Hex(localAcc.salt + ':' + pass);
   if (checkHash !== localAcc.passHash) {
     btn.textContent = old; btn.disabled = false;
-    #siErr.textContent = 'Incorrect password. Access denied.';
-    #siErr.classList.add('show');
+    $('#siErr').textContent = 'Incorrect password. Access denied.';
+    $('#siErr').classList.add('show');
     return;
   }
   admitUser(email);
 });
 
-#signUpBtn.addEventListener('click', async () => {
-  const name = #suName.value.trim();
-  const email = #suEmail.value.trim();
-  const recovery = #suRecovery ? #suRecovery.value.trim() : '';
-  const farm = #suFarm.value.trim() || 'My Farm';
-  const loc = #suLoc.value.trim() || 'India';
-  const pass = #suPass.value.trim();
+$('#signUpBtn').addEventListener('click', async () => {
+  const name = $('#suName').value.trim();
+  const email = $('#suEmail').value.trim();
+  const recovery = $('#suRecovery') ? $('#suRecovery').value.trim() : '';
+  const farm = $('#suFarm').value.trim() || 'My Farm';
+  const loc = $('#suLoc').value.trim() || 'India';
+  const pass = $('#suPass').value.trim();
 
-  if (!name || name.length < 2){ #suErr.textContent = 'Please enter your full name (at least 2 letters).'; #suErr.classList.add('show'); return; }
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ #suErr.textContent = 'Please enter a valid email address.'; #suErr.classList.add('show'); return; }
-  if (!pass || pass.length < 6){ #suErr.textContent = 'Password must be at least 6 characters.'; #suErr.classList.add('show'); return; }
-  #suErr.classList.remove('show');
+  if (!name || name.length < 2){ $('#suErr').textContent = 'Please enter your full name (at least 2 letters).'; $('#suErr').classList.add('show'); return; }
+  if (!email || !email.includes('@')){ $('#suErr').textContent = 'Please enter a valid email address.'; $('#suErr').classList.add('show'); return; }
+  if (!pass || pass.length < 6){ $('#suErr').textContent = 'Password must be at least 6 characters.'; $('#suErr').classList.add('show'); return; }
+  $('#suErr').classList.remove('show');
 
-  const btn = #signUpBtn; const old = btn.textContent; btn.textContent = 'Creating account…'; btn.disabled = true;
+  const btn = $('#signUpBtn'); const old = btn.textContent; btn.textContent = 'Creating account…'; btn.disabled = true;
 
   // Salt & Hash password for secure local persistence
   const salt = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -4050,14 +4050,14 @@ function saveSecureLocalAccount(email, userRecord) {
       state.isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(email.toLowerCase());
       try { localStorage.setItem('agrisense_current_user', JSON.stringify(state.user)); } catch(e){}
       recordLoginDemo(name, email, 'Email · new account');
-      showApp(); toast(Account created — welcome, !);
+      showApp(); toast(`Account created — welcome, ${name.split(' ')[0]}!`);
       return;
     } catch (e){
       btn.textContent = old; btn.disabled = false;
       console.warn('Firebase signup error:', e && e.code, e && e.message);
       // STRICT SECURITY: Do not bypass signup errors
-      #suErr.textContent = friendlyAuthError(e);
-      #suErr.classList.add('show');
+      $('#suErr').textContent = friendlyAuthError(e);
+      $('#suErr').classList.add('show');
       return;
     }
   }
@@ -4066,8 +4066,8 @@ function saveSecureLocalAccount(email, userRecord) {
   const accounts = getSecureLocalAccounts();
   if (accounts[email.toLowerCase().trim()]) {
     btn.textContent = old; btn.disabled = false;
-    #suErr.textContent = 'An account with that email already exists. Please sign in instead.';
-    #suErr.classList.add('show');
+    $('#suErr').textContent = 'An account with that email already exists. Please sign in instead.';
+    $('#suErr').classList.add('show');
     return;
   }
 
@@ -4076,11 +4076,9 @@ function saveSecureLocalAccount(email, userRecord) {
   state.isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(email.toLowerCase());
   try { localStorage.setItem('agrisense_current_user', JSON.stringify(state.user)); } catch(e){}
   recordLoginDemo(name, email, 'Email · new account');
-  showApp(); toast(Account created — welcome, !);
+  showApp(); toast(`Account created — welcome, ${name.split(' ')[0]}!`);
 });
 
-
-// "please verify your email" screen
 function showVerifyNotice(email, isNew){
   $('#signInForm').style.display='none';
   $('#signUpForm').style.display='none';
