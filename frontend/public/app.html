@@ -12668,7 +12668,17 @@ function initScan(){
     s3Btn.addEventListener('click', executeS3Capture);
   }
 
-  // Live Stream Viewfinder Toggle
+  // S3 IP Persistence & Live Stream Engine
+  const s3IpInput = document.getElementById('s3CamIp');
+  if (s3IpInput) {
+    const savedIp = localStorage.getItem('agrisense_s3_cam_ip');
+    if (savedIp) s3IpInput.value = savedIp;
+    s3IpInput.addEventListener('input', () => {
+      localStorage.setItem('agrisense_s3_cam_ip', s3IpInput.value.trim());
+    });
+  }
+
+  // Live Stream Viewfinder Toggle (High-Speed MJPEG Engine)
   const s3StreamBtn = document.getElementById('s3ToggleStreamBtn');
   const s3StreamBox = document.getElementById('s3StreamBox');
   const s3StreamImg = document.getElementById('s3StreamImg');
@@ -12679,11 +12689,13 @@ function initScan(){
     s3StreamBtn._wired = true;
     s3StreamBtn.addEventListener('click', () => {
       const ip = (document.getElementById('s3CamIp') && document.getElementById('s3CamIp').value.trim()) || '192.168.4.1';
+      localStorage.setItem('agrisense_s3_cam_ip', ip);
+
       if (s3StreamBox.style.display === 'none') {
         s3StreamBox.style.display = 'block';
         s3StreamImg.src = 'http://' + ip + ':81/stream';
         s3StreamBtn.textContent = '⏹ Stop Stream';
-        toast('▶ Live ESP32-S3 Viewfinder active');
+        toast('▶ Connected to ESP32-S3 high-speed stream (' + ip + ':81)');
       } else {
         s3StreamBox.style.display = 'none';
         s3StreamImg.src = '';

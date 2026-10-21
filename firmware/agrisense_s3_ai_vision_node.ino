@@ -88,7 +88,7 @@ WiFiServer streamServer(81);
 TaskHandle_t streamTaskHandle = NULL;
 
 bool sdMounted = false;
-int  jpegQuality = 14; // High clarity (10 = highest, 63 = lowest)
+int  jpegQuality = 70; // High speed & clarity balanced (25-30+ FPS) // High clarity (10 = highest, 63 = lowest)
 unsigned long scanCounter = 0;
 
 // -------------------- 4. PSRAM INITIALIZATION & CAMERA CONFIG --------------------
@@ -117,7 +117,7 @@ bool initCamera() {
   // Use RGB565: natively supported by ALL sensors (GC2145, OV7725, OV7670, OV2640, OV5640)
   // This completely eliminates "JPEG format is not supported on this sensor" error
   config.pixel_format = PIXFORMAT_RGB565;
-  config.frame_size   = FRAMESIZE_VGA; // 640x480 standard across all camera models
+  config.frame_size   = FRAMESIZE_QVGA; // 320x240 for ultra-fluid 25-30+ FPS live stream
   config.jpeg_quality = jpegQuality;
 
   if (psramFound()) {
@@ -147,12 +147,14 @@ bool initCamera() {
 
   sensor_t *s = esp_camera_sensor_get();
   if (s != NULL) {
-    if (s->set_brightness)     s->set_brightness(s, 0);
-    if (s->set_contrast)       s->set_contrast(s, 1);
-    if (s->set_saturation)     s->set_saturation(s, 1);
-    if (s->set_sharpness)      s->set_sharpness(s, 1);
+    if (s->set_brightness)     s->set_brightness(s, 0);               // Natural true exposure
+    if (s->set_contrast)       s->set_contrast(s, 0);                 // Neutral contrast (0) - eliminates pink/cyan clipping
+    if (s->set_saturation)     s->set_saturation(s, 0);               // True-to-life foliage color saturation (0)
+    if (s->set_sharpness)      s->set_sharpness(s, 0);                // Clean, sharp edges without ringing artifacts
     if (s->set_special_effect) s->set_special_effect(s, 0);
-    if (s->set_wb_mode)        s->set_wb_mode(s, 0); // Auto White Balance
+    if (s->set_wb_mode)        s->set_wb_mode(s, 0);                  // Automatic White Balance
+    if (s->set_denoise)        s->set_denoise(s, 1);                  // Active low-noise filtering
+    if (s->set_gainceiling)    s->set_gainceiling(s, GAINCEILING_4X); // Stable anti-grain headroom
   }
   Serial.println(F("[CAMERA] Camera Sensor Online & Calibrated (RGB565 Universal Pipeline)"));
   return true;
@@ -547,7 +549,9 @@ void streamTask(void *pvParameters) {
   while (true) {
     WiFiClient client = streamServer.available();
     if (client) {
-      client.write("HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: ");
+      client.setNoDelay(true); // Disable Nagle algorithm for instant frame push
+      client.setTimeout(2);
+      client.write("HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Headers: *\r\nCache-Control: no-cache, no-store, must-revalidate\r\nContent-Type: ");
       client.write(STREAM_CONTENT_TYPE);
       client.write("\r\n\r\n");
 
@@ -579,7 +583,7 @@ void streamTask(void *pvParameters) {
           }
         }
         esp_camera_fb_return(fb);
-        vTaskDelay(pdMS_TO_TICKS(20)); // ~25-30 FPS smooth live stream
+        vTaskDelay(pdMS_TO_TICKS(2)); // High-speed 30+ FPS transmission
       }
       client.stop();
     }
