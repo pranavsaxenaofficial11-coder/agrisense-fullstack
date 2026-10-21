@@ -56,7 +56,7 @@ const char* AP_PASS     = "12345678";
 
 // Farm Wi-Fi (Optional - connects automatically if in range)
 const char* STA_SSID    = "Redmi Note 10 Pro Max"; // Hotspot SSID (Note: ensure 2.4 GHz band is enabled on hotspot)
-const char* STA_PASS    = "YOUR_HOTSPOT_PASSWORD"; // <-- Replace with your Redmi Note 10 Pro Max password
+const char* STA_PASS    = "mera man"; // Your hotspot password // <-- Replace with your Redmi Note 10 Pro Max password
 
 // -------------------- 2. CAMERA PIN DEFINITIONS (ESP32-S3) --------------------
 #define PWDN_GPIO_NUM     -1
@@ -610,9 +610,27 @@ void setup() {
   Serial.printf("[HOTSPOT] Direct Wi-Fi: '%s' (Pass: '%s') -> IP: %s\n",
                 AP_SSID, AP_PASS, WiFi.softAPIP().toString().c_str());
 
-  // 4. Connect to Farm Router (Optional)
+  // 4. Connect to Farm Router / Mobile Hotspot
+  Serial.printf("[WIFI] Connecting to '%s'...", STA_SSID);
   WiFi.begin(STA_SSID, STA_PASS);
-  Serial.printf("[WIFI] Connecting to '%s'...\n", STA_SSID);
+
+  int retries = 0;
+  while (WiFi.status() != WL_CONNECTED && retries < 30) {
+    delay(500);
+    Serial.print(".");
+    retries++;
+  }
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.printf("\n==========================================================\n");
+    Serial.printf("  [WIFI] ✓ CONNECTED TO '%s'!\n", STA_SSID);
+    Serial.printf("  [WIFI] >>> YOUR ESP32 IP ADDRESS: %s <<<\n", WiFi.localIP().toString().c_str());
+    Serial.printf("  [WIFI] Camera Stream: http://%s:81/stream\n", WiFi.localIP().toString().c_str());
+    Serial.printf("  [WIFI] Sensor / AI API: http://%s/status\n", WiFi.localIP().toString().c_str());
+    Serial.printf("==========================================================\n\n");
+  } else {
+    Serial.printf("\n[WIFI] ⚠️ Mobile Hotspot connection timed out (Code %d).\n", WiFi.status());
+    Serial.printf("[WIFI] Fallback Standalone AP active: Connect phone to '%s' (Pass: '%s') -> http://192.168.4.1\n\n", AP_SSID, AP_PASS);
+  }
 
   // 5. REST Endpoints on Port 80
   server.on("/capture.jpg", handleCapture);
@@ -638,8 +656,19 @@ void setup() {
   Serial.println(F("[READY] AgriSense S3 AI Vision Node Fully Initialized!\n"));
 }
 
+static bool wasWifiConnected = false;
+
 void loop() {
   // Handle WebServer requests on Core 1
   server.handleClient();
+
+  bool isConn = (WiFi.status() == WL_CONNECTED);
+  if (isConn && !wasWifiConnected) {
+    Serial.printf("\n[WIFI] ✓ Hotspot Connected! IP: %s\n", WiFi.localIP().toString().c_str());
+    wasWifiConnected = true;
+  } else if (!isConn && wasWifiConnected) {
+    wasWifiConnected = false;
+  }
+
   delay(2);
 }
