@@ -43,7 +43,7 @@ const char* WIFI_PASS     = "YOUR_WIFI_PASSWORD";
 
 // Server endpoint for local backend:
 // (Run 'ipconfig' in PowerShell to find your laptop IPv4 address)
-const char* SERVER_URL    = "http://127.0.0.1:8000/api/sensors/ingest";
+const char* SERVER_URL    = "http://10.128.89.164:8000/api/sensors/ingest";
 
 // -------------------- PIN DEFINITIONS --------------------
 

@@ -30,7 +30,7 @@ const char* WIFI_PASSWORD = "YOUR_HOTSPOT_PASSWORD"; // <-- Replace with your Re
 
 // Backend Server Endpoint (Replace with your Laptop IP when testing on same Wi-Fi)
 // Example: "http://192.168.1.15:8000/api/sensors/ingest"
-const char* SERVER_URL    = "http://127.0.0.1:8000/api/sensors/ingest";
+const char* SERVER_URL    = "http://10.128.89.164:8000/api/sensors/ingest";
 
 // ====================================================================
 // 2. PIN DEFINITIONS
