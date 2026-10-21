@@ -590,6 +590,7 @@ void streamTask(void *pvParameters) {
 // -------------------- 9. SETUP & LOOP --------------------
 void setup() {
   Serial.begin(115200);
+  Serial0.begin(115200); // Explicit hardware UART0 for CH343 / COM14
   delay(500);
   Serial.println(F("\n=========================================================="));
   Serial.println(F("   AgriSense S3 — Dedicated 32MB PSRAM AI Vision Node     "));
@@ -621,15 +622,27 @@ void setup() {
     retries++;
   }
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.printf("\n==========================================================\n");
-    Serial.printf("  [WIFI] ✓ CONNECTED TO '%s'!\n", STA_SSID);
-    Serial.printf("  [WIFI] >>> YOUR ESP32 IP ADDRESS: %s <<<\n", WiFi.localIP().toString().c_str());
-    Serial.printf("  [WIFI] Camera Stream: http://%s:81/stream\n", WiFi.localIP().toString().c_str());
-    Serial.printf("  [WIFI] Sensor / AI API: http://%s/status\n", WiFi.localIP().toString().c_str());
-    Serial.printf("==========================================================\n\n");
+    char ipMsg[320];
+    snprintf(ipMsg, sizeof(ipMsg),
+      "\n==========================================================\n"
+      "  [WIFI] ✓ CONNECTED TO '%s'!\n"
+      "  [WIFI] >>> YOUR ESP32 IP ADDRESS: %s <<<\n"
+      "  [WIFI] Camera Stream: http://%s:81/stream\n"
+      "  [WIFI] Sensor / AI API: http://%s/status\n"
+      "==========================================================\n\n",
+      STA_SSID, WiFi.localIP().toString().c_str(), WiFi.localIP().toString().c_str(), WiFi.localIP().toString().c_str()
+    );
+    Serial.print(ipMsg);
+    Serial0.print(ipMsg);
   } else {
-    Serial.printf("\n[WIFI] ⚠️ Mobile Hotspot connection timed out (Code %d).\n", WiFi.status());
-    Serial.printf("[WIFI] Fallback Standalone AP active: Connect phone to '%s' (Pass: '%s') -> http://192.168.4.1\n\n", AP_SSID, AP_PASS);
+    char failMsg[256];
+    snprintf(failMsg, sizeof(failMsg),
+      "\n[WIFI] ⚠️ Mobile Hotspot connection timed out (Code %d).\n"
+      "[WIFI] Fallback Standalone AP active: Connect phone to '%s' (Pass: '%s') -> http://192.168.4.1\n\n",
+      WiFi.status(), AP_SSID, AP_PASS
+    );
+    Serial.print(failMsg);
+    Serial0.print(failMsg);
   }
 
   // 5. REST Endpoints on Port 80
@@ -664,7 +677,10 @@ void loop() {
 
   bool isConn = (WiFi.status() == WL_CONNECTED);
   if (isConn && !wasWifiConnected) {
-    Serial.printf("\n[WIFI] ✓ Hotspot Connected! IP: %s\n", WiFi.localIP().toString().c_str());
+    char rMsg[128];
+    snprintf(rMsg, sizeof(rMsg), "\n[WIFI] ✓ Hotspot Connected! IP: %s\n", WiFi.localIP().toString().c_str());
+    Serial.print(rMsg);
+    Serial0.print(rMsg);
     wasWifiConnected = true;
   } else if (!isConn && wasWifiConnected) {
     wasWifiConnected = false;
