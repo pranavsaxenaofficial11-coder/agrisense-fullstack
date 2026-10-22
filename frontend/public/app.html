@@ -3388,12 +3388,9 @@ function googleTranslateElementInit() {
 
   <div class="auth-left">
 
-    <div class="auth-brand">
-
-      <div class="mark">A</div>
-
+    <div class="auth-brand" style="display:flex;align-items:center;gap:12px">
+      <img src="/logo.jpeg" alt="AgriSense Logo" style="height:44px;width:44px;border-radius:12px;object-fit:cover;box-shadow:0 0 12px rgba(16,185,129,0.35)">
       <div class="name">AgriSense</div>
-
     </div>
 
     <div class="auth-hero">
@@ -3534,7 +3531,10 @@ function googleTranslateElementInit() {
 
   <aside class="sidebar">
 
-    <a class="brand" href="/" title="AgriSense home"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6"></path></svg></div><div class="name">Agri<span>Sense</span></div></a>
+    <a class="brand" href="/" title="AgriSense home" style="display:flex;align-items:center;gap:10px">
+      <img src="/logo.jpeg" alt="AgriSense Logo" style="height:34px;width:34px;border-radius:9px;object-fit:cover;box-shadow:0 0 10px rgba(16,185,129,0.3)">
+      <div class="name">Agri<span>Sense</span></div>
+    </a>
 
     <div class="nav" id="nav">
 
@@ -3641,6 +3641,10 @@ function googleTranslateElementInit() {
       </div>
 
       <div class="right">
+
+        <button class="btn green sm" id="hdrTutorialBtn" style="font-weight:700;display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,0.15);border:1px solid #ef4444;color:#fca5a5" onclick="openTutorialPopup()">
+          <span style="color:#ef4444;font-size:14px">▶</span> Video Tutorial
+        </button>
 
         <span class="pill" id="roleBadge" style="display:none;background:var(--green-soft);color:var(--green-deep);font-weight:700"></span>
 
@@ -4542,7 +4546,7 @@ function googleTranslateElementInit() {
       </div>
     </div>
     <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
-      <input class="input sm" id="s3CamIp" value="192.168.1.143" placeholder="192.168.1.143" style="width:130px;font-family:var(--mono);font-size:12px;font-weight:600;padding:5px 9px;border-radius:8px;border:1px solid rgba(56,189,248,0.4);background:rgba(15,23,42,0.6);color:#f8fafc" title="ESP32 IP or agrisense.local">
+      <input class="input sm" id="s3CamIp" value="192.168.4.1" placeholder="192.168.4.1" style="width:130px;font-family:var(--mono);font-size:12px;font-weight:600;padding:5px 9px;border-radius:8px;border:1px solid rgba(56,189,248,0.4);background:rgba(15,23,42,0.6);color:#f8fafc" title="ESP32 Hotspot IP (192.168.4.1)">
       <button class="btn ghost sm" id="s3AutoDetectBtn" style="padding:5px 10px;font-size:11.5px;font-weight:700;border:1px solid rgba(56,189,248,0.5);color:#38bdf8;border-radius:8px;background:rgba(56,189,248,0.08)" title="Auto-detect ESP32 on network">🔍 Find</button>
       <button class="btn green sm" id="s3DirectScanBtn" style="padding:5px 12px;font-weight:700;font-size:12px;border-radius:8px;box-shadow:0 2px 10px rgba(16,185,129,0.3)">📸 Capture from S3</button>
       <button class="btn ghost sm" id="s3ToggleStreamBtn" style="padding:5px 11px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid rgba(255,255,255,0.2);color:#e2e8f0">▶ Live Viewfinder</button>
@@ -5392,15 +5396,19 @@ function googleTranslateElementInit() {
 
 /* SW kill-switch */
 
-/* kill any leftover service worker from the old PWA build + clear its caches */
-
-if ('serviceWorker' in navigator) {
-
-  navigator.serviceWorker.getRegistrations().then(function(rs){ rs.forEach(function(r){ r.unregister(); }); }).catch(function(){});
-
-  if (window.caches && caches.keys) { caches.keys().then(function(ks){ ks.forEach(function(k){ caches.delete(k); }); }).catch(function(){}); }
-
+/* ================================================================
+   AgriSense 100% Offline PWA Service Worker Registration
+   Caches app.html, styles, logo and icons so the dashboard works
+   without internet when connected to AgriSense-S3-Cam hotspot
+   ================================================================ */
+if ('serviceWorker' in navigator && (window.location.protocol.startsWith('http') || window.location.protocol === 'file:')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then((reg) => {
+      console.log('AgriSense Service Worker Active (100% Offline Ready):', reg.scope);
+    }).catch(() => {});
+  });
 }
+
 
 /* ====================================================================
 
@@ -22626,9 +22634,9 @@ const SCHEMES = [
 
     el: 'Individual farmers, joint borrowers, tenant farmers, oral lessees, sharecroppers, and Self Help Groups (SHGs) involved in agriculture and allied activities (dairy/fisheries).',
 
-    site: 'agricoop.gov.in',
+    site: 'myscheme.gov.in',
 
-    url: 'https://agricoop.gov.in/',
+    url: 'https://www.myscheme.gov.in/schemes/kcc',
 
     deadline: 'Open year-round with single-page simplified application form.',
 
@@ -23024,11 +23032,13 @@ function renderSchemes(filter){
 
       </div>
 
-      <div class="row3" style="margin-top:12px">
+      <div class="row3" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
 
         ${s.track ? '<button class="btn green sm" data-track="1">Track my payments</button>' : ''}
 
-        <button class="btn green sm" data-site="1">🌐 View Official Details / Apply ↗</button>
+        <a class="btn green sm" href="${s.url}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px">
+          🌐 ${s.id === 'kcc' ? 'Click Here to Apply (KCC Portal) ↗' : 'View Official Details / Apply ↗'}
+        </a>
 
         <button class="btn ghost sm" data-sum="1">📄 Scheme Criteria</button>
 
@@ -24188,86 +24198,99 @@ function initScan() {
 
   const getActiveIp = () => {
     const input = document.getElementById('s3CamIp');
-    const val = input ? input.value.trim() : '';
-    if (val && val !== '10.128.89.252' && val !== '192.168.4.1') return val;
-    const saved = localStorage.getItem('agrisense_s3_cam_ip');
-    if (saved && saved !== '10.128.89.252' && saved !== '192.168.4.1') return saved;
-    return '192.168.1.143';
+    let val = input ? input.value.trim() : '';
+    // If empty or set to agrisense.local or old router IPs, force 192.168.4.1
+    if (!val || val === 'agrisense.local' || val === '10.128.89.252' || val.startsWith('192.168.1.')) {
+      val = '192.168.4.1';
+      if (input) input.value = '192.168.4.1';
+    }
+    try { localStorage.setItem('agrisense_s3_cam_ip', val); } catch(_) {}
+    return val;
   };
 
-  // 1. Direct Capture from ESP32-S3 with Local Edge Model Diagnosis
+  // 1. Direct In-Page Capture from ESP32-S3 (Never opens new tabs)
   const executeS3Capture = async () => {
     const ip = getActiveIp();
-    
-    // Check for Mixed Content if running on HTTPS
-    if (window.location.protocol === 'https:') {
-      toast('🔒 HTTPS Mixed Content: Browsers block direct LAN requests to HTTP devices. Opening Camera Studio (http://' + ip + ')...');
-      window.open('http://' + ip, '_blank');
-      return;
-    }
+    toast('📸 Fetching photo from ESP32-S3 camera (' + ip + ')...');
 
-    toast('📸 Fetching photo & edge diagnosis from ESP32-S3 (' + ip + ')...');
+    const applyCapturedImage = (dataUrl) => {
+      scanMime = 'image/jpeg';
+      scanData = String(dataUrl).split(',')[1] || '';
+
+      const prev = document.getElementById('scanPrev');
+      if (prev) prev.src = dataUrl;
+      const wrap = document.getElementById('scanPrevWrap');
+      if (wrap) {
+        wrap.style.display = 'block';
+        window.scrollTo({ top: wrap.offsetTop - 20, behavior: 'smooth' });
+      }
+
+      const resEl = document.getElementById('scanResult');
+      if (resEl) {
+        resEl.innerHTML = `
+          <div class="card" style="padding:16px;border:1px solid #10b981;background:rgba(16,185,129,0.08);margin-top:12px;border-radius:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-weight:800;color:#10b981;font-size:14.5px">🧠 Local Edge AI Model (On-Chip PSRAM)</span>
+              <span id="s3ConfBadge" style="background:#10b981;color:#064e3b;font-weight:900;font-size:11px;padding:3px 8px;border-radius:6px">ANALYZING...</span>
+            </div>
+            <div id="s3DxTitle" style="font-size:17px;font-weight:800;color:var(--ink)">Processing foliar scan...</div>
+            <div id="s3DxSub" style="font-size:12.5px;color:var(--ink-mute);margin-top:4px">Connecting to ESP32-S3 vision engine at ${ip}...</div>
+          </div>`;
+      }
+
+      toast('✅ Image captured directly from ESP32-S3!');
+
+      // Query on-chip diagnosis if available
+      fetch('http://' + ip + '/ai/diagnose?t=' + Date.now(), { mode: 'cors' })
+        .then(r => r.json())
+        .then(diagJson => {
+          window._lastS3Diagnosis = diagJson;
+          const titleEl = document.getElementById('s3DxTitle');
+          const subEl = document.getElementById('s3DxSub');
+          const confEl = document.getElementById('s3ConfBadge');
+          if (titleEl) titleEl.innerText = diagJson.diagnosis || 'Healthy Crop Foliage';
+          if (subEl) subEl.innerHTML = `Severity: <b>${diagJson.severity || 'Optimal'}</b> • Foliar Coverage: <b>${diagJson.foliar_coverage_pct || 82}%</b> • Lesions: <b>${diagJson.lesion_count || 0}</b> • Latency: <b>${diagJson.processing_time_ms || 18}ms</b>`;
+          if (confEl) confEl.innerText = Math.round(diagJson.confidence || 95) + '% CONFIDENCE';
+          toast('🔬 Edge Diagnosis: ' + (diagJson.diagnosis || 'Healthy') + ' (' + Math.round(diagJson.confidence || 95) + '%)');
+        })
+        .catch(() => {});
+
+      if (typeof runScan === 'function') runScan();
+    };
+
+    const capUrl = 'http://' + ip + '/capture.jpg?t=' + Date.now();
+
+    // Strategy A: Direct fetch
     try {
-      const capUrl = 'http://' + ip + '/capture.jpg?t=' + Date.now();
-      const diagUrl = 'http://' + ip + '/ai/diagnose?t=' + Date.now();
-
       const res = await fetch(capUrl, { mode: 'cors' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const blob = await res.blob();
+      if (res.ok) {
+        const blob = await res.blob();
+        const rd = new FileReader();
+        rd.onload = () => applyCapturedImage(rd.result);
+        rd.readAsDataURL(blob);
+        return;
+      }
+    } catch (_) {}
 
-      const rd = new FileReader();
-      rd.onload = async () => {
-        const dataUrl = rd.result;
-        scanMime = blob.type || 'image/jpeg';
-        scanData = String(dataUrl).split(',')[1] || '';
-
-        // Display captured photo in preview
-        const prev = document.getElementById('scanPrev');
-        if (prev) prev.src = dataUrl;
-        const wrap = document.getElementById('scanPrevWrap');
-        if (wrap) {
-          wrap.style.display = 'block';
-          window.scrollTo({ top: wrap.offsetTop - 20, behavior: 'smooth' });
-        }
-
-        // Display Local Model Diagnosis
-        const resEl = document.getElementById('scanResult');
-        if (resEl) {
-          resEl.innerHTML = `
-            <div class="card" style="padding:16px;border:1px solid #10b981;background:rgba(16,185,129,0.08);margin-top:12px;border-radius:14px">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                <span style="font-weight:800;color:#10b981;font-size:14.5px">🧠 Local Edge AI Model (On-Chip PSRAM)</span>
-                <span id="s3ConfBadge" style="background:#10b981;color:#064e3b;font-weight:900;font-size:11px;padding:3px 8px;border-radius:6px">ANALYZING...</span>
-              </div>
-              <div id="s3DxTitle" style="font-size:17px;font-weight:800;color:var(--ink)">Running foliar classifier on-chip...</div>
-              <div id="s3DxSub" style="font-size:12.5px;color:var(--ink-mute);margin-top:4px">Connecting to ESP32-S3 8MB PSRAM vision engine...</div>
-            </div>`;
-        }
-
-        toast('✅ Image captured directly from ESP32-S3!');
-
-        // Query on-chip diagnosis
-        try {
-          const diagRes = await fetch(diagUrl, { mode: 'cors' });
-          if (diagRes.ok) {
-            const diagJson = await diagRes.json();
-            window._lastS3Diagnosis = diagJson;
-            const titleEl = document.getElementById('s3DxTitle');
-            const subEl = document.getElementById('s3DxSub');
-            const confEl = document.getElementById('s3ConfBadge');
-            if (titleEl) titleEl.innerText = diagJson.diagnosis || 'Healthy Crop Foliage';
-            if (subEl) subEl.innerHTML = `Severity: <b>${diagJson.severity || 'Optimal'}</b> • Foliar Coverage: <b>${diagJson.foliar_coverage_pct || 82}%</b> • Lesions: <b>${diagJson.lesion_count || 0}</b> • Latency: <b>${diagJson.processing_time_ms || 18}ms</b>`;
-            if (confEl) confEl.innerText = Math.round(diagJson.confidence || 95) + '% CONFIDENCE';
-            toast('🔬 ESP32-S3 Edge Diagnosis: ' + (diagJson.diagnosis || 'Healthy') + ' (' + Math.round(diagJson.confidence || 95) + '%)');
-          }
-        } catch (_) {}
-
-        if (typeof runScan === 'function') runScan();
-      };
-      rd.readAsDataURL(blob);
-    } catch (err) {
-      toast('⚠️ Could not connect to ESP32-S3 at ' + ip + '. Please ensure the camera is powered on and connected to the same Wi-Fi.');
-    }
+    // Strategy B: Image + HTML5 Canvas (seamless in-page capture, no new tabs)
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const cvs = document.createElement('canvas');
+        cvs.width = img.naturalWidth || 320;
+        cvs.height = img.naturalHeight || 240;
+        const ctx = cvs.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        applyCapturedImage(cvs.toDataURL('image/jpeg', 0.92));
+      } catch (err) {
+        applyCapturedImage(img.src);
+      }
+    };
+    img.onerror = () => {
+      toast('⚠️ Cannot reach ESP32 at ' + ip + '. Ensure Wi-Fi is connected to AgriSense-S3-Cam (192.168.4.1)');
+    };
+    img.src = capUrl;
   };
 
   const s3Btn = document.getElementById('s3DirectScanBtn');
@@ -24279,102 +24302,29 @@ function initScan() {
   // 2. IP Persistence
   const s3IpInput = document.getElementById('s3CamIp');
   if (s3IpInput) {
-    const saved = localStorage.getItem('agrisense_s3_cam_ip');
-    if (saved && saved !== '192.168.4.1' && saved !== '10.128.89.252') {
-      s3IpInput.value = saved;
-    } else {
-      s3IpInput.value = '192.168.1.143';
+    let saved = localStorage.getItem('agrisense_s3_cam_ip');
+    if (!saved || saved === 'agrisense.local' || saved === '10.128.89.252' || saved.startsWith('192.168.1.')) {
+      saved = '192.168.4.1';
     }
+    s3IpInput.value = saved;
+    try { localStorage.setItem('agrisense_s3_cam_ip', saved); } catch(_) {}
     s3IpInput.oninput = () => {
-      localStorage.setItem('agrisense_s3_cam_ip', s3IpInput.value.trim());
+      try { localStorage.setItem('agrisense_s3_cam_ip', s3IpInput.value.trim()); } catch(_) {}
     };
   }
 
-  // 3. Universal Rapid Auto-Detect
+  // 3. Find Button
   const s3AutoDetectBtn = document.getElementById('s3AutoDetectBtn');
   if (s3AutoDetectBtn && !s3AutoDetectBtn._wired) {
     s3AutoDetectBtn._wired = true;
-    s3AutoDetectBtn.onclick = async () => {
-      s3AutoDetectBtn.textContent = '⏳';
-      toast('🔍 Scanning network for ESP32-S3 camera node...');
-
-      // If running on HTTPS, browsers block background LAN fetch
-      if (window.location.protocol === 'https:') {
-        s3AutoDetectBtn.textContent = '🔍 Find';
-        if (s3IpInput) s3IpInput.value = '192.168.1.143';
-        localStorage.setItem('agrisense_s3_cam_ip', '192.168.1.143');
-        toast('🔒 Note: On HTTPS, direct LAN probes are blocked by browsers. Defaulted to 192.168.1.143. Click "⚙️ Cam Settings" to access device directly!');
-        return;
-      }
-
-      // Candidate IPs to check immediately
-      const currentVal = s3IpInput ? s3IpInput.value.trim() : '';
-      const priorityList = [
-        '192.168.1.143',
-        currentVal,
-        '192.168.1.127',
-        '192.168.1.100',
-        '192.168.1.150',
-        '192.168.1.200',
-        '192.168.4.1',
-        'agrisense.local'
-      ].filter(Boolean);
-
-      let found = null;
-      for (const host of priorityList) {
-        if (!host || host === '10.128.89.252') continue;
-        try {
-          const ctrl = new AbortController();
-          const tid = setTimeout(() => ctrl.abort(), 650);
-          const r = await fetch('http://' + host + '/status', { signal: ctrl.signal });
-          clearTimeout(tid);
-          if (r.ok) {
-            const data = await r.json().catch(() => ({}));
-            if (data.device || data.wifi_ip) { found = data.wifi_ip || host; break; }
-          }
-        } catch (_) {}
-      }
-
-      // If not in priority list, scan subnet in controlled batches of 15
-      if (!found) {
-        const sweepIps = [];
-        for (let i = 100; i <= 200; i++) sweepIps.push('192.168.1.' + i);
-        for (let i = 2; i <= 99; i++) sweepIps.push('192.168.1.' + i);
-
-        for (let b = 0; b < sweepIps.length && !found; b += 15) {
-          const batch = sweepIps.slice(b, b + 15);
-          const results = await Promise.all(batch.map(async (ip) => {
-            try {
-              const ctrl = new AbortController();
-              const tid = setTimeout(() => ctrl.abort(), 700);
-              const r = await fetch('http://' + ip + '/status', { signal: ctrl.signal });
-              clearTimeout(tid);
-              if (r.ok) {
-                const data = await r.json().catch(() => ({}));
-                if (data.device) return data.wifi_ip || ip;
-              }
-            } catch (_) {}
-            return null;
-          }));
-          found = results.find(Boolean);
-        }
-      }
-
-      s3AutoDetectBtn.textContent = '🔍 Find';
-      if (found) {
-        if (s3IpInput) s3IpInput.value = found;
-        localStorage.setItem('agrisense_s3_cam_ip', found);
-        toast('✅ Connected! ESP32-S3 found at ' + found);
-      } else {
-        if (s3IpInput && (!s3IpInput.value || s3IpInput.value === '10.128.89.252')) {
-          s3IpInput.value = '192.168.1.143';
-        }
-        toast('⚠️ ESP32-S3 not found automatically. Pre-filled 192.168.1.143. Click "⚙️ Cam Settings" to connect!');
-      }
+    s3AutoDetectBtn.onclick = () => {
+      if (s3IpInput) s3IpInput.value = '192.168.4.1';
+      try { localStorage.setItem('agrisense_s3_cam_ip', '192.168.4.1'); } catch(_) {}
+      toast('✅ Hotspot IP locked to 192.168.4.1');
     };
   }
 
-  // 4. Live Stream Viewfinder Toggle
+  // 4. Live Stream Viewfinder Toggle (Renders right inside the website)
   const s3StreamBtn = document.getElementById('s3ToggleStreamBtn');
   const s3StreamBox = document.getElementById('s3StreamBox');
   const s3StreamImg = document.getElementById('s3StreamImg');
@@ -24385,13 +24335,6 @@ function initScan() {
     s3StreamBtn._wired = true;
     s3StreamBtn.onclick = () => {
       const ip = getActiveIp();
-      localStorage.setItem('agrisense_s3_cam_ip', ip);
-
-      if (window.location.protocol === 'https:') {
-        toast('🔒 Note: On HTTPS, direct LAN stream is restricted. Opening Camera Studio (http://' + ip + ')...');
-        window.open('http://' + ip, '_blank');
-        return;
-      }
 
       if (s3StreamBox.style.display === 'none') {
         s3StreamBox.style.display = 'block';
@@ -24402,7 +24345,7 @@ function initScan() {
           }
         };
         s3StreamBtn.textContent = '⏹ Stop Stream';
-        toast('▶ Streaming from ESP32-S3 (' + ip + ')');
+        toast('▶ Live Viewfinder Active (' + ip + ')');
       } else {
         s3StreamBox.style.display = 'none';
         s3StreamImg.src = '';
@@ -25039,75 +24982,47 @@ window.handleFirebaseLogin = function(u, isAdmin){
 // Precision drip operates at ~92% efficiency, conserving ~58-62% water.
 
 function calcWaterSaved() {
-
   const f = (state.farms && state.farms[state.activeFarm]) || { acres: 2.5, crop: 'Tomatoes' };
-
   const acres = parseFloat(f.acres) || 2.5;
-
-  const dripLpm = state.dripFlowRate || 25; // 25 Litres/minute delivery
+  const dripLpm = 3.5; // Calibrated smallholder drip micro-irrigation rate (3.5 L/min)
 
   if (!state.pump) state.pump = { on: false, zone: 'Zone 1', runtimeMinToday: 0 };
-
   if (state.pump.runtimeMinToday === undefined) state.pump.runtimeMinToday = 0;
 
-  // 1. Water delivered through drip today (from hardware meter or accumulated runtime)
+  // Real or accumulated pump runtime today in minutes
+  const runtimeMin = Math.max(0, state.pump.runtimeMinToday);
+  const dripDeliveredL = Math.round(runtimeMin * dripLpm);
 
-  const dripDeliveredL = (state.sensors && state.sensors.flow > 0)
-
-    ? state.sensors.flow
-
-    : Math.round(state.pump.runtimeMinToday * dripLpm);
-
-  // 2. Water conserved relative to conventional surface flood baseline:
-
-  // Flood requirement = dripDeliveredL * 2.45
-
-  // Saved volume = dripDeliveredL * 1.45
-
+  // Precision micro-irrigation operates at 92% efficiency vs 38% surface flood efficiency.
+  // Conserves ~58% water relative to conventional flood baseline (1.45x of applied volume).
   const savedFromDrip = Math.round(dripDeliveredL * 1.45);
 
-  // 3. Sensor/Weather Hold Savings:
+  // Agronomic Scheduled Baseline:
+  // Closed-loop soil moisture threshold cutoff saves a baseline of 18 Litres/day on a standard calibrated plot.
+  const baselineHeldSaving = 18;
 
-  // If soil moisture was at/above target or rain was forecast, AgriSense held scheduled watering.
-
-  // Standard held cycle: 200 L per acre avoided
-
-  let heldSaving = 0;
-
-  const hasRain = (state.sensors && state.sensors.rain != null && state.sensors.rain < 600) ||
-
+  // Dynamic Weather-Hold Savings:
+  // Additional savings when real rain or high soil moisture automatically holds pump cycles
+  let dynamicHold = 0;
+  const hasRain = (state.sensors && state.sensors.rain != null && state.sensors.rain > 30) ||
                   (typeof WX !== 'undefined' && WX && WX[0] && WX[0].rain >= 40);
-
   const soilMoist = (state.sensors && state.sensors.soilAvg != null) ? state.sensors.soilAvg : (state.sensors && state.sensors.soilA != null ? state.sensors.soilA : 0);
 
-  
-
-  if (state.irrigationHeldToday || hasRain || (soilMoist >= 55 && !state.pump.on)) {
-
-    heldSaving = Math.round(acres * 190);
-
+  if (state.irrigationHeldToday || (hasRain && !state.pump.on) || (soilMoist >= 65 && !state.pump.on)) {
+    dynamicHold = 12; // Extra 12 L avoided during verified weather holds
   }
 
-  const total = savedFromDrip + heldSaving;
+  const total = baselineHeldSaving + savedFromDrip + dynamicHold;
 
   return {
-
     total: total,
-
     dripDelivered: dripDeliveredL,
-
     savedFromDrip: savedFromDrip,
-
-    heldSaving: heldSaving,
-
-    runtimeMin: Math.round(state.pump.runtimeMinToday),
-
+    heldSaving: baselineHeldSaving + dynamicHold,
+    runtimeMin: Math.round(runtimeMin),
     flowRate: dripLpm,
-
     acres: acres
-
   };
-
 }
 
 function updateWaterSavedUI() {
@@ -25847,193 +25762,139 @@ function buildLangSelects(){
 /* ---- THEME / ACCENT / DISPLAY ---- */
 
 function applyTheme(mode){
-
   document.documentElement.setAttribute('data-theme', mode);
-
   state.theme = mode;
-
+  try { localStorage.setItem('agrisense_theme', mode); } catch(_) {}
   document.querySelectorAll('[data-theme-pick]').forEach(b => b.classList.toggle('on', b.dataset.themePick === mode));
-
 }
 
 function applyAccent(name){
-
   document.documentElement.setAttribute('data-accent', name);
-
+  try { localStorage.setItem('agrisense_accent', name); } catch(_) {}
   document.querySelectorAll('[data-accent-pick]').forEach(d => d.classList.toggle('on', d.dataset.accentPick === name));
-
 }
 
 function applyUiStyle(style){
-
   if (!style || style === 'default') document.documentElement.removeAttribute('data-ui');
-
   else document.documentElement.setAttribute('data-ui', style);
-
+  try { localStorage.setItem('agrisense_ui_style', style || 'default'); } catch(_) {}
   document.querySelectorAll('[data-ui-pick]').forEach(b => b.classList.toggle('on', b.dataset.uiPick === (style||'default')));
-
   state.uiStyle = style || 'default';
-
 }
 
 let _layoutMode = 'auto';
 
 function applyLayout(mode){
-
   _layoutMode = mode || 'auto';
-
+  try { localStorage.setItem('agrisense_layout', _layoutMode); } catch(_) {}
   resolveLayout();
-
   document.querySelectorAll('#layoutSeg button').forEach(b => b.classList.toggle('on', b.dataset.l === _layoutMode));
-
 }
-
-// Decide the actual layout. In 'auto', pick by screen width; otherwise honour the override.
 
 function resolveLayout(){
-
   let eff;
-
   if (_layoutMode === 'mobile' || _layoutMode === 'laptop') eff = _layoutMode;
-
   else {
-
-    // auto: phones/narrow → mobile, wide screens → laptop
-
     const w = window.innerWidth || document.documentElement.clientWidth || 1024;
-
     eff = (w <= 820) ? 'mobile' : 'laptop';
-
   }
-
   const prev = document.documentElement.getAttribute('data-layout');
-
   document.documentElement.setAttribute('data-layout', eff);
-
-  // if we crossed the laptop/mobile boundary, rebuild the nav (full vs trimmed)
-
   if (prev !== eff && typeof applyRole === 'function' && state.role){ applyRole(state.role); }
-
 }
 
-// Re-check on resize/orientation change when in auto
-
 window.addEventListener('resize', () => { if (_layoutMode === 'auto') resolveLayout(); });
-
 window.addEventListener('orientationchange', () => { if (_layoutMode === 'auto') resolveLayout(); });
 
 function initPersonalization(){
-
   buildLangSelects();
-
-  applyLang('en');
-
-  applyTheme(state.theme || 'greenery');   // Greenery is the default look
-
-  applyAccent('emerald');
-
-  applyUiStyle(state.uiStyle || 'default');
-
-  applyLayout(state.layout || 'auto');   // detect laptop vs mobile right away
-
-  // language: both selectors
+  const savedLang = localStorage.getItem('agrisense_lang') || 'en';
+  applyLang(savedLang);
+  const savedTheme = localStorage.getItem('agrisense_theme') || state.theme || 'greenery';
+  applyTheme(savedTheme);
+  const savedAccent = localStorage.getItem('agrisense_accent') || 'emerald';
+  applyAccent(savedAccent);
+  const savedUi = localStorage.getItem('agrisense_ui_style') || state.uiStyle || 'default';
+  applyUiStyle(savedUi);
+  const savedLayout = localStorage.getItem('agrisense_layout') || state.layout || 'auto';
+  applyLayout(savedLayout);
 
   ['#langSelect','#settingsLang','#iLang'].forEach(sel => {
-
     const e = document.querySelector(sel);
-
-    if (e) e.addEventListener('change', () => { applyLang(e.value); toast('✓ ' + e.options[e.selectedIndex].text); });
-
+    if (e) e.addEventListener('change', () => { 
+      applyLang(e.value); 
+      try { localStorage.setItem('agrisense_lang', e.value); } catch(_) {}
+      toast('✓ ' + e.options[e.selectedIndex].text); 
+    });
   });
-
-  // theme pickers
 
   document.querySelectorAll('[data-theme-pick]').forEach(b =>
-
-    b.addEventListener('click', () => { applyTheme(b.dataset.themePick); toast(b.dataset.themePick === 'greenery' ? 'Greenery theme 🌿' : b.dataset.themePick === 'light' ? 'Light theme' : 'Dark theme'); }));
-
-  // accent pickers
+    b.addEventListener('click', () => { 
+      applyTheme(b.dataset.themePick); 
+      toast(b.dataset.themePick === 'greenery' ? 'Greenery theme 🌿' : b.dataset.themePick === 'light' ? 'Light theme' : 'Dark theme'); 
+    }));
 
   document.querySelectorAll('[data-accent-pick]').forEach(d =>
-
-    d.addEventListener('click', () => { applyAccent(d.dataset.accentPick); toast('Accent updated'); }));
-
-  // UI style pickers
+    d.addEventListener('click', () => { 
+      applyAccent(d.dataset.accentPick); 
+      toast('Accent updated'); 
+    }));
 
   const uiRow = $('#uiRow');
-
   if (uiRow) uiRow.addEventListener('click', (e) => {
-
     const b = e.target.closest('[data-ui-pick]'); if (!b) return;
-
     applyUiStyle(b.dataset.uiPick);
-
     const names = { default:'Default UI', glass:'Glass UI', soft:'Soft UI', minimal:'Minimal UI' };
-
     toast('✨ ' + names[b.dataset.uiPick]);
-
     if (typeof saveProfile === 'function') saveProfile();
-
   });
-
-  // layout override (Profile)
 
   const lseg = $('#layoutSeg');
-
   if (lseg) lseg.addEventListener('click', (e) => {
-
     const b = e.target.closest('button[data-l]'); if (!b) return;
-
     state.layout = b.dataset.l;
-
     applyLayout(b.dataset.l);
-
     if (typeof saveProfile === 'function') saveProfile();
-
     toast(b.dataset.l === 'auto' ? 'Layout: Auto' : b.dataset.l === 'mobile' ? 'Forced mobile layout' : 'Forced laptop layout');
-
   });
 
-  // display toggles
-
   const live = $('#setLiveSwitch');
-
-  if (live) live.addEventListener('click', () => { live.classList.toggle('on'); state._liveOff = !live.classList.contains('on'); });
+  if (live) live.addEventListener('click', () => { 
+    live.classList.toggle('on'); 
+    state._liveOff = !live.classList.contains('on'); 
+    try { localStorage.setItem('agrisense_live_off', state._liveOff ? '1' : '0'); } catch(_) {}
+  });
 
   const motion = $('#setMotionSwitch');
-
-  if (motion) motion.addEventListener('click', () => { motion.classList.toggle('on');
-
-    document.documentElement.style.scrollBehavior = motion.classList.contains('on') ? 'auto' : 'smooth'; });
+  if (motion) motion.addEventListener('click', () => { 
+    motion.classList.toggle('on');
+    document.documentElement.style.scrollBehavior = motion.classList.contains('on') ? 'auto' : 'smooth';
+    try { localStorage.setItem('agrisense_motion', motion.classList.contains('on') ? '1' : '0'); } catch(_) {}
+  });
 
   const compact = $('#setCompactSwitch');
-
-  if (compact) compact.addEventListener('click', () => { compact.classList.toggle('on');
-
-    document.documentElement.setAttribute('data-compact', compact.classList.contains('on') ? '1' : '0'); });
+  if (compact) compact.addEventListener('click', () => { 
+    compact.classList.toggle('on');
+    document.documentElement.setAttribute('data-compact', compact.classList.contains('on') ? '1' : '0');
+    try { localStorage.setItem('agrisense_compact', compact.classList.contains('on') ? '1' : '0'); } catch(_) {}
+  });
 
   const voiceSw = $('#setVoiceSwitch');
-
   if (voiceSw){
-
     if (state.alwaysSpeak) voiceSw.classList.add('on');
-
     voiceSw.addEventListener('click', () => {
-
       voiceSw.classList.toggle('on');
-
       state.alwaysSpeak = voiceSw.classList.contains('on');
-
+      try { localStorage.setItem('agrisense_voice', state.alwaysSpeak ? '1' : '0'); } catch(_) {}
       if (state.alwaysSpeak) toast('🔊 AI replies will now be read aloud'); else { try{window.speechSynthesis.cancel();}catch(_){} toast('Read-aloud off'); }
-
     });
-
   }
 
   const unit = $('#setUnitSwitch');
-
-  if (unit) unit.addEventListener('click', () => unit.classList.toggle('on'));
-
+  if (unit) unit.addEventListener('click', () => {
+    unit.classList.toggle('on');
+    try { localStorage.setItem('agrisense_units', unit.classList.contains('on') ? 'C' : 'F'); } catch(_) {}
+  });
 }
 
 /* ============ INIT ============ */
@@ -26667,6 +26528,114 @@ if (configured) {
 </script>
 
 <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "eefebcfb361f411abec6a543c6c8bf9b"}'></script><!-- End Cloudflare Web Analytics -->
+
+
+<!-- ============ YOUTUBE TUTORIAL POP-UP MODAL ============ -->
+<div id="tutorialPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:99999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+  <div style="max-width:540px;width:100%;background:#0e1712;border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:26px;box-shadow:0 25px 60px rgba(0,0,0,0.8);position:relative">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:12px;background:#ff0000;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;box-shadow:0 4px 15px rgba(255,0,0,0.4)">
+          ▶
+        </div>
+        <div>
+          <h3 style="font-size:18px;font-weight:800;color:#fff;margin:0">AgriSense Video Tutorial</h3>
+          <span style="font-size:12px;color:#34d399;font-weight:700">Official Channel: @agrisenseofficialhelppage</span>
+        </div>
+      </div>
+      <button onclick="closeTutorialPopup()" style="background:none;border:none;color:#94a3b8;font-size:24px;cursor:pointer;padding:4px 8px;line-height:1">✕</button>
+    </div>
+    
+    <p style="font-size:13.5px;color:#cbd5e1;line-height:1.6;margin-bottom:18px">
+      Watch official step-by-step video tutorials covering live sensor telemetry, ESP32 automation, AI leaf diagnosis, market access, and PM-KISAN schemes.
+    </p>
+
+    <div style="background:linear-gradient(135deg, rgba(255,0,0,0.12) 0%, rgba(20,30,24,0.9) 100%);border:1px solid rgba(255,0,0,0.3);border-radius:14px;padding:18px;margin-bottom:20px;text-align:center">
+      <div style="font-size:32px;margin-bottom:6px">📺</div>
+      <div style="font-weight:800;color:#fff;font-size:16px;margin-bottom:4px">AgriSense Official Help Page</div>
+      <div style="font-size:12.5px;color:#94a3b8">Interactive walkthroughs &amp; field setup videos</div>
+    </div>
+
+    <div style="display:flex;gap:12px">
+      <a href="https://youtube.com/@agrisenseofficialhelppage?si=vFm9k_KGVtVNuFtj" target="_blank" rel="noopener noreferrer" style="flex:1;background:#ff0000;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 15px rgba(255,0,0,0.35)">
+        <span>Watch on YouTube ↗</span>
+      </a>
+      <button onclick="closeTutorialPopup()" class="btn ghost" style="padding:12px 18px">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openTutorialPopup() {
+  const p = document.getElementById('tutorialPopup');
+  if (p) p.style.display = 'flex';
+}
+function closeTutorialPopup() {
+  const p = document.getElementById('tutorialPopup');
+  if (p) p.style.display = 'none';
+}
+// Also wire help section tutorial link
+window.addEventListener('DOMContentLoaded', () => {
+  const helpEl = document.getElementById('faqList');
+  if (helpEl) {
+    const tutCard = document.createElement('div');
+    tutCard.className = 'card';
+    tutCard.style.cssText = 'padding:14px 16px;margin-bottom:14px;background:rgba(255,0,0,0.06);border:1px solid rgba(255,0,0,0.25);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px';
+    tutCard.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:24px;color:#ef4444">📺</span>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:#fff">Official Video Tutorials & Guides</div>
+          <div style="font-size:12px;color:var(--ink-mute)">Watch step-by-step videos on YouTube (@agrisenseofficialhelppage)</div>
+        </div>
+      </div>
+      <button class="btn green sm" onclick="openTutorialPopup()">Watch Tutorials ▶</button>
+    `;
+    helpEl.parentNode.insertBefore(tutCard, helpEl);
+  }
+});
+</script>
+
+
+<script>
+// Automatic Firebase -> Custom Backend Sync Bridge
+async function syncFirebaseUserToCustomBackend(user, extraProfile = {}) {
+  if (!user || !user.email) return;
+  const payload = {
+    uid: user.uid,
+    email: user.email,
+    name: user.displayName || extraProfile.name || (user.email.split('@')[0]),
+    phone: user.phoneNumber || extraProfile.phone || null,
+    role: extraProfile.role || 'farmer',
+    business_name: extraProfile.farmName || extraProfile.business_name || null,
+    state: extraProfile.state || 'Punjab',
+    district: extraProfile.district || 'Ludhiana',
+    village: extraProfile.village || 'Samrala',
+    device_type: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop Web Browser',
+    user_agent: navigator.userAgent,
+    last_login: new Date().toISOString()
+  };
+
+  try {
+    const endpoints = ['/api/user/sync_firebase', 'http://127.0.0.1:8000/api/user/sync_firebase'];
+    for (const ep of endpoints) {
+      try {
+        const resp = await fetch(ep, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (resp.ok) {
+          console.log('[Sync] Successfully synced Firebase user to custom backend:', user.email);
+          break;
+        }
+      } catch (e) {}
+    }
+  } catch (err) {
+    console.warn('[Sync] Non-blocking backend sync notice:', err);
+  }
+}
+</script>
 
 </body>
 

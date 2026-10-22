@@ -283,7 +283,11 @@ def sync_firebase_now():
             qty_val = float(qty_str)
         except Exception:
             qty_val = 1.0
-        price_val = float(m.get('price', 0))
+        price_str = re.sub(r'[^0-9.]', '', str(m.get('price', '0')))
+        try:
+            price_val = float(price_str) if price_str else 0.0
+        except Exception:
+            price_val = 0.0
         ts_raw = m.get('ts') or m.get('_created_at')
 
         sqlite_db.add(models.MarketListing(
@@ -316,7 +320,11 @@ def sync_firebase_now():
             qty_val = float(qty_str)
         except Exception:
             qty_val = 1.0
-        price_val = float(r.get('price', 0))
+        price_str = re.sub(r'[^0-9.]', '', str(r.get('price', '0')))
+        try:
+            price_val = float(price_str) if price_str else 0.0
+        except Exception:
+            price_val = 0.0
         ts_raw = r.get('ts') or r.get('_created_at')
 
         sqlite_db.add(models.BuyerRequirement(
@@ -357,9 +365,9 @@ def sync_firebase_now():
     sqlite_db.query(models.TransportListing).delete()
     sqlite_db.query(models.FinanceRecord).delete()
     sqlite_db.query(models.CalendarEvent).delete()
-    sqlite_db.query(models.GovtScheme).delete()
+    # Preserving GovtScheme
     sqlite_db.query(models.ActivityLog).delete()
-    sqlite_db.query(models.ZoneInfo).delete()
+    # Preserving ZoneInfo
 
     sqlite_db.commit()
     sqlite_db.close()

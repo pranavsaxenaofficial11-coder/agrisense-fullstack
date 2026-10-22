@@ -7,6 +7,7 @@ export const LandingPage: React.FC = () => {
 
   // 2. Know more popup
   const [knowMoreOpen, setKnowMoreOpen] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
 
   // 3. Hero rotating cue cards
   const heroCues = [
@@ -176,8 +177,9 @@ export const LandingPage: React.FC = () => {
       {/* Navigation */}
       <nav>
         <div className="nav-in">
-          <a className="logo" href="#top">
-            Agri<span>Sense</span>
+          <a className="logo" href="#top" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+            <img src="/logo.jpeg" alt="AgriSense Logo" style={{ height: '34px', width: '34px', borderRadius: '8px', objectFit: 'cover' }} />
+            <span>Agri<span>Sense</span></span>
           </a>
           <button
             className={`hamburger ${menuOpen ? 'open' : ''}`}
@@ -217,8 +219,16 @@ export const LandingPage: React.FC = () => {
             <h1>Agri<span>Sense</span></h1>
             <p className="sub">Smart AI-Based Farming and Automation System</p>
             <p className="quote">"Empowering farmers with intelligent, data-driven agriculture for a sustainable future."</p>
-            <div className="hero-ctas">
+            <div className="hero-ctas" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <a className="btn" href="/app.html">🌐 Use web app →</a>
+              <button
+                className="btn"
+                type="button"
+                style={{ background: 'rgba(239, 68, 68, 0.15)', borderColor: '#ef4444', color: '#fca5a5', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                onClick={() => setTutorialOpen(true)}
+              >
+                ▶ Video Tutorial
+              </button>
             </div>
             <p style={{ fontSize: '13px', color: 'var(--ink-soft)', marginTop: '12px', fontFamily: 'var(--mono)' }}>
               Works online with full features — AI, login, and live data ·{' '}
@@ -569,6 +579,75 @@ export const LandingPage: React.FC = () => {
           <div>© 2026 AgriUpdate</div>
         </div>
       </footer>
+
+      {/* YouTube Tutorial Pop-Up Modal */}
+      {tutorialOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.8)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }}>
+          <div style={{
+            maxWidth: '540px',
+            width: '100%',
+            background: '#0e1712',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            borderRadius: '20px',
+            padding: '26px',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.8)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#ff0000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '22px', boxShadow: '0 4px 15px rgba(255,0,0,0.4)' }}>
+                  ▶
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', margin: 0 }}>AgriSense Video Tutorial</h3>
+                  <span style={{ fontSize: '12px', color: '#34d399', fontWeight: 700 }}>Official Help: @agrisenseofficialhelppage</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setTutorialOpen(false)}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '24px', cursor: 'pointer', padding: '4px 8px' }}
+              >
+                ✕
+              </button>
+            </div>
+            <p style={{ fontSize: '13.5px', color: '#cbd5e1', lineHeight: 1.6, marginBottom: '18px' }}>
+              Watch official step-by-step video tutorials on setting up sensors, automated irrigation, AI crop diagnosis, and navigating the platform.
+            </p>
+            <div style={{ background: 'linear-gradient(135deg, rgba(255,0,0,0.12) 0%, rgba(20,30,24,0.9) 100%)', border: '1px solid rgba(255,0,0,0.3)', borderRadius: '14px', padding: '18px', marginBottom: '20px', textAlign: 'center' }}>
+              <div style={{ fontSize: '32px', marginBottom: '6px' }}>📺</div>
+              <div style={{ fontWeight: 800, color: '#fff', fontSize: '16px', marginBottom: '4px' }}>AgriSense Official Help Page</div>
+              <div style={{ fontSize: '12.5px', color: '#94a3b8' }}>Interactive walkthroughs & field setup videos</div>
+            </div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <a
+                href="https://youtube.com/@agrisenseofficialhelppage?si=vFm9k_KGVtVNuFtj"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ flex: 1, background: '#ff0000', color: '#fff', padding: '12px 18px', borderRadius: '10px', textDecoration: 'none', fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(255,0,0,0.35)' }}
+              >
+                Watch on YouTube ↗
+              </a>
+              <button
+                onClick={() => setTutorialOpen(false)}
+                className="btn"
+                style={{ background: 'rgba(255,255,255,0.08)', color: '#fff' }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

@@ -457,3 +457,57 @@ async def delete_user_account(email: Optional[str] = None, uid: Optional[str] = 
     }
 
 
+
+
+@router.post("/sync_firebase")
+def sync_firebase_user(payload: dict, request: Request, db: Session = Depends(get_db)):
+    """Immediate sync endpoint invoked by web client when user signs in or updates via Firebase."""
+    email_clean = (payload.get("email") or "").strip().lower()
+    if not email_clean:
+        raise HTTPException(status_code=400, detail="Email is required.")
+    
+    uid = payload.get("uid") or f"usr_{secrets.token_hex(8)}"
+    name = (payload.get("name") or email_clean.split("@")[0]).strip()
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    ua = payload.get("user_agent") or request.headers.get("user-agent", "Web Browser")
+    device = payload.get("device_type") or ("Mobile" if "Mobile" in ua else "Desktop Web Browser")
+
+    user = db.query(models.User).filter(models.User.email == email_clean).first()
+    now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+
+    if not user:
+        user = models.User(
+            uid=uid,
+            name=name,
+            email=email_clean,
+            role=payload.get("role") or "farmer",
+            business_name=payload.get("business_name") or f"{name}'s Farm",
+            phone=payload.get("phone") or None,
+            state=payload.get("state") or "Punjab",
+            district=payload.get("district") or "Ludhiana",
+            village=payload.get("village") or "Samrala",
+            last_ip=client_ip,
+            user_agent=ua,
+            device_type=device,
+            last_login=now_str,
+            login_count=1,
+            active_page="Live Dashboard"
+        )
+        db.add(user)
+    else:
+        user.name = name or user.name
+        user.login_count = (user.login_count or 0) + 1
+        user.last_login = now_str
+        user.last_ip = client_ip
+        user.user_agent = ua
+        user.device_type = device
+        if payload.get("phone"): user.phone = payload.get("phone")
+        if payload.get("state"): user.state = payload.get("state")
+        if payload.get("district"): user.district = payload.get("district")
+        if payload.get("village"): user.village = payload.get("village")
+        if payload.get("role"): user.role = payload.get("role")
+        if payload.get("business_name"): user.business_name = payload.get("business_name")
+
+    db.commit()
+    db.refresh(user)
+    return {"status": "success", "message": f"User {user.email} synced successfully into custom backend.", "user_id": user.id}

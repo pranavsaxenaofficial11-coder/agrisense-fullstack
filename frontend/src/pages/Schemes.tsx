@@ -179,8 +179,25 @@ export const SchemesPage: React.FC = () => {
             </div>
 
             <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '10px', marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', color: '#10b981', fontWeight: 600 }}>
-              <span>View Full Criteria & Official Portal</span>
-              <ChevronRight size={16} />
+              <a
+                href={s.apply_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  color: '#34d399',
+                  textDecoration: 'none',
+                  fontWeight: 700
+                }}
+              >
+                {s.id === 'kcc' ? 'Click Here to Apply (KCC) ↗' : 'Official Portal ↗'}
+              </a>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                Criteria <ChevronRight size={16} />
+              </span>
             </div>
           </div>
         ))}
@@ -283,7 +300,7 @@ export const SchemesPage: React.FC = () => {
                 className="agri-btn-primary"
                 style={{ flex: 1, justifyContent: 'center', textDecoration: 'none', padding: '12px', fontWeight: 700 }}
               >
-                Open Official Portal ({selectedScheme.portal_name}) <ExternalLink size={16} />
+                {selectedScheme.id === 'kcc' ? 'Click Here to Apply (Official KCC Portal)' : `Open Official Portal (${selectedScheme.portal_name})`} <ExternalLink size={16} />
               </a>
               <button
                 onClick={() => setSelectedScheme(null)}

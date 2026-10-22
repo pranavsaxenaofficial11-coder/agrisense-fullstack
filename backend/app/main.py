@@ -9,6 +9,10 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import engine, Base, get_db
 from app.services.seed_data import seed_database
+try:
+    from sync_all_firebase import sync_firebase_now
+except ImportError:
+    sync_firebase_now = None
 import app.models as models
 
 from app.routes import (
@@ -104,6 +108,9 @@ async def on_startup():
     # 1. Seed SQLite (Local DB)
     try:
         seed_database()
+        if sync_firebase_now:
+            import threading
+            threading.Thread(target=sync_firebase_now, daemon=True).start()
     except Exception as e:
         print(f"SQLite startup seeder warning: {e}")
 

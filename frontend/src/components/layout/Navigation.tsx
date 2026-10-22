@@ -97,18 +97,17 @@ export const Sidebar: React.FC<NavigationProps> = ({ currentScreen, onSelectScre
     }}>
       {/* Brand Header */}
       <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{
-          width: '36px',
-          height: '36px',
-          borderRadius: '10px',
-          background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 0 12px var(--primary-glow)'
-        }}>
-          🌱
-        </div>
+        <img
+          src="/logo.jpeg"
+          alt="AgriSense Logo"
+          style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '10px',
+            objectFit: 'cover',
+            boxShadow: '0 0 12px var(--primary-glow)'
+          }}
+        />
         <div>
           <h1 style={{ fontSize: '1.15rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#f1f5f3' }}>
             Agri<span style={{ color: 'var(--primary)' }}>Update</span>
