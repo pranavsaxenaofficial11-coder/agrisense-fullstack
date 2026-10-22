@@ -4622,15 +4622,15 @@ function googleTranslateElementInit() {
 
           </div>
 
-          <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">
+          <div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">
 
-            <button class="btn green" id="scanGo">✨ Diagnose Plant Health</button>
+            <button class="btn green lg" id="scanGo" onclick="runScan()" style="font-size:15px;font-weight:800;padding:11px 28px;box-shadow:0 4px 16px rgba(16,185,129,0.4)">🌿 Scan Crop</button>
 
-            <button class="btn ghost" id="scanNewCamera">📸 Take New Photo</button>
+            <button class="btn ghost sm" id="scanNewCamera" onclick="document.getElementById('scanFileCamera').click()">📸 Retake Photo</button>
 
-            <button class="btn ghost" id="scanNewUpload">📁 Upload Different Pic</button>
+            <button class="btn ghost sm" id="scanNewUpload" onclick="document.getElementById('scanFileUpload').click()">📁 Choose Another</button>
 
-            <button class="btn ghost" id="scanAdvancedBtn">⚙️ Advanced Camera &amp; AI Lab</button>
+            <button class="btn ghost sm" id="scanAdvancedBtn" onclick="openCameraLabSheet()">⚙️ Optics &amp; Filters</button>
 
           </div>
 
@@ -24030,7 +24030,7 @@ async function runScan(){
 
   if (!scanData){ toast('Choose a photo first'); return; }
 
-  const btn = $('#scanGo'); btn.disabled = true;
+  const btn = $('#scanGo'); if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Scanning Crop…'; }
 
   const imgSrc = $('#scanPrev').src;
 
@@ -24197,7 +24197,7 @@ function initScan() {
   // --- MOBILE DEVICE CAMERA & GALLERY INPUT WIRING ---
   const handleLeafFile = (file) => {
     if (!file) return;
-    toast('📷 Loading leaf photo from device camera...');
+    toast('📷 Loading leaf photo...');
     const rd = new FileReader();
     rd.onload = (e) => {
       const dataUrl = e.target.result;
@@ -24212,8 +24212,14 @@ function initScan() {
         window.scrollTo({ top: wrap.offsetTop - 20, behavior: 'smooth' });
       }
 
-      toast('✅ Photo captured from phone camera! Running AI foliar diagnosis...');
-      if (typeof runScan === 'function') runScan();
+      const scanBtn = document.getElementById('scanGo');
+      if (scanBtn) {
+        scanBtn.disabled = false;
+        scanBtn.innerHTML = '🌿 Scan Crop';
+        scanBtn.onclick = runScan;
+      }
+
+      toast('📸 Photo ready on website! Tap "🌿 Scan Crop" to diagnose.');
     };
     rd.readAsDataURL(file);
   };
@@ -24280,8 +24286,14 @@ function initScan() {
         window.scrollTo({ top: wrap.offsetTop - 20, behavior: 'smooth' });
       }
 
-      toast('✅ Snapshot received from ESP32-S3! Running AI diagnosis...');
-      if (typeof runScan === 'function') runScan();
+      const scanBtn = document.getElementById('scanGo');
+      if (scanBtn) {
+        scanBtn.disabled = false;
+        scanBtn.innerHTML = '🌿 Scan Crop';
+        scanBtn.onclick = runScan;
+      }
+
+      toast('📸 Photo ready on website! Tap "🌿 Scan Crop" to diagnose.');
     };
 
     // If on HTTPS, browsers block background HTTP fetch to LAN IPs (Mixed Content)
