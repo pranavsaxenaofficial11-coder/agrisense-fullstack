@@ -4550,7 +4550,7 @@ function googleTranslateElementInit() {
       <button class="btn ghost sm" id="s3AutoDetectBtn" style="padding:5px 10px;font-size:11.5px;font-weight:700;border:1px solid rgba(56,189,248,0.5);color:#38bdf8;border-radius:8px;background:rgba(56,189,248,0.08)" title="Auto-detect ESP32 on network">🔍 Find</button>
       <button class="btn green sm" id="s3DirectScanBtn" style="padding:5px 12px;font-weight:700;font-size:12px;border-radius:8px;box-shadow:0 2px 10px rgba(16,185,129,0.3)">📸 Capture from S3</button>
       <button class="btn ghost sm" id="s3ToggleStreamBtn" style="padding:5px 11px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid rgba(255,255,255,0.2);color:#e2e8f0">▶ Live Viewfinder</button>
-      <button class="btn ghost sm" id="s3SettingsBtn" style="padding:5px 10px;font-size:12px;border:1px solid rgba(56,189,248,0.5);color:#38bdf8;border-radius:8px;background:rgba(56,189,248,0.08)" title="Open ESP32-S3 Camera Studio to adjust hardware sensors and model">⚙️ Cam Studio ↗</button>
+      <button class="btn ghost sm" id="s3SettingsBtn" style="padding:5px 10px;font-size:12px;border:1px solid rgba(56,189,248,0.5);color:#38bdf8;border-radius:8px;background:rgba(56,189,248,0.08)" title="Open Camera Optics Lab (Sepia, Inverted, Grayscale, Brightness)">⚙️ Optics &amp; Filters</button>
     </div>
   </div>
 
@@ -23471,27 +23471,25 @@ const CAM_SETTINGS = {
 };
 
 function applyCamFilterToPreview(){
-
   const img = $('#scanPrev');
-
-  if (!img) return;
-
   const b = 1 + CAM_SETTINGS.brightness * 0.15;
-
   const c = 1 + CAM_SETTINGS.contrast * 0.2;
-
   const s = 1 + CAM_SETTINGS.saturation * 0.25;
-
   let fx = '';
+  let espFxVal = 0;
+  if (CAM_SETTINGS.specialEffect === 'grayscale') { fx = ' grayscale(100%)'; espFxVal = 2; }
+  else if (CAM_SETTINGS.specialEffect === 'sepia') { fx = ' sepia(80%)'; espFxVal = 6; }
+  else if (CAM_SETTINGS.specialEffect === 'negative') { fx = ' invert(100%)'; espFxVal = 1; }
+  
+  const filterStr = `brightness(${b}) contrast(${c}) saturate(${s})${fx}`;
+  if (img) img.style.filter = filterStr;
+  const s3Img = $('#s3StreamImg');
+  if (s3Img) s3Img.style.filter = filterStr;
 
-  if (CAM_SETTINGS.specialEffect === 'grayscale') fx = ' grayscale(100%)';
-
-  else if (CAM_SETTINGS.specialEffect === 'sepia') fx = ' sepia(80%)';
-
-  else if (CAM_SETTINGS.specialEffect === 'negative') fx = ' invert(100%)';
-
-  img.style.filter = `brightness(${b}) contrast(${c}) saturate(${s})${fx}`;
-
+  try {
+    const ip = (typeof getActiveIp === 'function') ? getActiveIp() : (localStorage.getItem('agrisense_s3_cam_ip') || '192.168.4.1');
+    fetch('http://' + ip + '/control?var=special_effect&val=' + espFxVal).catch(() => {});
+  } catch(_) {}
 }
 
 function openCameraLabSheet(){
@@ -24397,15 +24395,18 @@ function initScan() {
     };
   }
 
-  // 5. Cam Settings Button (Opens Studio)
+  // 5. Cam Settings Button - Opens the Camera Lab Sheet with Sepia & Inverted modes!
   const s3SettingsBtn = document.getElementById('s3SettingsBtn');
   if (s3SettingsBtn && !s3SettingsBtn._wired) {
     s3SettingsBtn._wired = true;
     s3SettingsBtn.onclick = () => {
-      const ip = getActiveIp();
-      try { localStorage.setItem('agrisense_s3_cam_ip', ip); } catch(_) {}
-      toast('Opening ESP32-S3 Camera Studio (http://' + ip + ')...');
-      window.open('http://' + ip, '_blank');
+      if (typeof openCameraLabSheet === 'function') {
+        openCameraLabSheet();
+        toast('⚙️ Camera Lab opened — adjust Sepia, Inverted, Grayscale, and Exposure');
+      } else {
+        const ip = getActiveIp();
+        window.open('http://' + ip, '_blank');
+      }
     };
   }
 
