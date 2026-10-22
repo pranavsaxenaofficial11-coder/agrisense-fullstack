@@ -4584,13 +4584,13 @@ function googleTranslateElementInit() {
 
         <!-- Distinct dual options for taking photo vs uploading from device -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:14px;margin:16px 0">
-          <div class="scan-drop" id="scanCameraCard" style="cursor:pointer;border:2px dashed var(--green);background:var(--green-soft);border-radius:14px;padding:22px 16px;text-align:center;transition:transform .15s ease">
+          <div class="scan-drop" id="scanCameraCard" onclick="document.getElementById('scanFileCamera').click()" style="cursor:pointer;border:2px dashed var(--green);background:var(--green-soft);border-radius:14px;padding:22px 16px;text-align:center;transition:transform .15s ease">
             <div style="font-size:38px;margin-bottom:6px">📷</div>
             <div style="font-size:15px;font-weight:700;color:var(--ink)">Take a Photo</div>
             <div style="font-size:12px;color:var(--ink-soft);margin-top:3px">Use live device camera to scan leaf</div>
             <button class="btn green sm" type="button" style="margin-top:12px;pointer-events:none">📸 Open Camera</button>
           </div>
-          <div class="scan-drop" id="scanUploadCard" style="cursor:pointer;border:2px dashed var(--purple,#a78bfa);background:var(--purple-soft,rgba(167,139,250,.12));border-radius:14px;padding:22px 16px;text-align:center;transition:transform .15s ease">
+          <div class="scan-drop" id="scanUploadCard" onclick="document.getElementById('scanFileUpload').click()" style="cursor:pointer;border:2px dashed var(--purple,#a78bfa);background:var(--purple-soft,rgba(167,139,250,.12));border-radius:14px;padding:22px 16px;text-align:center;transition:transform .15s ease">
             <div style="font-size:38px;margin-bottom:6px">📁</div>
             <div style="font-size:15px;font-weight:700;color:var(--ink)">Upload Image / Pic</div>
             <div style="font-size:12px;color:var(--ink-soft);margin-top:3px">Choose picture from gallery or storage</div>
@@ -24196,10 +24196,68 @@ function initScan() {
     if (sImg) sImg.src = '';
   });
 
+  // --- MOBILE DEVICE CAMERA & GALLERY INPUT WIRING ---
+  const handleLeafFile = (file) => {
+    if (!file) return;
+    toast('📷 Loading leaf photo from device camera...');
+    const rd = new FileReader();
+    rd.onload = (e) => {
+      const dataUrl = e.target.result;
+      scanMime = file.type || 'image/jpeg';
+      scanData = String(dataUrl).split(',')[1] || '';
+
+      const prev = document.getElementById('scanPrev');
+      if (prev) prev.src = dataUrl;
+      const wrap = document.getElementById('scanPrevWrap');
+      if (wrap) {
+        wrap.style.display = 'block';
+        window.scrollTo({ top: wrap.offsetTop - 20, behavior: 'smooth' });
+      }
+
+      toast('✅ Photo captured from phone camera! Running AI foliar diagnosis...');
+      if (typeof runScan === 'function') runScan();
+    };
+    rd.readAsDataURL(file);
+  };
+
+  const camInput = document.getElementById('scanFileCamera');
+  if (camInput && !camInput._wired) {
+    camInput._wired = true;
+    camInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) handleLeafFile(e.target.files[0]);
+    });
+  }
+
+  const upInput = document.getElementById('scanFileUpload');
+  if (upInput && !upInput._wired) {
+    upInput._wired = true;
+    upInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) handleLeafFile(e.target.files[0]);
+    });
+  }
+
+  const camCard = document.getElementById('scanCameraCard');
+  if (camCard && !camCard._wired) {
+    camCard._wired = true;
+    camCard.onclick = () => {
+      const input = document.getElementById('scanFileCamera');
+      if (input) input.click();
+    };
+  }
+
+  const upCard = document.getElementById('scanUploadCard');
+  if (upCard && !upCard._wired) {
+    upCard._wired = true;
+    upCard.onclick = () => {
+      const input = document.getElementById('scanFileUpload');
+      if (input) input.click();
+    };
+  }
+
+  // --- ESP32-S3 HARDWARE CAMERA WIRING ---
   const getActiveIp = () => {
     const input = document.getElementById('s3CamIp');
     let val = input ? input.value.trim() : '';
-    // If empty or set to agrisense.local or old router IPs, force 192.168.4.1
     if (!val || val === 'agrisense.local' || val === '10.128.89.252' || val.startsWith('192.168.1.')) {
       val = '192.168.4.1';
       if (input) input.value = '192.168.4.1';
@@ -24208,10 +24266,9 @@ function initScan() {
     return val;
   };
 
-  // 1. Direct In-Page Capture from ESP32-S3 (Never opens new tabs)
+  // 1. Capture from S3
   const executeS3Capture = async () => {
     const ip = getActiveIp();
-    toast('📸 Fetching photo from ESP32-S3 camera (' + ip + ')...');
 
     const applyCapturedImage = (dataUrl) => {
       scanMime = 'image/jpeg';
@@ -24225,42 +24282,20 @@ function initScan() {
         window.scrollTo({ top: wrap.offsetTop - 20, behavior: 'smooth' });
       }
 
-      const resEl = document.getElementById('scanResult');
-      if (resEl) {
-        resEl.innerHTML = `
-          <div class="card" style="padding:16px;border:1px solid #10b981;background:rgba(16,185,129,0.08);margin-top:12px;border-radius:14px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-              <span style="font-weight:800;color:#10b981;font-size:14.5px">🧠 Local Edge AI Model (On-Chip PSRAM)</span>
-              <span id="s3ConfBadge" style="background:#10b981;color:#064e3b;font-weight:900;font-size:11px;padding:3px 8px;border-radius:6px">ANALYZING...</span>
-            </div>
-            <div id="s3DxTitle" style="font-size:17px;font-weight:800;color:var(--ink)">Processing foliar scan...</div>
-            <div id="s3DxSub" style="font-size:12.5px;color:var(--ink-mute);margin-top:4px">Connecting to ESP32-S3 vision engine at ${ip}...</div>
-          </div>`;
-      }
-
-      toast('✅ Image captured directly from ESP32-S3!');
-
-      // Query on-chip diagnosis if available
-      fetch('http://' + ip + '/ai/diagnose?t=' + Date.now(), { mode: 'cors' })
-        .then(r => r.json())
-        .then(diagJson => {
-          window._lastS3Diagnosis = diagJson;
-          const titleEl = document.getElementById('s3DxTitle');
-          const subEl = document.getElementById('s3DxSub');
-          const confEl = document.getElementById('s3ConfBadge');
-          if (titleEl) titleEl.innerText = diagJson.diagnosis || 'Healthy Crop Foliage';
-          if (subEl) subEl.innerHTML = `Severity: <b>${diagJson.severity || 'Optimal'}</b> • Foliar Coverage: <b>${diagJson.foliar_coverage_pct || 82}%</b> • Lesions: <b>${diagJson.lesion_count || 0}</b> • Latency: <b>${diagJson.processing_time_ms || 18}ms</b>`;
-          if (confEl) confEl.innerText = Math.round(diagJson.confidence || 95) + '% CONFIDENCE';
-          toast('🔬 Edge Diagnosis: ' + (diagJson.diagnosis || 'Healthy') + ' (' + Math.round(diagJson.confidence || 95) + '%)');
-        })
-        .catch(() => {});
-
+      toast('✅ Snapshot received from ESP32-S3! Running AI diagnosis...');
       if (typeof runScan === 'function') runScan();
     };
 
+    // If on HTTPS, browsers block background HTTP fetch to LAN IPs (Mixed Content)
+    if (window.location.protocol === 'https:') {
+      toast('🔒 HTTPS Security: Opening ESP32 Camera frame (http://' + ip + ')...');
+      window.open('http://' + ip + '/capture.jpg', 'AgriS3Capture', 'width=420,height=340');
+      return;
+    }
+
+    toast('📸 Capturing leaf snapshot from ESP32-S3 (' + ip + ')...');
     const capUrl = 'http://' + ip + '/capture.jpg?t=' + Date.now();
 
-    // Strategy A: Direct fetch
     try {
       const res = await fetch(capUrl, { mode: 'cors' });
       if (res.ok) {
@@ -24272,7 +24307,7 @@ function initScan() {
       }
     } catch (_) {}
 
-    // Strategy B: Image + HTML5 Canvas (seamless in-page capture, no new tabs)
+    // Canvas fallback
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
@@ -24288,7 +24323,8 @@ function initScan() {
       }
     };
     img.onerror = () => {
-      toast('⚠️ Cannot reach ESP32 at ' + ip + '. Ensure Wi-Fi is connected to AgriSense-S3-Cam (192.168.4.1)');
+      toast('⚠️ Could not fetch from ' + ip + '. Opening Camera Studio directly...');
+      window.open('http://' + ip, '_blank');
     };
     img.src = capUrl;
   };
@@ -24324,7 +24360,7 @@ function initScan() {
     };
   }
 
-  // 4. Live Stream Viewfinder Toggle (Renders right inside the website)
+  // 4. Live Stream Viewfinder Toggle
   const s3StreamBtn = document.getElementById('s3ToggleStreamBtn');
   const s3StreamBox = document.getElementById('s3StreamBox');
   const s3StreamImg = document.getElementById('s3StreamImg');
@@ -24335,6 +24371,13 @@ function initScan() {
     s3StreamBtn._wired = true;
     s3StreamBtn.onclick = () => {
       const ip = getActiveIp();
+
+      // HTTPS Mixed Content protection: browsers strictly block HTTP streams inside HTTPS pages
+      if (window.location.protocol === 'https:') {
+        toast('🔒 Opening Live Viewfinder stream from ESP32 (' + ip + ')...');
+        window.open('http://' + ip, 'AgriS3StreamWindow', 'width=520,height=680');
+        return;
+      }
 
       if (s3StreamBox.style.display === 'none') {
         s3StreamBox.style.display = 'block';
@@ -24360,7 +24403,7 @@ function initScan() {
     s3SettingsBtn._wired = true;
     s3SettingsBtn.onclick = () => {
       const ip = getActiveIp();
-      localStorage.setItem('agrisense_s3_cam_ip', ip);
+      try { localStorage.setItem('agrisense_s3_cam_ip', ip); } catch(_) {}
       toast('Opening ESP32-S3 Camera Studio (http://' + ip + ')...');
       window.open('http://' + ip, '_blank');
     };
@@ -24383,60 +24426,6 @@ function initScan() {
       if (s3StreamBtn) s3StreamBtn.textContent = '▶ Live Viewfinder';
       executeS3Capture();
     };
-  }
-}
-
-// Auto-wire on page load, DOM ready, and tab interactions
-initScan();
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initScan);
-
-  // 6. Live Status Heartbeat Poller
-  const updateBadge = (online, text) => {
-    const badge = document.getElementById('s3LiveBadge');
-    const dot = document.getElementById('s3Dot');
-    const bText = document.getElementById('s3BadgeText');
-    if (!badge || !dot || !bText) return;
-    if (online) {
-      badge.style.background = 'rgba(16,185,129,0.2)';
-      badge.style.color = '#10b981';
-      badge.style.borderColor = 'rgba(16,185,129,0.4)';
-      dot.style.background = '#10b981';
-      dot.style.boxShadow = '0 0 8px #10b981';
-      bText.textContent = text || 'ONLINE';
-    } else {
-      badge.style.background = 'rgba(100,116,139,0.2)';
-      badge.style.color = '#94a3b8';
-      badge.style.borderColor = 'rgba(148,163,184,0.2)';
-      dot.style.background = '#94a3b8';
-      dot.style.boxShadow = 'none';
-      bText.textContent = text || 'STANDBY';
-    }
-  };
-
-  const pollHeartbeat = async () => {
-    if (window.location.protocol === 'https:') {
-      updateBadge(false, 'HTTPS (CAM STUDIO ↗)');
-      return;
-    }
-    const ip = getActiveIp();
-    try {
-      const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 900);
-      const res = await fetch('http://' + ip + '/status', { signal: ctrl.signal });
-      clearTimeout(tid);
-      if (res.ok) {
-        const data = await res.json().catch(() => ({}));
-        updateBadge(true, `ONLINE (${data.fps || 30} FPS)`);
-        return;
-      }
-    } catch (_) {}
-    updateBadge(false, 'STANDBY');
-  };
-
-  pollHeartbeat();
-  if (!window._s3HeartbeatInterval) {
-    window._s3HeartbeatInterval = setInterval(pollHeartbeat, 6000);
   }
 }
 
