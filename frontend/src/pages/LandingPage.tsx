@@ -25,7 +25,21 @@ export const LandingPage: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // 4. Interactive Live Demo
+    // 4. Subscription Plan state
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [selectedPlanModal, setSelectedPlanModal] = useState<{
+    id: string;
+    name: string;
+    price: string;
+    period: string;
+    features: string[];
+  } | null>(null);
+  const [subscriberName, setSubscriberName] = useState('');
+  const [subscriberPhone, setSubscriberPhone] = useState('');
+  const [subscriberLocation, setSubscriberLocation] = useState('');
+  const [subscriptionSuccess, setSubscriptionSuccess] = useState(false);
+
+  // 5. Interactive Live Demo
   const rows = ['A', 'B', 'C', 'D'];
   const allZoneIds: string[] = [];
   rows.forEach((r) => {
@@ -197,6 +211,7 @@ export const LandingPage: React.FC = () => {
             <a href="#how" onClick={() => setMenuOpen(false)}>Working model</a>
             <a href="#demo" onClick={() => setMenuOpen(false)}>Live demo</a>
             <a href="#prototype" onClick={() => setMenuOpen(false)}>Prototype</a>
+            <a href="#pricing" onClick={() => setMenuOpen(false)}>Plans</a>
             <a href="#team" onClick={() => setMenuOpen(false)}>Team</a>
             <a
               href="/app.html"
@@ -455,6 +470,220 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      
+      {/* Subscription Plans */}
+      <section id="pricing" style={{ borderTop: '1px solid var(--line)', background: 'rgba(255, 255, 255, 0.55)' }}>
+        <div className="wrap">
+          <div className="pricing-header-wrap">
+            <div className="eyebrow">Affordable Precision Agri-Tech</div>
+            <h2>Smart Farming Subscription Plans</h2>
+            <p className="lede" style={{ margin: '0 auto' }}>
+              Choose the right precision farming tier for your field. Slashes irrigation water by 30-50%, automates solenoid valves, and protects your harvest with AI.
+            </p>
+            <div className="pricing-toggle">
+              <button
+                type="button"
+                className={billingCycle === 'monthly' ? 'active' : ''}
+                onClick={() => setBillingCycle('monthly')}
+              >
+                Monthly billing
+              </button>
+              <button
+                type="button"
+                className={billingCycle === 'yearly' ? 'active' : ''}
+                onClick={() => setBillingCycle('yearly')}
+              >
+                Annual billing <span className="save-badge">Save 20%</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="pricing-grid">
+            {/* Plan 1: Starter */}
+            <div className="plan-card">
+              <div className="plan-name">Kisan Starter</div>
+              <div className="plan-desc">For smallholder farmers & students exploring smart moisture sensing and basic irrigation.</div>
+              <div className="plan-price-wrap">
+                <span className="plan-currency">₹</span>
+                <span className="plan-amount">0</span>
+                <span className="plan-period">/ forever</span>
+              </div>
+              <ul className="plan-features">
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span>1 Field Zone Soil Physics & Moisture Telemetry</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span>Capacitive Sensor Calibrations (Dry/Wet baseline)</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span>Daily e-NAM & Agmarknet Mandi Rates</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span>Basic Rule-Based Irrigation Threshold Alerts</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span>Community Farming Forum & Agronomy Tips</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span>Web Serial USB Direct Hardware Connection</span>
+                </li>
+              </ul>
+              <a href="/app.html" className="plan-cta outline">
+                Launch Free Web App →
+              </a>
+            </div>
+
+            {/* Plan 2: Pro (Featured) */}
+            <div className="plan-card featured">
+              <div className="plan-badge">⭐ Most Popular</div>
+              <div className="plan-name">Pro Kisan & Edge-IoT</div>
+              <div className="plan-desc">Full autonomous closed-loop irrigation, ESP32-S3 AI foliar vision & cloud telemetry.</div>
+              <div className="plan-price-wrap">
+                <span className="plan-currency">₹</span>
+                <span className="plan-amount">{billingCycle === 'monthly' ? '499' : '399'}</span>
+                <span className="plan-period">/ month {billingCycle === 'yearly' ? '(billed annually)' : ''}</span>
+              </div>
+              <ul className="plan-features">
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span><strong>Up to 16 Multi-Zone Sensor Grid</strong> (A1–D4)</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span><strong>Autonomous Relay & Solenoid Control</strong> (Pumps & Fans)</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span><strong>ESP32-S3 Dual-Core AI Vision</strong> (Pest & Leaf Disease Scan)</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span><strong>Live Google Sheets Sync</strong> + FastAPI Cloud Gateway</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span>Microclimate VPD (Vapor Pressure Deficit) Diagnostics</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span>Inter-Mandi Arbitrage & Freight Net Profit Calculator</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span>Urgent Weather, Frost & Heatwave WhatsApp Alerts</span>
+                </li>
+              </ul>
+              <button
+                type="button"
+                className="plan-cta primary"
+                onClick={() => {
+                  setSelectedPlanModal({
+                    id: 'pro',
+                    name: 'Pro Kisan & Edge-IoT',
+                    price: billingCycle === 'monthly' ? '₹499' : '₹399/mo (₹4,788/yr)',
+                    period: billingCycle === 'monthly' ? 'Monthly' : 'Annual (Save 20%)',
+                    features: [
+                      'Up to 16 Multi-Zone Sensor Grid (A1–D4)',
+                      'Autonomous Closed-Loop Pump & Relay Control',
+                      'ESP32-S3 On-Device AI Foliar Disease Vision',
+                      'Live Google Sheets Sync & Telemetry Logs',
+                      'VPD Transpiration & Weather Shield',
+                      'Priority Support & WhatsApp Alerts'
+                    ]
+                  });
+                  setSubscriptionSuccess(false);
+                }}
+              >
+                Choose Pro Plan →
+              </button>
+            </div>
+
+            {/* Plan 3: Enterprise */}
+            <div className="plan-card">
+              <div className="plan-name">FPO & Cluster Enterprise</div>
+              <div className="plan-desc">For Farmer Producer Organizations (FPOs), agribusiness clusters, and agronomy research labs.</div>
+              <div className="plan-price-wrap">
+                <span className="plan-currency">₹</span>
+                <span className="plan-amount">{billingCycle === 'monthly' ? '1,999' : '1,599'}</span>
+                <span className="plan-period">/ month {billingCycle === 'yearly' ? '(billed annually)' : ''}</span>
+              </div>
+              <ul className="plan-features">
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span><strong>Unlimited Plots & Multi-Node ESP32 Clusters</strong></span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span><strong>Aerial Drone Multispectral & Thermal Mapping</strong></span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span>Custom Gemini 2.5 Flash Agronomist AI Fine-Tuned Model</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span>High-Speed 100ms Telemetry Stream & Raw Data Export</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span>Cold Storage Logistics & Reefer Transport Fleet Booking</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span>ICAR & NABARD Compliance Reporting & Audit Data</span>
+                </li>
+                <li className="plan-feature-item">
+                  <span className="tick">✓</span>
+                  <span>Dedicated Agronomist & On-Site Hardware Calibration</span>
+                </li>
+              </ul>
+              <button
+                type="button"
+                className="plan-cta secondary"
+                onClick={() => {
+                  setSelectedPlanModal({
+                    id: 'enterprise',
+                    name: 'FPO & Cluster Enterprise',
+                    price: billingCycle === 'monthly' ? '₹1,999' : '₹1,599/mo (₹19,188/yr)',
+                    period: billingCycle === 'monthly' ? 'Monthly' : 'Annual (Save 20%)',
+                    features: [
+                      'Unlimited Farm Plots & Multi-Node Clusters',
+                      'Aerial Drone Thermal & NDVI Mapping',
+                      'Custom Agronomy AI Agent Fine-Tuning',
+                      'Dedicated Hardware Calibration & Support',
+                      'Full REST API & ICAR Audit Compliance'
+                    ]
+                  });
+                  setSubscriptionSuccess(false);
+                }}
+              >
+                Enroll Enterprise →
+              </button>
+            </div>
+          </div>
+
+          {/* Subsidy & Compatibility Banner */}
+          <div className="pricing-footer-banner">
+            <div className="pricing-footer-banner-text">
+              <span className="icon">🌾</span>
+              <div>
+                <h4>Eligible for PM-KUSUM & Per Drop More Crop (PDMC) DBT Subsidies</h4>
+                <p>AgriSense open-standard IoT irrigation controllers qualify for government micro-irrigation and precision agriculture subsidies (up to 55-80% rebate depending on state).</p>
+              </div>
+            </div>
+            <a href="mailto:agrisense000@gmail.com?subject=AgriSense%20Govt%20Subsidy%20Assistance" className="btn ghost" style={{ padding: '10px 22px', fontSize: '13.5px' }}>
+              Claim Subsidy Assistance →
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Future Scope & Team */}
       <section id="future">
         <div className="wrap split">
@@ -579,6 +808,181 @@ export const LandingPage: React.FC = () => {
           <div>© 2026 AgriUpdate</div>
         </div>
       </footer>
+
+      
+      {/* Subscription Checkout / Activation Modal */}
+      {selectedPlanModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.75)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999,
+          padding: '20px'
+        }}>
+          <div style={{
+            maxWidth: '500px',
+            width: '100%',
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            padding: '32px 28px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            position: 'relative'
+          }}>
+            <button
+              type="button"
+              onClick={() => setSelectedPlanModal(null)}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: '#F1F5F9',
+                border: 'none',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontSize: '16px',
+                color: '#64748B'
+              }}
+            >
+              ✕
+            </button>
+
+            {subscriptionSuccess ? (
+              <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                <div style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  background: '#DCFCE7',
+                  color: '#15803D',
+                  fontSize: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px auto'
+                }}>
+                  ✓
+                </div>
+                <h3 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--ink)', marginBottom: '8px' }}>
+                  Subscription Activated!
+                </h3>
+                <p style={{ color: 'var(--ink-soft)', fontSize: '14px', marginBottom: '20px' }}>
+                  Welcome to <strong>{selectedPlanModal.name}</strong> ({selectedPlanModal.period}). Your IoT telemetry credentials and AI agronomy suite are now ready.
+                </p>
+                <a
+                  href="/app.html"
+                  className="btn"
+                  style={{ width: '100%', display: 'block', textAlign: 'center', textDecoration: 'none' }}
+                >
+                  Open Farm Dashboard Now →
+                </a>
+              </div>
+            ) : (
+              <div>
+                <div style={{ display: 'inline-block', background: '#E8F5E9', color: '#166534', padding: '4px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
+                  {selectedPlanModal.period} Plan
+                </div>
+                <h3 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--ink)', marginBottom: '4px' }}>
+                  {selectedPlanModal.name}
+                </h3>
+                <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--green-deep)', marginBottom: '16px' }}>
+                  {selectedPlanModal.price}
+                </div>
+
+                <div style={{ background: '#F8FAFC', borderRadius: '14px', padding: '14px 16px', marginBottom: '20px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B', marginBottom: '8px' }}>
+                    Included in this plan:
+                  </div>
+                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px', color: '#334155', padding: 0 }}>
+                    {selectedPlanModal.features.map((feat, idx) => (
+                      <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: '#16A34A', fontWeight: 800 }}>✓</span> {feat}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  try {
+                    localStorage.setItem('agrisense_subscription', JSON.stringify({
+                      plan: selectedPlanModal.name,
+                      price: selectedPlanModal.price,
+                      period: selectedPlanModal.period,
+                      subscriberName,
+                      subscriberPhone,
+                      subscriberLocation,
+                      activatedAt: new Date().toISOString()
+                    }));
+                  } catch (err) {}
+                  setSubscriptionSuccess(true);
+                }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                        Farmer / Farm Name
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Ramesh Patel"
+                        value={subscriberName}
+                        onChange={(e) => setSubscriberName(e.target.value)}
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '14px', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                          Mobile Number
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          placeholder="e.g. 9876543210"
+                          value={subscriberPhone}
+                          onChange={(e) => setSubscriberPhone(e.target.value)}
+                          style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '14px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                          District / State
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Bareilly, UP"
+                          value={subscriberLocation}
+                          onChange={(e) => setSubscriberLocation(e.target.value)}
+                          style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '14px', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn"
+                    style={{ width: '100%', background: 'var(--green)', border: 'none', cursor: 'pointer', padding: '14px', fontSize: '16px' }}
+                  >
+                    Confirm & Start Subscription →
+                  </button>
+                  <p style={{ textAlign: 'center', fontSize: '12px', color: '#94A3B8', marginTop: '10px' }}>
+                    Instant activation · 14-day risk-free trial · No credit card required upfront
+                  </p>
+                </form>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* YouTube Tutorial Pop-Up Modal */}
       {tutorialOpen && (
