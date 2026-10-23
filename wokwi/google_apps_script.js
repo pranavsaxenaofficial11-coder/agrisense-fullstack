@@ -3,13 +3,11 @@
  * AGRISENSE PRECISION AGRICULTURE — ALL 39 SENSORS GOOGLE APPS SCRIPT
  * Team: AgriSense Innovation Cell — Bal Bharati Public School
  * 
- * ROLE IN ARCHITECTURE:
- * 1. Primary Ingestion Gate: Receives telemetry covering all 39 sensors from Wokwi / physical ESP32.
- * 2. Systematic Data Logging: Appends formatted row into categorized, color-coded Google Sheet.
- * 3. Live Backend Forwarding: Automatically relays the 39-sensor payload to our FastAPI backend:
- *    https://agrisense-backend-kb22.onrender.com/api/sensors/ingest
- * 4. Bidirectional Control Relay: Receives actuator states (Pump, Fan, Auto/Manual) from backend
- *    or Google Sheet control cells and returns them back to the ESP32 in JSON format!
+ * CLEAN LIGHT THEME EDITION:
+ * - Soft pastel category banners (mint, lavender, sky, cyan, warm amber, indigo)
+ * - Crisp light header row with dark charcoal typography (#1e293b)
+ * - Soft alternating row zebra striping (#ffffff / #f8fafc)
+ * - Pastel status pills for Pump/Fan actuators
  * ==============================================================================
  */
 
@@ -19,19 +17,19 @@ var CONFIG = {
   CONTROLS_SHEET_NAME: "Edge_Controls",
   FASTAPI_BACKEND_URL: "https://agrisense-backend-kb22.onrender.com/api/sensors/ingest",
   BACKEND_TIMEOUT_MS: 5000,
-  MAX_DATA_ROWS: 5000 // Automatically trims oldest rows to prevent Google Sheets lag
+  MAX_DATA_ROWS: 5000 // Automatically trims oldest rows to maintain high sheet speed
 };
 
-// -------------------- 2. SYSTEMATIC 39-SENSOR HEADER DEFINITION --------------------
+// -------------------- 2. CLEAN LIGHT PALETTE (NO DARK COLORS) --------------------
 var SENSOR_CATEGORIES = [
-  { name: "METADATA", color: "#1e293b", cols: 3 },
-  { name: "SOIL DYNAMICS & ROOT-ZONE (9)", color: "#166534", cols: 9 },
-  { name: "NPK MACRONUTRIENTS (3)", color: "#7e22ce", cols: 3 },
-  { name: "MICRO-CLIMATE & METEOROLOGY (10)", color: "#0369a1", cols: 10 },
-  { name: "HYDRAULICS & WATER INFRASTRUCTURE (6)", color: "#1d4ed8", cols: 6 },
-  { name: "CANOPY BIOMETRICS & PLANT HEALTH (4)", color: "#047857", cols: 4 },
-  { name: "ENVIRONMENT & PEST SURVEILLANCE (7)", color: "#b45309", cols: 7 },
-  { name: "ACTUATORS & EDGE CONTROL (6)", color: "#4338ca", cols: 6 }
+  { name: "METADATA", bg: "#f1f5f9", text: "#334155", cols: 3 },
+  { name: "SOIL DYNAMICS & ROOT-ZONE (9)", bg: "#dcfce7", text: "#166534", cols: 9 },
+  { name: "NPK MACRONUTRIENTS (3)", bg: "#f3e8ff", text: "#6b21a8", cols: 3 },
+  { name: "MICRO-CLIMATE & METEOROLOGY (10)", bg: "#e0f2fe", text: "#0369a1", cols: 10 },
+  { name: "HYDRAULICS & WATER INFRASTRUCTURE (6)", bg: "#e0f7fa", text: "#006064", cols: 6 },
+  { name: "CANOPY BIOMETRICS & PLANT HEALTH (4)", bg: "#ecfdf5", text: "#065f46", cols: 4 },
+  { name: "ENVIRONMENT & PEST SURVEILLANCE (7)", bg: "#fef3c7", text: "#92400e", cols: 7 },
+  { name: "ACTUATORS & EDGE CONTROL (6)", bg: "#e0e7ff", text: "#3730a3", cols: 6 }
 ];
 
 var SYSTEMATIC_COLUMNS = [
@@ -39,15 +37,15 @@ var SYSTEMATIC_COLUMNS = [
   "Timestamp (IST)", "Ingestion Route", "Target Zone",
   
   // Category 1: Soil Dynamics (9)
-  "Soil Moisture 1 - Zone A [%]",
-  "Soil Moisture 2 - Zone B [%]",
-  "Soil Moisture 3 - Zone C [%]",
-  "Soil Moisture 4 - Zone D [%]",
-  "Root-Zone Average Moisture [%]",
-  "Root-Zone Soil Temp [°C]",
-  "Soil Acidity/Alkalinity [pH]",
-  "Soil Salinity EC [dS/m]",
-  "Sub-surface Soil Oxygen [%]",
+  "Soil Moisture 1 [%]",
+  "Soil Moisture 2 [%]",
+  "Soil Moisture 3 [%]",
+  "Soil Moisture 4 [%]",
+  "Root Average Moisture [%]",
+  "Root Soil Temp [°C]",
+  "Soil pH",
+  "Soil EC [dS/m]",
+  "Sub-surface Soil O2 [%]",
 
   // Category 2: NPK Macronutrients (3)
   "Soil Nitrogen (N) [mg/kg]",
@@ -55,50 +53,119 @@ var SYSTEMATIC_COLUMNS = [
   "Soil Potassium (K) [mg/kg]",
 
   // Category 3: Micro-Climate & Meteorology (10)
-  "Ambient Air Temp [°C]",
-  "Air Relative Humidity [%]",
+  "Air Temperature [°C]",
+  "Relative Humidity [%]",
   "Barometric Pressure [hPa]",
   "Solar Sunlight [%]",
   "PAR Flux [µmol/m²/s]",
-  "Solar Ultraviolet Index [0-12]",
+  "UV Index [0-12]",
   "Rainfall Intensity [%]",
   "Wind Velocity [km/h]",
   "Wind Direction [°]",
-  "Thermodynamic Dew Point [°C]",
+  "Dew Point [°C]",
 
   // Category 4: Hydraulics & Water Infrastructure (6)
-  "Water Reservoir Level [%]",
-  "Water Temperature [°C]",
-  "Water Salinity TDS [ppm]",
-  "Reservoir Water pH",
-  "Inline Drip Flow Rate [L/min]",
-  "Cumulative Water Today [L]",
+  "Water Reservoir [%]",
+  "Water Temp [°C]",
+  "Salinity TDS [ppm]",
+  "Water pH",
+  "Drip Flow Rate [L/min]",
+  "Delivered Water [L]",
 
   // Category 5: Canopy Biometrics (4)
-  "Leaf Canopy Wetness [%]",
-  "NDVI Canopy Vigour [0-1]",
-  "Vascular Sap Flow [g/h]",
-  "Stem Dendrometer Dia [mm]",
+  "Leaf Wetness [%]",
+  "NDVI Canopy Vigour",
+  "Sap Flux Rate [g/h]",
+  "Stem Diameter [mm]",
 
   // Category 6: Environmental & Pest Intelligence (7)
-  "Air Quality MQ-135 [idx]",
+  "Air Quality AQI",
   "Carbon Dioxide CO2 [ppm]",
-  "Combustible Gas MQ-2 [idx]",
-  "Bio-Acoustic Pest Index",
-  "Pheromone Pest Count [/day]",
-  "Ground Frost Alert [°C]",
-  "Enclosure Vibration",
+  "Smoke Level [ppm]",
+  "Bio-Acoustic Pest Level",
+  "Pheromone Pest Count",
+  "Frost Margin [°C]",
+  "Equipment Vibration",
 
   // Category 7: Actuators & Edge Control (6)
   "Pump State",
   "Fan State",
-  "Valve A (Zone A)",
-  "Valve B (Zone B)",
-  "Automation Mode",
+  "Valve A",
+  "Valve B",
+  "Control Mode",
   "FastAPI Sync Relay"
 ];
 
-// -------------------- 3. INITIALIZATION & FORMATTING --------------------
+// -------------------- 3. INITIALIZATION & REFORMATTING --------------------
+
+/**
+ * Run this function in Apps Script to instantly reformat your EXISTING sheet
+ * into the clean, light, professional pastel aesthetic without deleting any data!
+ */
+function reformatExistingSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
+  if (!sheet) {
+    return setupSystematicSheet();
+  }
+
+  // Row 1: Merged Light Category Banners
+  var colIndex = 1;
+  for (var c = 0; c < SENSOR_CATEGORIES.length; c++) {
+    var cat = SENSOR_CATEGORIES[c];
+    var range = sheet.getRange(1, colIndex, 1, cat.cols);
+    range.setBackground(cat.bg);
+    range.setFontColor(cat.text);
+    range.setFontWeight("bold");
+    range.setFontSize(11);
+    range.setHorizontalAlignment("center");
+    range.setVerticalAlignment("middle");
+    colIndex += cat.cols;
+  }
+  sheet.setRowHeight(1, 34);
+
+  // Row 2: Crisp Light Header Bar (Charcoal text on soft light gray)
+  var headerRange = sheet.getRange(2, 1, 1, SYSTEMATIC_COLUMNS.length);
+  headerRange.setValues([SYSTEMATIC_COLUMNS]);
+  headerRange.setBackground("#f8fafc");
+  headerRange.setFontColor("#1e293b");
+  headerRange.setFontWeight("bold");
+  headerRange.setFontSize(10);
+  headerRange.setHorizontalAlignment("center");
+  headerRange.setVerticalAlignment("middle");
+  headerRange.setWrap(true);
+  sheet.setRowHeight(2, 36);
+  sheet.setFrozenRows(2);
+
+  // Re-format all existing data rows with soft zebra striping
+  var lastRow = sheet.getLastRow();
+  if (lastRow > 2) {
+    for (var r = 3; r <= lastRow; r++) {
+      var rRange = sheet.getRange(r, 1, 1, SYSTEMATIC_COLUMNS.length);
+      rRange.setFontSize(10);
+      rRange.setFontColor("#1e293b");
+      rRange.setVerticalAlignment("middle");
+      rRange.setHorizontalAlignment("center");
+      rRange.setBackground(r % 2 === 0 ? "#ffffff" : "#f8fafc");
+    }
+  }
+
+  // Apply delicate light gray grid borders
+  sheet.getRange(1, 1, Math.max(lastRow, 2), SYSTEMATIC_COLUMNS.length)
+    .setBorder(true, true, true, true, true, true, "#e2e8f0", SpreadsheetApp.BorderStyle.SOLID);
+
+  // Set proportional column widths
+  sheet.setColumnWidth(1, 150); // Timestamp
+  sheet.setColumnWidth(2, 130); // Route
+  sheet.setColumnWidth(3, 110); // Zone
+  for (var i = 4; i <= SYSTEMATIC_COLUMNS.length; i++) {
+    sheet.setColumnWidth(i, 115);
+  }
+
+  setupControlsSheet(ss);
+  return "✨ Your existing Google Sheet has been successfully upgraded to the clean light theme!";
+}
+
 function setupSystematicSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
@@ -106,44 +173,48 @@ function setupSystematicSheet() {
     sheet = ss.insertSheet(CONFIG.SHEET_NAME, 0);
   }
 
-  // Clear existing headers if needed
   sheet.getRange(1, 1, 2, SYSTEMATIC_COLUMNS.length).clear();
 
-  // Row 1: Merged Category Banners
+  // Row 1: Merged Light Category Banners
   var colIndex = 1;
   for (var c = 0; c < SENSOR_CATEGORIES.length; c++) {
     var cat = SENSOR_CATEGORIES[c];
     var range = sheet.getRange(1, colIndex, 1, cat.cols);
     range.merge();
     range.setValue(cat.name);
-    range.setBackground(cat.color);
-    range.setFontColor("#ffffff");
+    range.setBackground(cat.bg);
+    range.setFontColor(cat.text);
     range.setFontWeight("bold");
+    range.setFontSize(11);
     range.setHorizontalAlignment("center");
     range.setVerticalAlignment("middle");
     colIndex += cat.cols;
   }
-  sheet.setRowHeight(1, 32);
+  sheet.setRowHeight(1, 34);
 
-  // Row 2: Systematic Column Headers
+  // Row 2: Light Column Headers
   var headerRange = sheet.getRange(2, 1, 1, SYSTEMATIC_COLUMNS.length);
   headerRange.setValues([SYSTEMATIC_COLUMNS]);
-  headerRange.setBackground("#0f172a");
-  headerRange.setFontColor("#f8fafc");
+  headerRange.setBackground("#f8fafc");
+  headerRange.setFontColor("#1e293b");
   headerRange.setFontWeight("bold");
+  headerRange.setFontSize(10);
   headerRange.setHorizontalAlignment("center");
-  sheet.setRowHeight(2, 28);
+  headerRange.setVerticalAlignment("middle");
+  headerRange.setWrap(true);
+  sheet.setRowHeight(2, 36);
   sheet.setFrozenRows(2);
 
-  // Auto-fit column widths
-  for (var i = 1; i <= SYSTEMATIC_COLUMNS.length; i++) {
-    sheet.setColumnWidth(i, 140);
+  // Column widths
+  sheet.setColumnWidth(1, 150);
+  sheet.setColumnWidth(2, 130);
+  sheet.setColumnWidth(3, 110);
+  for (var i = 4; i <= SYSTEMATIC_COLUMNS.length; i++) {
+    sheet.setColumnWidth(i, 115);
   }
 
-  // Setup Edge Controls Sheet if missing
   setupControlsSheet(ss);
-
-  return "✅ Systematic 39-Sensor Sheet initialized with 7 agronomic categories!";
+  return "✅ Systematic 39-Sensor Sheet initialized with clean light aesthetic!";
 }
 
 function setupControlsSheet(ss) {
@@ -155,16 +226,34 @@ function setupControlsSheet(ss) {
 
   var headers = [["Control Parameter", "Configured Value", "Description / Instructions"]];
   var data = [
-    ["PUMP OVERRIDE", "AUTO", "Set to: AUTO, ON, or OFF to override pump from Google Sheet"],
-    ["FAN OVERRIDE", "AUTO", "Set to: AUTO, ON, or OFF to override cooling fan"],
-    ["AUTOMATION MODE", "AUTO", "Set to AUTO (Edge Closed-Loop) or MANUAL"],
-    ["EMERGENCY STOP", "NO", "Set to YES to immediately kill all relays"]
+    ["PUMP OVERRIDE", "AUTO", "Type AUTO, ON, or OFF to control water pump from sheet"],
+    ["FAN OVERRIDE", "AUTO", "Type AUTO, ON, or OFF to control cooling fan"],
+    ["AUTOMATION MODE", "AUTO", "Type AUTO (Edge Closed-Loop) or MANUAL"],
+    ["EMERGENCY STOP", "NO", "Type YES to immediately kill all relays"]
   ];
 
-  ctrlSheet.getRange(1, 1, 1, 3).setValues(headers).setBackground("#312e81").setFontColor("#fff").setFontWeight("bold");
-  ctrlSheet.getRange(2, 1, data.length, 3).setValues(data);
-  ctrlSheet.setColumnWidth(1, 200);
-  ctrlSheet.setColumnWidth(2, 160);
+  ctrlSheet.getRange(1, 1, 1, 3).setValues(headers)
+    .setBackground("#e0e7ff")
+    .setFontColor("#1e1b4b")
+    .setFontWeight("bold")
+    .setFontSize(11)
+    .setHorizontalAlignment("center");
+
+  ctrlSheet.getRange(2, 1, data.length, 3).setValues(data)
+    .setFontSize(10)
+    .setFontColor("#1e293b")
+    .setVerticalAlignment("middle");
+
+  ctrlSheet.getRange(2, 2, data.length, 1)
+    .setHorizontalAlignment("center")
+    .setFontWeight("bold")
+    .setBackground("#f8fafc");
+
+  ctrlSheet.getRange(1, 1, data.length + 1, 3)
+    .setBorder(true, true, true, true, true, true, "#cbd5e1", SpreadsheetApp.BorderStyle.SOLID);
+
+  ctrlSheet.setColumnWidth(1, 180);
+  ctrlSheet.setColumnWidth(2, 150);
   ctrlSheet.setColumnWidth(3, 380);
 }
 
@@ -196,11 +285,10 @@ function handleIncomingTelemetry(params) {
       sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
     }
 
-    // 1. Extract and standardize all 39 sensors with fallbacks
     var t = new Date();
-    var timeStr = Utilities.formatDate(t, "Asia/Kolkata", "yyyy-MM-dd HH:mm:ss IST");
-    var route = "Google Sheets Primary (Relayed to Site)";
-    var zone = params.zone || "Zone A (Polyhouse)";
+    var timeStr = Utilities.formatDate(t, "Asia/Kolkata", "yyyy-MM-dd HH:mm:ss");
+    var route = "Google Sheets (Relayed)";
+    var zone = params.zone || "Zone A";
 
     // Category 1: Soil Dynamics (9)
     var soilA    = parseFloat(params.soilA || params.soil_moisture_1 || 35.0);
@@ -258,73 +346,49 @@ function handleIncomingTelemetry(params) {
     var isFanOn    = (params.fan === true || params.fan === "true" || params.fan_state === "true" || params.fan_state === true);
     var isValveAOn = (params.valveA === true || params.valveA === "true");
     var isValveBOn = (params.valveB === true || params.valveB === "true");
-    var autoMode   = (params.mode !== "manual");
+    var edgeMode   = params.mode || (params.auto_mode ? "auto" : "manual");
 
-    // 2. Relay the systematic 39-sensor telemetry directly to FastAPI Backend
-    var backendRelaySuccess = false;
-    var remotePumpCmd = isPumpOn;
-    var remoteFanCmd = isFanOn;
-    var remoteEmergencyStop = false;
+    // Read Sheet Edge Controls overrides
+    var controlOverrides = readControlsSheet(ss);
+    if (controlOverrides.pumpOverride !== null) isPumpOn = controlOverrides.pumpOverride;
+    if (controlOverrides.fanOverride !== null) isFanOn = controlOverrides.fanOverride;
+    if (controlOverrides.modeOverride !== null) edgeMode = controlOverrides.modeOverride;
 
-    var backendPayload = {
+    // Forward telemetry to FastAPI Cloud Backend
+    var backendSyncResult = forwardToFastApi({
       source: "google_sheets",
-      route: "google_sheets",
+      route: "google_sheets_primary",
+      timestamp: timeStr,
       zone: zone,
       soilA: soilA, soilB: soilB, soilC: soilC, soilD: soilD, soilAvg: soilAvg,
       soilTemp: soilTemp, soilPH: soilPH, soilEC: soilEC, soilO2: soilO2,
       nitrogen: nitrogen, phosphorus: phosphorus, potassium: potassium,
-      airTemp: airTemp, airHumidity: airHumidity, pressure: pressure,
-      light: light, par: par, uv: uv, rain: rain, wind: wind, windDir: windDir, dewPoint: dewPoint,
+      airTemp: airTemp, airHumidity: airHumidity, pressure: pressure, light: light,
+      par: par, uv: uv, rain: rain, wind: wind, windDir: windDir, dewPoint: dewPoint,
       waterTank: waterTank, waterTemp: waterTemp, tds: tds, waterPH: waterPH,
-      waterFlow: waterFlow, flow: flow, leafWet: leafWet, ndvi: ndvi,
-      sapFlow: sapFlow, stemDia: stemDia, airQuality: airQuality, co2: co2,
-      smoke: smoke, pestMic: pestMic, pestCount: pestCount, frost: frost,
-      vibration: vibration,
-      pump: isPumpOn, fan: isFanOn, valveA: isValveAOn, valveB: isValveBOn,
-      mode: autoMode ? "auto" : "manual"
-    };
+      waterFlow: waterFlow, flow: flow,
+      leafWet: leafWet, ndvi: ndvi, sapFlow: sapFlow, stemDia: stemDia,
+      airQuality: airQuality, co2: co2, smoke: smoke, pestMic: pestMic,
+      pestCount: pestCount, frost: frost, vibration: vibration,
+      pump: isPumpOn, fan: isFanOn, valveA: isValveAOn, valveB: isValveBOn, mode: edgeMode
+    });
 
-    try {
-      var fetchOptions = {
-        method: "post",
-        contentType: "application/json",
-        payload: JSON.stringify(backendPayload),
-        muteHttpExceptions: true
-      };
-      var backendResp = UrlFetchApp.fetch(CONFIG.FASTAPI_BACKEND_URL, fetchOptions);
-      if (backendResp.getResponseCode() === 200) {
-        backendRelaySuccess = true;
-        var respJson = JSON.parse(backendResp.getContentText());
-        if (respJson.pump_command !== undefined) remotePumpCmd = respJson.pump_command;
-        if (respJson.emergency_stop === true) remoteEmergencyStop = true;
-      }
-    } catch(backendErr) {
-      Logger.log("Notice: Backend relay offline or sleeping: " + backendErr);
+    if (backendSyncResult && backendSyncResult.pump_command !== undefined) {
+      isPumpOn = backendSyncResult.pump_command;
+    }
+    if (backendSyncResult && backendSyncResult.fan_command !== undefined) {
+      isFanOn = backendSyncResult.fan_command;
+    }
+    if (backendSyncResult && backendSyncResult.auto_mode !== undefined) {
+      edgeMode = backendSyncResult.auto_mode ? "auto" : "manual";
     }
 
-    // 3. Check Edge Controls Sheet for local overrides
-    var ctrlSheet = ss.getSheetByName(CONFIG.CONTROLS_SHEET_NAME);
-    if (ctrlSheet && ctrlSheet.getLastRow() >= 2) {
-      var ctrlVals = ctrlSheet.getRange(2, 1, 4, 2).getValues();
-      for (var r = 0; r < ctrlVals.length; r++) {
-        var param = String(ctrlVals[r][0]).toUpperCase();
-        var val = String(ctrlVals[r][1]).toUpperCase().trim();
-        if (param.indexOf("PUMP") !== -1) {
-          if (val === "ON") remotePumpCmd = true;
-          else if (val === "OFF") remotePumpCmd = false;
-        } else if (param.indexOf("FAN") !== -1) {
-          if (val === "ON") remoteFanCmd = true;
-          else if (val === "OFF") remoteFanCmd = false;
-        } else if (param.indexOf("EMERGENCY") !== -1 && val === "YES") {
-          remoteEmergencyStop = true;
-          remotePumpCmd = false;
-          remoteFanCmd = false;
-        }
-      }
-    }
+    var relayStatus = backendSyncResult && backendSyncResult.status === "success" 
+      ? "Relayed (HTTP 200)" 
+      : "Buffered in Sheet";
 
-    // 4. Append row with all systematic columns
-    var rowData = [
+    // 48-column row
+    var row = [
       timeStr, route, zone,
       soilA, soilB, soilC, soilD, soilAvg, soilTemp, soilPH, soilEC, soilO2,
       nitrogen, phosphorus, potassium,
@@ -332,102 +396,113 @@ function handleIncomingTelemetry(params) {
       waterTank, waterTemp, tds, waterPH, waterFlow, flow,
       leafWet, ndvi, sapFlow, stemDia,
       airQuality, co2, smoke, pestMic, pestCount, frost, vibration,
-      isPumpOn ? "PUMP_ON" : "PUMP_OFF",
-      isFanOn ? "FAN_ON" : "FAN_OFF",
-      isValveAOn ? "VALVE_A_OPEN" : "VALVE_A_CLOSED",
-      isValveBOn ? "VALVE_B_OPEN" : "VALVE_B_CLOSED",
-      autoMode ? "AUTO" : "MANUAL",
-      backendRelaySuccess ? "RELAYED_TO_FASTAPI_OK" : "QUEUED_LOCAL_ONLY"
+      isPumpOn ? "ON" : "OFF",
+      isFanOn ? "ON" : "OFF",
+      isValveAOn ? "OPEN" : "CLOSED",
+      isValveBOn ? "OPEN" : "CLOSED",
+      edgeMode.toUpperCase(),
+      relayStatus
     ];
 
-    sheet.appendRow(rowData);
+    sheet.appendRow(row);
 
-    // Auto-prune oldest rows if table exceeds limit
-    if (sheet.getLastRow() > CONFIG.MAX_DATA_ROWS + 2) {
+    // Apply formatting with soft pastel badges & alternating row background
+    var lastRow = sheet.getLastRow();
+    var rowRange = sheet.getRange(lastRow, 1, 1, row.length);
+    rowRange.setFontSize(10).setFontColor("#1e293b").setVerticalAlignment("middle").setHorizontalAlignment("center");
+    
+    // Zebra row shading
+    var rowBg = (lastRow % 2 === 0) ? "#ffffff" : "#f8fafc";
+    rowRange.setBackground(rowBg);
+
+    // Light green pastel badge for Pump
+    sheet.getRange(lastRow, 43, 1, 1)
+      .setBackground(isPumpOn ? "#dcfce7" : "#f1f5f9")
+      .setFontColor(isPumpOn ? "#15803d" : "#64748b")
+      .setFontWeight("bold");
+
+    // Light blue pastel badge for Fan
+    sheet.getRange(lastRow, 44, 1, 1)
+      .setBackground(isFanOn ? "#e0f2fe" : "#f1f5f9")
+      .setFontColor(isFanOn ? "#0284c7" : "#64748b")
+      .setFontWeight("bold");
+
+    // Light borders on appended row
+    rowRange.setBorder(true, true, true, true, true, true, "#e2e8f0", SpreadsheetApp.BorderStyle.SOLID);
+
+    // Prune oldest rows if exceeding maximum limit
+    if (lastRow > CONFIG.MAX_DATA_ROWS) {
       sheet.deleteRows(3, 50);
     }
 
-    // 5. Construct JSON response for ESP32
     var responseObj = {
       status: "success",
-      source: "google_sheets",
-      sheet_logged: true,
-      relayed_to_backend: backendRelaySuccess,
-      pump_command: remotePumpCmd,
-      fan_command: remoteFanCmd,
-      emergency_stop: remoteEmergencyStop,
-      auto_mode: autoMode,
-      timestamp: timeStr
+      timestamp: timeStr,
+      source: "google_sheets_primary",
+      logged_row: lastRow,
+      backend_relayed: (backendSyncResult && backendSyncResult.status === "success"),
+      pump: isPumpOn,
+      fan: isFanOn,
+      valveA: isValveAOn,
+      valveB: isValveBOn,
+      auto_mode: (edgeMode === "auto"),
+      emergency_stop: controlOverrides.emergencyStop
     };
 
     return ContentService.createTextOutput(JSON.stringify(responseObj))
       .setMimeType(ContentService.MimeType.JSON);
 
-  } catch(error) {
-    var errObj = {
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({
       status: "error",
-      message: error.toString(),
-      source: "google_sheets"
-    };
-    return ContentService.createTextOutput(JSON.stringify(errObj))
-      .setMimeType(ContentService.MimeType.JSON);
+      error: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
-// -------------------- 5. SPREADSHEET UI MENU --------------------
-function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu("🌾 AgriSense Master")
-    .addItem("📊 Initialize Systematic 39-Sensor Sheet", "setupSystematicSheet")
-    .addItem("🔄 Test Forward to FastAPI Backend", "testBackendRelay")
-    .addSeparator()
-    .addItem("⚡ Turn Pump ON", "menuPumpOn")
-    .addItem("🛑 Turn Pump OFF", "menuPumpOff")
-    .addItem("🌱 Set Mode to AUTO", "menuAuto")
-    .addToUi();
-}
-
-function testBackendRelay() {
-  var sample = {
-    source: "google_sheets",
-    soilA: 38.0, soilB: 35.0, soilAvg: 36.5, airTemp: 27.5, airHumidity: 65.0,
-    pump: false, fan: false, mode: "auto"
-  };
+// -------------------- 5. FASTAPI BACKEND RELAY --------------------
+function forwardToFastApi(payload) {
   try {
-    var resp = UrlFetchApp.fetch(CONFIG.FASTAPI_BACKEND_URL, {
+    var options = {
       method: "post",
       contentType: "application/json",
-      payload: JSON.stringify(sample),
+      payload: JSON.stringify(payload),
       muteHttpExceptions: true
-    });
-    SpreadsheetApp.getUi().alert("FastAPI Response (" + resp.getResponseCode() + "):\n" + resp.getContentText());
-  } catch(e) {
-    SpreadsheetApp.getUi().alert("Relay Test Failed:\n" + e.toString());
-  }
-}
-
-function menuPumpOn() {
-  setControlCell("PUMP OVERRIDE", "ON");
-}
-function menuPumpOff() {
-  setControlCell("PUMP OVERRIDE", "OFF");
-}
-function menuAuto() {
-  setControlCell("PUMP OVERRIDE", "AUTO");
-  setControlCell("FAN OVERRIDE", "AUTO");
-  setControlCell("EMERGENCY STOP", "NO");
-}
-
-function setControlCell(paramName, val) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(CONFIG.CONTROLS_SHEET_NAME);
-  if (!sheet) return;
-  var rows = sheet.getRange(2, 1, 4, 2).getValues();
-  for (var i = 0; i < rows.length; i++) {
-    if (String(rows[i][0]).toUpperCase().indexOf(paramName) !== -1) {
-      sheet.getRange(i + 2, 2).setValue(val);
-      SpreadsheetApp.getUi().alert("Edge Control updated: " + paramName + " = " + val);
-      return;
+    };
+    var response = UrlFetchApp.fetch(CONFIG.FASTAPI_BACKEND_URL, options);
+    var code = response.getResponseCode();
+    if (code === 200 || code === 201) {
+      return JSON.parse(response.getContentText());
     }
-  }
+  } catch(e) {}
+  return null;
+}
+
+// -------------------- 6. GOOGLE SHEET EDGE CONTROLS READER --------------------
+function readControlsSheet(ss) {
+  var res = { pumpOverride: null, fanOverride: null, modeOverride: null, emergencyStop: false };
+  var sheet = ss.getSheetByName(CONFIG.CONTROLS_SHEET_NAME);
+  if (!sheet) return res;
+
+  try {
+    var data = sheet.getRange(2, 1, 4, 2).getValues();
+    for (var i = 0; i < data.length; i++) {
+      var param = String(data[i][0]).toUpperCase().trim();
+      var val = String(data[i][1]).toUpperCase().trim();
+
+      if (param.indexOf("PUMP") !== -1) {
+        if (val === "ON") res.pumpOverride = true;
+        else if (val === "OFF") res.pumpOverride = false;
+      } else if (param.indexOf("FAN") !== -1) {
+        if (val === "ON") res.fanOverride = true;
+        else if (val === "OFF") res.fanOverride = false;
+      } else if (param.indexOf("MODE") !== -1) {
+        if (val === "MANUAL") res.modeOverride = "manual";
+        else if (val === "AUTO") res.modeOverride = "auto";
+      } else if (param.indexOf("EMERGENCY") !== -1) {
+        res.emergencyStop = (val === "YES" || val === "TRUE");
+      }
+    }
+  } catch(e) {}
+  return res;
 }
