@@ -83,40 +83,63 @@ def register_user(req: UserRegisterRequest, request: Request, db: Session = Depe
 
 @router.post("/login")
 def login_user(req: UserLoginRequest, request: Request, db: Session = Depends(get_db)):
-    """Secure user login endpoint with strict password verification."""
+    """Secure user login endpoint with password verification and instant auto-provisioning."""
     email_clean = req.email.strip().lower()
     user = db.query(models.User).filter(models.User.email == email_clean).first()
     
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password."
-        )
-
-    # If user has a registered password, verify hash
-    if user.password_hash and user.password_salt:
-        check_hash = hash_password_with_salt(req.password, user.password_salt)
-        if check_hash != user.password_hash:
-            try:
-                from app.services.control_plane_service import control_plane
-                control_plane.log_event("SECURITY", "WARN", f"Failed login attempt for '{email_clean}': Incorrect password.")
-            except Exception:
-                pass
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect email or password."
-            )
-    else:
-        # User exists without password set yet: initialize password on first valid login if min 6 chars
         if len(req.password) >= 6:
+            # Auto-provision farmer account on first verified login attempt
             salt = secrets.token_hex(16)
-            user.password_salt = salt
-            user.password_hash = hash_password_with_salt(req.password, salt)
+            new_uid = f"usr_{secrets.token_hex(8)}"
+            name_guess = email_clean.split('@')[0].replace('.', ' ').replace('_', ' ').title()
+            user = models.User(
+                uid=new_uid,
+                name=name_guess,
+                email=email_clean,
+                role="farmer",
+                business_name=f"{name_guess}'s Farm",
+                password_salt=salt,
+                password_hash=hash_password_with_salt(req.password, salt),
+                last_ip=request.client.host if request.client else "127.0.0.1",
+                user_agent=request.headers.get("user-agent", "Web Browser"),
+                last_login=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+                login_count=1,
+                active_page="Live Dashboard"
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
         else:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect email or password."
+                detail="Incorrect email or password. Password must be at least 6 characters."
             )
+    else:
+        # If user has a registered password, verify hash
+        if user.password_hash and user.password_salt:
+            check_hash = hash_password_with_salt(req.password, user.password_salt)
+            if check_hash != user.password_hash:
+                try:
+                    from app.services.control_plane_service import control_plane
+                    control_plane.log_event("SECURITY", "WARN", f"Failed login attempt for '{email_clean}': Incorrect password.")
+                except Exception:
+                    pass
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Incorrect email or password."
+                )
+        else:
+            # User exists without password set yet: initialize password on first valid login if min 6 chars
+            if len(req.password) >= 6:
+                salt = secrets.token_hex(16)
+                user.password_salt = salt
+                user.password_hash = hash_password_with_salt(req.password, salt)
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Password must be at least 6 characters."
+                )
 
     client_ip = request.client.host if request.client else "127.0.0.1"
     ua = request.headers.get("user-agent", "Mozilla/5.0")

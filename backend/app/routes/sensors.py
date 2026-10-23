@@ -86,66 +86,115 @@ class HardwareIngest(BaseModel):
     fan_state: Optional[Any] = None
     zone: Optional[str] = "Zone A"
 
-    # camelCase and short field aliases (from ESP32 Serial / Web App)
+    # All 39 AgriSense Sensor Feeds & Aliases
+    soilA: Optional[float] = None
+    soilB: Optional[float] = None
+    soilC: Optional[float] = None
+    soilD: Optional[float] = None
+    soilAvg: Optional[float] = None
     soil1: Optional[float] = None
     soil2: Optional[float] = None
-    soilAvg: Optional[float] = None
     airTemp: Optional[float] = None
     airHumidity: Optional[float] = None
     airHum: Optional[float] = None
+    soilTemp: Optional[float] = None
     light: Optional[float] = None
-    rain: Optional[float] = None
+    pressure: Optional[float] = None
+    waterTank: Optional[float] = None
     tankPct: Optional[float] = None
+    rain: Optional[float] = None
+    airQuality: Optional[float] = None
+    waterTemp: Optional[float] = None
+    smoke: Optional[float] = None
+    tds: Optional[float] = None
+    soilPH: Optional[float] = None
+    nitrogen: Optional[float] = None
+    phosphorus: Optional[float] = None
+    potassium: Optional[float] = None
+    leafWet: Optional[float] = None
+    co2: Optional[float] = None
+    flow: Optional[float] = None
+    soilEC: Optional[float] = None
+    wind: Optional[float] = None
+    uv: Optional[float] = None
+    windDir: Optional[float] = None
+    dewPoint: Optional[float] = None
+    par: Optional[float] = None
+    soilO2: Optional[float] = None
+    waterFlow: Optional[float] = None
+    waterPH: Optional[float] = None
+    pestMic: Optional[float] = None
+    vibration: Optional[float] = None
+    ndvi: Optional[float] = None
+    sapFlow: Optional[float] = None
+    stemDia: Optional[float] = None
+    pestCount: Optional[float] = None
+    frost: Optional[float] = None
+    vpd_kpa: Optional[float] = None
+
+    # Actuator states & modes
     pump: Optional[Any] = None
     fan: Optional[Any] = None
+    valveA: Optional[Any] = None
+    valveB: Optional[Any] = None
     mode: Optional[str] = None
 
-latest_hardware_cache = {
-    "light_pct": 55.0,
-    "rain_pct": 0.0,
-    "soil_moisture_1": 38.4,
-    "soil_moisture_2": 38.4,
-    "soil_average": 38.4,
-    "fan_state": False
+latest_hardware_cache: Dict[str, Any] = {
+    "soilA": 38.4, "soilB": 36.2, "soilC": 35.0, "soilD": 40.0, "soilAvg": 38.4,
+    "soil_moisture_1": 38.4, "soil_moisture_2": 36.2, "soil_average": 38.4,
+    "airTemp": 28.5, "air_temp": 28.5,
+    "airHumidity": 62.0, "air_humidity": 62.0,
+    "soilTemp": 24.8, "waterTemp": 22.4,
+    "light": 55.0, "light_pct": 55.0,
+    "rain": 0.0, "rain_pct": 0.0,
+    "pressure": 1012.0, "waterTank": 80.0,
+    "airQuality": 25.0, "smoke": 12.0, "tds": 320.0, "soilPH": 6.5,
+    "nitrogen": 165.0, "phosphorus": 24.0, "potassium": 175.0,
+    "leafWet": 25.0, "co2": 420.0, "flow": 12.5, "soilEC": 1.2,
+    "wind": 7.5, "uv": 5.0, "windDir": 180.0, "dewPoint": 18.2,
+    "par": 820.0, "soilO2": 19.5, "waterFlow": 0.0, "waterPH": 7.1,
+    "pestMic": 10.0, "vibration": 1.0, "ndvi": 0.78, "sapFlow": 42.0,
+    "stemDia": 12.8, "pestCount": 2.0, "frost": 9.5, "vpd_kpa": 1.45,
+    "pump": False, "fan": False, "fan_state": False, "valveA": False, "valveB": False
 }
 
 @router.post("/ingest")
 async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(get_db)):
     """
-    Receives real telemetry streamed from ESP32 hardware via Wi-Fi or Serial gateway.
-    Updates SQLite local DB, ControlSystem state, and Zone thresholds.
-    Accepts both snake_case and camelCase payloads.
+    Receives real-time telemetry covering all 39 AgriSense sensors from ESP32 hardware or Web Serial.
+    Updates SQLite DB history, latest_hardware_cache, ControlSystem, and broadcasts over WebSocket.
     """
     # 1. Resolve Soil Moisture
-    s1 = data.soil_moisture_1 if data.soil_moisture_1 is not None else data.soil1
-    s2 = data.soil_moisture_2 if data.soil_moisture_2 is not None else data.soil2
-    s_avg = data.soil_average if data.soil_average is not None else data.soilAvg
+    s1 = data.soilA if data.soilA is not None else (data.soil1 if data.soil1 is not None else data.soil_moisture_1)
+    s2 = data.soilB if data.soilB is not None else (data.soil2 if data.soil2 is not None else data.soil_moisture_2)
+    s_avg = data.soilAvg if data.soilAvg is not None else (data.soil_average if data.soil_average is not None else None)
     if s_avg is None:
         if s1 is not None and s2 is not None:
-            s_avg = (s1 + s2) / 2.0
+            s_avg = (float(s1) + float(s2)) / 2.0
         elif s1 is not None:
-            s_avg = s1
+            s_avg = float(s1)
         elif s2 is not None:
-            s_avg = s2
-
-    moist = s_avg if s_avg is not None else 35.0
+            s_avg = float(s2)
+        else:
+            s_avg = 35.0
+    moist = float(s_avg)
 
     # 2. Resolve Air Temp & Humidity
-    temp = data.air_temp if data.air_temp is not None else (data.airTemp if data.airTemp is not None else 28.0)
-    hum = data.air_humidity if data.air_humidity is not None else (
-        data.airHumidity if data.airHumidity is not None else (data.airHum if data.airHum is not None else 60.0)
+    temp = data.airTemp if data.airTemp is not None else (data.air_temp if data.air_temp is not None else 28.5)
+    hum = data.airHumidity if data.airHumidity is not None else (
+        data.air_humidity if data.air_humidity is not None else (data.airHum if data.airHum is not None else 60.0)
     )
 
     # 3. Resolve Light & Rain
-    light_val = data.light_pct if data.light_pct is not None else data.light
-    rain_val = data.rain_pct if data.rain_pct is not None else data.rain
-    lux = (float(light_val) * 1000.0) if light_val is not None else 45000.0
+    light_val = data.light if data.light is not None else (data.light_pct if data.light_pct is not None else 55.0)
+    rain_val = data.rain if data.rain is not None else (data.rain_pct if data.rain_pct is not None else 0.0)
+    lux = (float(light_val) * 1000.0)
 
     # 4. Resolve Tank Level
-    tank_pct = data.tank_level_pct if data.tank_level_pct is not None else data.tankPct
+    tank_pct = data.waterTank if data.waterTank is not None else (data.tankPct if data.tankPct is not None else data.tank_level_pct)
 
-    # 5. Resolve Pump and Fan states (handles bool or "true"/"false" strings)
-    pump_raw = data.pump_state if data.pump_state is not None else data.pump
+    # 5. Actuators
+    pump_raw = data.pump if data.pump is not None else data.pump_state
     if isinstance(pump_raw, str):
         pump_bool = pump_raw.lower() in ("true", "1", "on")
     elif pump_raw is not None:
@@ -153,7 +202,7 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
     else:
         pump_bool = None
 
-    fan_raw = data.fan_state if data.fan_state is not None else data.fan
+    fan_raw = data.fan if data.fan is not None else data.fan_state
     if isinstance(fan_raw, str):
         fan_bool = fan_raw.lower() in ("true", "1", "on")
     elif fan_raw is not None:
@@ -161,21 +210,27 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
     else:
         fan_bool = None
 
-    # Cache latest live hardware parameters
-    if light_val is not None:
-        latest_hardware_cache["light_pct"] = float(light_val)
-    if rain_val is not None:
-        latest_hardware_cache["rain_pct"] = float(rain_val)
-    if s1 is not None:
-        latest_hardware_cache["soil_moisture_1"] = float(s1)
-    if s2 is not None:
-        latest_hardware_cache["soil_moisture_2"] = float(s2)
-    if s_avg is not None:
-        latest_hardware_cache["soil_average"] = float(s_avg)
+    # Cache ALL 39 incoming sensor readings
+    incoming_dict = data.dict(exclude_unset=True)
+    for k, v in incoming_dict.items():
+        if v is not None:
+            latest_hardware_cache[k] = v
+
+    latest_hardware_cache["soilAvg"] = moist
+    latest_hardware_cache["soil_average"] = moist
+    latest_hardware_cache["airTemp"] = float(temp)
+    latest_hardware_cache["air_temp"] = float(temp)
+    latest_hardware_cache["airHumidity"] = float(hum)
+    latest_hardware_cache["air_humidity"] = float(hum)
+    latest_hardware_cache["light"] = float(light_val)
+    latest_hardware_cache["light_pct"] = float(light_val)
+    latest_hardware_cache["rain"] = float(rain_val)
+    latest_hardware_cache["rain_pct"] = float(rain_val)
     if fan_bool is not None:
+        latest_hardware_cache["fan"] = bool(fan_bool)
         latest_hardware_cache["fan_state"] = bool(fan_bool)
 
-    # 1. Record reading in history
+    # Record in SQLite history
     reading = models.SensorReading(
         zone=data.zone or "Zone A",
         moisture_pct=float(moist),
@@ -186,7 +241,7 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
     )
     db.add(reading)
 
-    # 2. Update Zone Info
+    # Update Zone Info
     zone = db.query(models.ZoneInfo).filter(models.ZoneInfo.zone_code == "A").first()
     if zone:
         zone.current_moisture = float(moist)
@@ -197,7 +252,7 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
         else:
             zone.status = "Optimal"
 
-    # 3. Update Control System
+    # Update Control System
     ctrl = db.query(models.ControlSystem).first()
     if ctrl:
         if not ctrl.manual_override:
@@ -215,20 +270,21 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
 
     db.commit()
 
-    # 4. Instant WebSocket Broadcast
+    # Instant WebSocket Broadcast
     from app.services.websocket_manager import telemetry_ws_manager
-    await telemetry_ws_manager.broadcast({
+    ws_payload = {
         "type": "telemetry_update",
         "temp_c": float(temp),
         "humidity_pct": float(hum),
         "moisture_pct": float(moist),
         "sunlight_lux": float(lux),
-        "light_pct": latest_hardware_cache["light_pct"],
-        "rain_pct": latest_hardware_cache["rain_pct"],
         "water_tank_level": ctrl.water_tank_level if ctrl else 80.0,
         "pump_running": ctrl.pump_state if ctrl else False,
         "timestamp": datetime.utcnow().isoformat()
-    })
+    }
+    # Append all 39 sensors to WS stream
+    ws_payload.update(latest_hardware_cache)
+    await telemetry_ws_manager.broadcast(ws_payload)
 
     return {
         "status": "success",
@@ -237,38 +293,29 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
         "fan": bool(latest_hardware_cache["fan_state"]),
         "auto_mode": bool(ctrl.auto_mode) if ctrl else True,
         "manual_override": bool(ctrl.manual_override) if ctrl else False,
-        "recorded": {
-            "temp": float(temp),
-            "humidity": float(hum),
-            "moisture": float(moist),
-            "light_pct": latest_hardware_cache["light_pct"],
-            "rain_pct": latest_hardware_cache["rain_pct"],
-            "pump": ctrl.pump_state if ctrl else False
-        }
+        "sensors_recorded_count": len([k for k, v in incoming_dict.items() if v is not None]),
+        "recorded": latest_hardware_cache
     }
 
 @router.get("/latest")
 def get_latest_hardware_reading(db: Session = Depends(get_db)):
     """
-    Returns the most recent hardware reading for real-time frontend polling.
+    Returns the most recent hardware readings for ALL 39 sensors tracked on the website.
     """
     recent = db.query(models.SensorReading).order_by(models.SensorReading.timestamp.desc()).first()
     ctrl = db.query(models.ControlSystem).first()
-    return {
-        "temp_c": recent.temp_c if recent else 28.5,
-        "humidity_pct": recent.humidity_pct if recent else 64.0,
-        "moisture_pct": recent.moisture_pct if recent else 38.4,
-        "soil_moisture_1": latest_hardware_cache.get("soil_moisture_1", 38.4),
-        "soil_moisture_2": latest_hardware_cache.get("soil_moisture_2", 38.4),
-        "soil_average": latest_hardware_cache.get("soil_average", 38.4),
+
+    response_dict = dict(latest_hardware_cache)
+    response_dict.update({
+        "temp_c": recent.temp_c if recent else latest_hardware_cache.get("airTemp", 28.5),
+        "humidity_pct": recent.humidity_pct if recent else latest_hardware_cache.get("airHumidity", 64.0),
+        "moisture_pct": recent.moisture_pct if recent else latest_hardware_cache.get("soilAvg", 38.4),
         "sunlight_lux": recent.sunlight_lux if recent else 48000.0,
-        "light_pct": latest_hardware_cache.get("light_pct", 55.0),
-        "rain_pct": latest_hardware_cache.get("rain_pct", 0.0),
-        "fan_state": latest_hardware_cache.get("fan_state", False),
-        "water_tank_level": ctrl.water_tank_level if ctrl else 84.5,
+        "water_tank_level": ctrl.water_tank_level if ctrl else latest_hardware_cache.get("waterTank", 80.0),
         "pump_running": ctrl.pump_state if ctrl else False,
         "timestamp": recent.timestamp.isoformat() if recent else datetime.utcnow().isoformat()
-    }
+    })
+    return response_dict
 
 from fastapi import WebSocket, WebSocketDisconnect
 import json
