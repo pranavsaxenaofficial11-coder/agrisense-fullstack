@@ -168,10 +168,7 @@ function onOpen() {
  */
 function reformatExistingSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
-  if (!sheet) {
-    return setupSystematicSheet();
-  }
+  var sheet = ss.getActiveSheet() || ss.getSheetByName(CONFIG.SHEET_NAME) || ss.getSheets()[0];
 
   // Safely break any previous conflicting cell merges in the header area
   try {
@@ -237,10 +234,7 @@ function reformatExistingSheet() {
 
 function setupSystematicSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
-  if (!sheet) {
-    sheet = ss.insertSheet(CONFIG.SHEET_NAME, 0);
-  }
+  var sheet = ss.getActiveSheet() || ss.getSheetByName(CONFIG.SHEET_NAME) || ss.getSheets()[0];
 
   // Safely break any prior merges before clearing
   try {
@@ -355,10 +349,10 @@ function doPost(e) {
 function handleIncomingTelemetry(params) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
+    var sheet = ss.getSheetByName(CONFIG.SHEET_NAME) || ss.getSheets()[0];
     if (!sheet || sheet.getLastRow() < 2) {
       setupSystematicSheet();
-      sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
+      sheet = ss.getSheetByName(CONFIG.SHEET_NAME) || ss.getSheets()[0];
     }
 
     var t = new Date();
