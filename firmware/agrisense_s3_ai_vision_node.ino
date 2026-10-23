@@ -92,9 +92,9 @@ void runAdvancedFoliarAnalysis(camera_fb_t *fb, VisionDiagnosis &dx);
 const char* AP_SSID     = "AgriSense-S3-Cam";
 const char* AP_PASS     = "12345678";
 
-// Farm Wi-Fi (Optional - connects automatically if in range)
-const char* STA_SSID    = "Redmi Note 10 Pro Max"; // Hotspot SSID (Note: ensure 2.4 GHz band is enabled on hotspot)
-const char* STA_PASS    = "mera man"; // Your hotspot password // <-- Replace with your Redmi Note 10 Pro Max password
+// Wi-Fi Connection (Connects to your local Wi-Fi router)
+const char* STA_SSID    = "saxena"; // Wi-Fi SSID
+const char* STA_PASS    = "";       // Wi-Fi Password (leave empty "" if open or set your password)
 
 // -------------------- 2. CAMERA PIN DEFINITIONS (ESP32-S3) --------------------
 #define PWDN_GPIO_NUM     -1

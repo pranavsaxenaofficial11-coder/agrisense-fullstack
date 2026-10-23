@@ -29,6 +29,11 @@
 
 WiFiMulti wifiMulti;
 
+// -------------------- 0. WI-FI CREDENTIALS (SAXENA + WOKWI SIMULATOR) --------------------
+// Configure your 'saxena' Wi-Fi below (leave empty "" if open without password)
+const char* WIFI_SSID_SAXENA = "saxena";
+const char* WIFI_PASS_SAXENA = ""; // <-- Enter your 'saxena' password here if protected (e.g. "myPassword123")
+
 // -------------------- 1. PIN DEFINITIONS & CHIP CONFIGURATION --------------------
 #if defined(CONFIG_IDF_TARGET_ESP32S3) || defined(ARDUINO_ESP32S3_DEV) || defined(ARDUINO_ESP32_S3_BOX) || defined(ESP32_S3)
   #define CHIP_NAME         "ESP32-S3 DevKitC-1"
@@ -722,9 +727,11 @@ void setup() {
     display.display();
   }
 
-  // Dual connectivity: Wokwi Simulator network + Real Mobile Hotspot
+  // Multi-AP connectivity: Home 'saxena' Wi-Fi + Wokwi Simulator virtual network
+  wifiMulti.addAP(WIFI_SSID_SAXENA, WIFI_PASS_SAXENA);
+  wifiMulti.addAP("saxena", "");
+  wifiMulti.addAP("saxena", "12345678");
   wifiMulti.addAP("Wokwi-GUEST", "");
-  wifiMulti.addAP("Redmi Note 10 Pro Max", "mear man");
   wifiMulti.addAP("Redmi Note 10 Pro Max", "mera man");
 
   Serial.print(F("🌐 Connecting to Network..."));
