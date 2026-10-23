@@ -26,6 +26,7 @@
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 #include <DHT.h>
 
 WiFiMulti wifiMulti;
@@ -41,8 +42,13 @@ const char* WEB_APP_URL =
   "AKfycbxEWNrnzavYmBi6JyLME1dnxTW-xqxL17jZrVtTBhRO0rKKEXpTxAGb3yx_3D-IMzDUiw"
   "/exec";
 
-// FastAPI Local & Cloud Ingestion Endpoint
-const char* FASTAPI_URL = "http://10.128.89.164:8000/api/sensors/ingest";
+// FastAPI Endpoints (Primary Laptop IP, Hotspot Gateway, and Cloud Render fallback)
+const char* FASTAPI_URLS[] = {
+  "http://10.3.9.249:8000/api/sensors/ingest",
+  "http://192.168.43.1:8000/api/sensors/ingest",
+  "https://agrisense-backend-kb22.onrender.com/api/sensors/ingest"
+};
+const int NUM_FASTAPI_ENDPOINTS = 3;
 
 // -------------------- 2. PIN DEFINITIONS --------------------
 #define DHT_PIN       4
@@ -181,6 +187,9 @@ void syncWithGoogleSheets() {
     return;
   }
 
+  WiFiClientSecure secClient;
+  secClient.setInsecure(); // Essential for Google Apps Script HTTPS & redirects
+
   HTTPClient http;
   String url = String(WEB_APP_URL) + "?sts=write";
   url += "&zone=Zone%20A";
@@ -194,9 +203,9 @@ void syncWithGoogleSheets() {
   url += "&pump_state=" + String(pumpState ? "true" : "false");
   url += "&fan_state=" + String(fanState ? "true" : "false");
 
-  http.begin(url.c_str());
+  http.begin(secClient, url);
   http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-  http.setTimeout(4500);
+  http.setTimeout(10000);
 
   int httpCode = http.GET();
   if (httpCode > 0) {

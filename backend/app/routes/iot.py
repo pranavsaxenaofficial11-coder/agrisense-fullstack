@@ -47,16 +47,25 @@ class TelemetryPayload(BaseModel):
     node_id: Optional[str] = "esp32-s3-station"
     airTemp: Optional[float] = None
     airHumidity: Optional[float] = None
-    soil1: Optional[int] = None
-    soil2: Optional[int] = None
-    soilAvg: Optional[int] = None
-    light: Optional[int] = None
-    rain: Optional[int] = None
-    pump: Optional[bool] = None
-    fan: Optional[bool] = None
+    soil1: Optional[float] = None
+    soil2: Optional[float] = None
+    soilAvg: Optional[float] = None
+    light: Optional[float] = None
+    rain: Optional[float] = None
+    pump: Optional[Any] = None
+    fan: Optional[Any] = None
     autoMode: Optional[bool] = None
     camera_online: Optional[bool] = True
     battery_v: Optional[float] = None
+    soil_moisture_1: Optional[float] = None
+    soil_moisture_2: Optional[float] = None
+    soil_average: Optional[float] = None
+    air_temp: Optional[float] = None
+    air_humidity: Optional[float] = None
+    light_pct: Optional[float] = None
+    rain_pct: Optional[float] = None
+    pump_state: Optional[Any] = None
+    fan_state: Optional[Any] = None
 
 class StopActuatorRequest(BaseModel):
     target: Optional[str] = "all"  # "pump", "fan", "all"
@@ -128,10 +137,22 @@ def ingest_iot_telemetry(payload: TelemetryPayload, db: Session = Depends(get_db
     if payload.ip:
         _hardware_registry["last_seen_ip"] = payload.ip
 
-    temp = payload.airTemp if payload.airTemp is not None else 28.5
-    hum = payload.airHumidity if payload.airHumidity is not None else 62.0
-    soil = float(payload.soilAvg) if payload.soilAvg is not None else 45.0
-    light = float(payload.light) if payload.light is not None else 50.0
+    temp = payload.airTemp if payload.airTemp is not None else (payload.air_temp if payload.air_temp is not None else 28.5)
+    hum = payload.airHumidity if payload.airHumidity is not None else (payload.air_humidity if payload.air_humidity is not None else 62.0)
+    s_avg = payload.soilAvg if payload.soilAvg is not None else payload.soil_average
+    if s_avg is None:
+        s1 = payload.soil1 if payload.soil1 is not None else payload.soil_moisture_1
+        s2 = payload.soil2 if payload.soil2 is not None else payload.soil_moisture_2
+        if s1 is not None and s2 is not None:
+            s_avg = (float(s1) + float(s2)) / 2.0
+        elif s1 is not None:
+            s_avg = float(s1)
+        elif s2 is not None:
+            s_avg = float(s2)
+        else:
+            s_avg = 45.0
+    soil = float(s_avg)
+    light = float(payload.light if payload.light is not None else (payload.light_pct if payload.light_pct is not None else 50.0))
 
     if payload.fan is not None:
         _hardware_registry["fan_state"] = payload.fan

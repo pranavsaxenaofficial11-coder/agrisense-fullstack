@@ -7121,6 +7121,29 @@ function parseHardwareLine(line) {
 
       updateAgronomyRiskModel();
 
+      // Forward real hardware telemetry from Web Serial into FastAPI backend (debounced every 2.5s)
+      const _now = Date.now();
+      if (!window._lastSerialUpload || _now - window._lastSerialUpload > 2500) {
+        window._lastSerialUpload = _now;
+        const _apiBase = getApiBase();
+        fetch(`${_apiBase}/api/sensors/ingest`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            airTemp: state.sensors.airTemp,
+            airHumidity: state.sensors.airHumidity,
+            soilAvg: state.sensors.soilAvg,
+            soil1: state.sensors.soilA,
+            soil2: state.sensors.soilB,
+            light: state.sensors.light,
+            rain: state.sensors.rain,
+            tankPct: state.sensors.waterTank,
+            pump: state.pump.on,
+            fan: state.fanOn || false
+          })
+        }).catch(()=>{});
+      }
+
       return;
 
     } catch(e){}
