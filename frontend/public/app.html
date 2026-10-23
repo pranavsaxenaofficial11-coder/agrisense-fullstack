@@ -6452,6 +6452,17 @@ function updateAgronomyRiskModel() {
 
 }
 
+
+function getApiBase() {
+  const h = window.location.hostname;
+  const p = window.location.port;
+  if (p === '8000') return '';
+  if (h === 'localhost' || h === '127.0.0.1' || h.startsWith('192.168.') || h.startsWith('10.') || h.startsWith('172.') || h.endsWith('.local')) {
+    return `http://${h}:8000`;
+  }
+  return 'https://agrisense-backend-kb22.onrender.com';
+}
+
 function wireMandiArbitrage() {
 
   const btn = document.getElementById('calcArbitrageBtn');
@@ -6474,7 +6485,7 @@ function wireMandiArbitrage() {
 
     try {
 
-      const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : 'https://agrisense-backend-kb22.onrender.com';
+      const apiBase = getApiBase();
 
       const res = await fetch(`${apiBase}/api/market/arbitrage?crop=${encodeURIComponent(crop)}&quantity_qtl=${qty}`);
 
@@ -6794,7 +6805,7 @@ function wireAdvancedHardwareControls() {
 
     try {
 
-      const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : 'https://agrisense-backend-kb22.onrender.com';
+      const apiBase = getApiBase();
 
       await fetch(`${apiBase}/api/controls/pump/toggle`, { method: 'POST' });
 
@@ -6830,7 +6841,7 @@ function wireAdvancedHardwareControls() {
 
   if (expBtn) expBtn.addEventListener('click', () => {
 
-    const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : 'https://agrisense-backend-kb22.onrender.com';
+    const apiBase = getApiBase();
 
     window.location.href = `${apiBase}/api/analytics/export/csv`;
 
@@ -6992,7 +7003,7 @@ function initHardwareBridge() {
 
     try {
 
-      const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : 'https://agrisense-backend-kb22.onrender.com';
+      const apiBase = getApiBase();
 
       const res = await fetch(`${apiBase}/api/sensors/latest`, { cache: 'no-store' });
 
@@ -8608,7 +8619,7 @@ function renderAction(){
 
 async function syncPumpStateToBackend(isOn) {
 
-  const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:8000' : 'https://agrisense-backend-kb22.onrender.com';
+  const apiBase = getApiBase();
 
   try {
 

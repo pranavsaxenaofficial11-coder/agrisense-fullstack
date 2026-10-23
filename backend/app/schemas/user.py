@@ -3,19 +3,19 @@ from typing import Optional
 
 class UserProfileOut(BaseModel):
     id: int
-    uid: str
-    name: str
-    role: str = "farmer"
+    uid: Optional[str] = ""
+    name: Optional[str] = "Farmer"
+    role: Optional[str] = "farmer"
     business_name: Optional[str] = "Saxena Family Farm"
-    email: str
-    phone: str
-    state: str
-    district: str
-    village: str
-    farm_size_acres: float
-    primary_crop: str
-    soil_type: str
-    irrigation_system: str
+    email: Optional[str] = ""
+    phone: Optional[str] = None
+    state: Optional[str] = "Uttar Pradesh"
+    district: Optional[str] = "Bareilly"
+    village: Optional[str] = "Aonla"
+    farm_size_acres: Optional[float] = 12.5
+    primary_crop: Optional[str] = "Wheat & Mustard"
+    soil_type: Optional[str] = "Sandy Loam"
+    irrigation_system: Optional[str] = "Drip + Sprinkler"
     points: int = 0
     login_count: Optional[int] = 0
     last_login: Optional[str] = "Not done till now"
