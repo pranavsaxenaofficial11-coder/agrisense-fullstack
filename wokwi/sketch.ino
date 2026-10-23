@@ -35,7 +35,7 @@ const char* WIFI_SSID_SAXENA = "saxena";
 const char* WIFI_PASS_SAXENA = ""; // <-- Enter your 'saxena' password here if protected (e.g. "myPassword123")
 
 // -------------------- 1. PIN DEFINITIONS & CHIP CONFIGURATION --------------------
-#if defined(CONFIG_IDF_TARGET_ESP32S3) || defined(ARDUINO_ESP32S3_DEV) || defined(ARDUINO_ESP32_S3_BOX) || defined(ESP32_S3)
+#if defined(CONFIG_IDF_TARGET_ESP32S3) || defined(ESP32_S3)
   #define CHIP_NAME         "ESP32-S3 DevKitC-1"
   #define IS_S3_CHIP        1
   #define DHT_PIN           21    // DHT22 (Air Temp & Humidity)
@@ -269,7 +269,7 @@ void runEdgeAutomation() {
   if (s_waterTank < 8.0f) {
     if (pumpState) {
       setPump(false);
-      Serial.println(F("⚠️ [AUTO SAFETY] Water reservoir critically low (<8%)! Pump halted."));
+      Serial.println("⚠️ [AUTO SAFETY] Water reservoir critically low (<8%)! Pump halted.");
     }
     return;
   }
@@ -278,7 +278,7 @@ void runEdgeAutomation() {
   if (s_rain >= 50.0f) {
     if (pumpState) {
       setPump(false);
-      Serial.println(F("🌧️ [AUTO ECO] Heavy rain detected. Irrigation held."));
+      Serial.println("🌧️ [AUTO ECO] Heavy rain detected. Irrigation held.");
     }
   } else {
     // Soil Moisture Cutoff Logic
@@ -386,7 +386,7 @@ void parseActuatorCommands(const String& resp) {
     if (pumpState) setPump(false);
     if (fanState) setFan(false);
     manualOverrideActive = true;
-    Serial.println(F("🛑 [REMOTE CMD] Emergency Stop Activated! All Actuators Halting."));
+    Serial.println("🛑 [REMOTE CMD] Emergency Stop Activated! All Actuators Halting.");
     return;
   }
 
@@ -395,13 +395,13 @@ void parseActuatorCommands(const String& resp) {
     if (pumpState) {
       setPump(false);
       manualOverrideActive = true;
-      Serial.println(F("🛑 [REMOTE CMD] Pump STOPPED remotely from Backend/Sheet"));
+      Serial.println("🛑 [REMOTE CMD] Pump STOPPED remotely from Backend/Sheet");
     }
   } else if (resp.indexOf("\"pump_command\":true") != -1 || resp.indexOf("\"pump\":true") != -1) {
     if (!pumpState && s_waterTank >= 8.0f) {
       setPump(true);
       manualOverrideActive = true;
-      Serial.println(F("⚡ [REMOTE CMD] Pump STARTED remotely from Backend/Sheet"));
+      Serial.println("⚡ [REMOTE CMD] Pump STARTED remotely from Backend/Sheet");
     }
   }
 
@@ -410,20 +410,20 @@ void parseActuatorCommands(const String& resp) {
     if (fanState) {
       setFan(false);
       manualOverrideActive = true;
-      Serial.println(F("🛑 [REMOTE CMD] Fan STOPPED remotely from Backend/Sheet"));
+      Serial.println("🛑 [REMOTE CMD] Fan STOPPED remotely from Backend/Sheet");
     }
   } else if (resp.indexOf("\"fan_command\":true") != -1 || resp.indexOf("\"fan\":true") != -1) {
     if (!fanState) {
       setFan(true);
       manualOverrideActive = true;
-      Serial.println(F("⚡ [REMOTE CMD] Fan STARTED remotely from Backend/Sheet"));
+      Serial.println("⚡ [REMOTE CMD] Fan STARTED remotely from Backend/Sheet");
     }
   }
 
   // Auto mode check
   if (resp.indexOf("\"auto_mode\":true") != -1 && manualOverrideActive) {
     manualOverrideActive = false;
-    Serial.println(F("🌱 [REMOTE CMD] Auto-irrigation loop resumed from Backend/Sheet"));
+    Serial.println("🌱 [REMOTE CMD] Auto-irrigation loop resumed from Backend/Sheet");
   }
 }
 
@@ -525,13 +525,13 @@ void executeTelemetryPipeline() {
     activePipelineRoute = "GOOGLE_SHEETS_PRIMARY";
   } else {
     // Step 2: Google Sheets failed or timed out -> Route directly to FastAPI website backend!
-    Serial.println(F("⚠️ [FAILOVER TRIGGERED] Google Sheets unreachable. Routing DIRECTLY to AgriSense Website Backend..."));
+    Serial.println("⚠️ [FAILOVER TRIGGERED] Google Sheets unreachable. Routing DIRECTLY to AgriSense Website Backend...");
     bool directSuccess = syncDirectFastApi();
     if (directSuccess) {
       activePipelineRoute = "WOKWI_DIRECT_FALLBACK";
     } else {
       activePipelineRoute = "OFFLINE_BUFFER";
-      Serial.println(F("❌ [OFFLINE] Both Google Sheets and Direct Backend unreachable. Telemetry held in local buffer."));
+      Serial.println("❌ [OFFLINE] Both Google Sheets and Direct Backend unreachable. Telemetry held in local buffer.");
     }
   }
 }
@@ -588,10 +588,10 @@ void updateOledHUD() {
 // -------------------- 15. USB WEB SERIAL & DASHBOARD STREAM --------------------
 static void printProgressBar(float pct, int width = 8) {
   int filled = constrain((int)round((pct / 100.0f) * width), 0, width);
-  Serial.print(F("["));
-  for (int i = 0; i < filled; i++) Serial.print(F("="));
-  if (filled < width) Serial.print(F(">"));
-  for (int i = filled + 1; i < width; i++) Serial.print(F(" "));
+  Serial.print("[");
+  for (int i = 0; i < filled; i++) Serial.print("=");
+  if (filled < width) Serial.print(">");
+  for (int i = filled + 1; i < width; i++) Serial.print(" ");
   Serial.printf("] %4.0f%%", pct);
 }
 
@@ -601,9 +601,9 @@ void streamSerialTelemetry() {
   int mins = (s % 3600) / 60;
   int secs = s % 60;
 
-  Serial.println(F("\n+======================================================================================+"));
+  Serial.println("\n+======================================================================================+");
   Serial.printf("|   🌱  AGRISENSE 39-SENSOR MASTER EDGE IoT GATEWAY  |  PLATFORM: %-20s |\n", CHIP_NAME);
-  Serial.println(F("+======================================================================================+"));
+  Serial.println("+======================================================================================+");
   Serial.printf("| 📶 Wi-Fi: %-14s | ⏱️ Uptime: %02d:%02d:%02d | ⚙️ Mode: %-9s | 📡 Baud: 115200  |\n",
     WiFi.status() == WL_CONNECTED ? "[ONLINE]" : "[OFFLINE]",
     hrs, mins, secs,
@@ -612,16 +612,16 @@ void streamSerialTelemetry() {
   Serial.printf("| 🌐 Active Route: %-26s | ☁️ FastAPI: [READY] | 📊 Sheets: [READY]   |\n",
     activePipelineRoute.c_str()
   );
-  Serial.println(F("+--------------------------------------------------------------------------------------+"));
-  Serial.println(F("| 📊 SENSORS (39 FEEDS)          | VALUE                  | STATUS & SAFETY THRESHOLDS |"));
-  Serial.println(F("+--------------------------------+------------------------+----------------------------+"));
+  Serial.println("+--------------------------------------------------------------------------------------+");
+  Serial.println("| 📊 SENSORS (39 FEEDS)          | VALUE                  | STATUS & SAFETY THRESHOLDS |");
+  Serial.println("+--------------------------------+------------------------+----------------------------+");
 
   // 1. Soil Dynamics
-  Serial.print(F("| 1. Soil Moisture 1 (Zone A)    | "));
+  Serial.print("| 1. Soil Moisture 1 (Zone A)    | ");
   printProgressBar(s_soilA, 8);
   Serial.printf("  | %-26s |\n", s_soilA < 35 ? "LOW -> IRRIGATION CALL" : (s_soilA > 75 ? "SATURATED" : "OPTIMAL"));
 
-  Serial.print(F("| 2. Soil Moisture 2 (Zone B)    | "));
+  Serial.print("| 2. Soil Moisture 2 (Zone B)    | ");
   printProgressBar(s_soilB, 8);
   Serial.printf("  | %-26s |\n", s_soilB < 35 ? "LOW -> ZONE B DEFICIT" : "BALANCED");
 
@@ -648,7 +648,7 @@ void streamSerialTelemetry() {
     s_rain, s_rain >= 50.0f ? "RAIN ACTIVE -> CUT PUMP" : "DRY");
 
   // 4. Hydraulics
-  Serial.print(F("| 18. Water Reservoir Tank       | "));
+  Serial.print("| 18. Water Reservoir Tank       | ");
   printProgressBar(s_waterTank, 8);
   Serial.printf("  | %-26s |\n", s_waterTank < 8 ? "CRITICAL -> PUMP LOCKOUT" : "SUFFICIENT HEAD");
   Serial.printf("| 19. Water Salinity TDS         | %6.1f ppm             | Irrigation Purity          |\n", s_tds);
@@ -664,7 +664,7 @@ void streamSerialTelemetry() {
   Serial.printf("| 26. Ground Frost Alert Temp    | %6.1f °C              | Freeze Warning System      |\n", s_frost);
 
   // Actuators
-  Serial.println(F("+--------------------------------+------------------------+----------------------------+"));
+  Serial.println("+--------------------------------+------------------------+----------------------------+");
   Serial.printf("| ⚡ Water Pump Relay (GPIO %2d)  | %-22s | Valve A: %-4s | Valve B: %-4s|\n",
     PUMP_RELAY_PIN,
     pumpState ? "ON  [ACTIVE DISCHARGE]" : "OFF [STANDBY]",
@@ -675,10 +675,10 @@ void streamSerialTelemetry() {
     FAN_RELAY_PIN,
     fanState ? "ON  [VENTILATING]" : "OFF [IDLE]"
   );
-  Serial.println(F("+======================================================================================+\n"));
+  Serial.println("+======================================================================================+\n");
 
   // Clean Web Serial single-line JSON for 1-click in-browser sync
-  Serial.print(F("{\"telemetry\":{"));
+  Serial.print("{\"telemetry\":{");
   Serial.printf("\"airTemp\":%.1f,\"airHumidity\":%.1f,\"soilAvg\":%.1f,\"soilA\":%.1f,\"soilB\":%.1f,",
     s_airTemp, s_airHumidity, s_soilAvg, s_soilA, s_soilB);
   Serial.printf("\"light\":%.1f,\"rain\":%.1f,\"waterTank\":%.1f,\"nitrogen\":%.1f,\"phosphorus\":%.1f,\"potassium\":%.1f,",
@@ -696,11 +696,11 @@ void setup() {
   Serial.begin(115200);
   delay(300);
 
-  Serial.println(F("\n========================================================"));
+  Serial.println("\n========================================================");
   Serial.printf("   🌱 AGRISENSE 39-SENSOR MASTER EDGE IoT GATEWAY\n");
   Serial.printf("   Target Platform: %s\n", CHIP_NAME);
   Serial.printf("   Bal Bharati Public School Innovation Cell\n");
-  Serial.println(F("========================================================"));
+  Serial.println("========================================================");
 
   pinMode(PUMP_RELAY_PIN, OUTPUT);
   pinMode(FAN_RELAY_PIN, OUTPUT);
@@ -734,7 +734,7 @@ void setup() {
   wifiMulti.addAP("Wokwi-GUEST", "");
   wifiMulti.addAP("Redmi Note 10 Pro Max", "mera man");
 
-  Serial.print(F("🌐 Connecting to Network..."));
+  Serial.print("🌐 Connecting to Network...");
   int att = 0;
   while (wifiMulti.run() != WL_CONNECTED && att < 16) {
     delay(400);
@@ -743,10 +743,10 @@ void setup() {
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println(F("\n✅ Network Online!"));
+    Serial.println("\n✅ Network Online!");
     Serial.printf("   IP: %s\n", WiFi.localIP().toString().c_str());
   } else {
-    Serial.println(F("\n⚠️ Running in Offline Autonomous / USB Web Serial mode."));
+    Serial.println("\n⚠️ Running in Offline Autonomous / USB Web Serial mode.");
   }
 
   sampleAll39Sensors();
@@ -788,26 +788,26 @@ void loop() {
     if (cmd == "PUMP_ON" || cmd == "{\"pump\":true}") {
       setPump(true);
       manualOverrideActive = true;
-      Serial.println(F("{\"ack\":\"pump_started\",\"state\":true}"));
+      Serial.println("{\"ack\":\"pump_started\",\"state\":true}");
     } else if (cmd == "PUMP_OFF" || cmd == "{\"pump\":false}") {
       setPump(false);
       manualOverrideActive = true;
-      Serial.println(F("{\"ack\":\"pump_stopped\",\"state\":false}"));
+      Serial.println("{\"ack\":\"pump_stopped\",\"state\":false}");
     } else if (cmd == "FAN_ON" || cmd == "{\"fan\":true}") {
       setFan(true);
-      Serial.println(F("{\"ack\":\"fan_started\",\"state\":true}"));
+      Serial.println("{\"ack\":\"fan_started\",\"state\":true}");
     } else if (cmd == "FAN_OFF" || cmd == "{\"fan\":false}") {
       setFan(false);
       manualOverrideActive = true;
-      Serial.println(F("{\"ack\":\"fan_stopped\",\"state\":false}"));
+      Serial.println("{\"ack\":\"fan_stopped\",\"state\":false}");
     } else if (cmd == "AUTO_RESUME") {
       manualOverrideActive = false;
-      Serial.println(F("{\"ack\":\"auto_resumed\"}"));
+      Serial.println("{\"ack\":\"auto_resumed\"}");
     } else if (cmd == "EMERGENCY_STOP") {
       setPump(false);
       setFan(false);
       manualOverrideActive = true;
-      Serial.println(F("{\"ack\":\"emergency_stop_triggered\"}"));
+      Serial.println("{\"ack\":\"emergency_stop_triggered\"}");
     }
   }
 
