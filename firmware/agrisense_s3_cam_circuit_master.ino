@@ -341,6 +341,14 @@ void handleCapture() {
   }
 }
 
+void handleEmergencyStop() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  setPump(false);
+  setFan(false);
+  autoMode = false;
+  server.send(200, "application/json", "{\"status\":\"halted\",\"pump\":false,\"fan\":false}");
+}
+
 void handleControl() {
   if (!server.hasArg("var") || !server.hasArg("val")) {
     server.sendHeader("Access-Control-Allow-Origin", "*");
@@ -360,8 +368,12 @@ void handleControl() {
     else if (var == "sharpness") s->set_sharpness(s, constrain(val, -2, 2));
     else if (var == "exposure") s->set_ae_level(s, constrain(val, -2, 2));
     else if (var == "wb_mode") { if (s->set_wb_mode) s->set_wb_mode(s, constrain(val, 0, 4)); }
-    else if (var == "vflip") { if (s->set_vflip) s->set_vflip(s, val ? 1 : 0); }
-    else if (var == "hflip") { if (s->set_hmirror) s->set_hmirror(s, val ? 1 : 0); }
+    else if (var == "special_effect" || var == "effect") {
+      // 0: Normal, 1: Negative/Invert, 2: Grayscale, 6: Sepia
+      if (s->set_special_effect) s->set_special_effect(s, constrain(val, 0, 6));
+    }
+    else if (var == "vflip" || var == "invert_cam" || var == "flip") { if (s->set_vflip) s->set_vflip(s, val ? 1 : 0); }
+    else if (var == "hflip" || var == "mirror") { if (s->set_hmirror) s->set_hmirror(s, val ? 1 : 0); }
     else if (var == "framesize") changeCameraResolution((framesize_t)constrain(val, 0, 13));
     else if (var == "quality") {
       jpegQuality = constrain(val, 10, 63);
@@ -375,6 +387,7 @@ void handleControl() {
       if (s->set_sharpness) s->set_sharpness(s, 0);
       if (s->set_ae_level) s->set_ae_level(s, 0);
       if (s->set_wb_mode) s->set_wb_mode(s, 0);
+      if (s->set_special_effect) s->set_special_effect(s, 0);
       if (s->set_vflip) s->set_vflip(s, 0);
       if (s->set_hmirror) s->set_hmirror(s, 0);
       jpegQuality = 12;
@@ -692,23 +705,39 @@ void handleRoot() {
       </div>
     </div>
 
-    <!-- Hardware Camera Sliders -->
-    <div class="section-title">Camera Hardware Controls</div>
+    <!-- Hardware Camera Sliders & Optical Effects -->
+    <div class="section-title">⚙️ Camera Hardware Calibration &amp; Optics</div>
     <div class="control-card">
       <div class="row">
-        <label>Brightness</label>
+        <label>☀️ Brightness</label>
         <input type="range" min="-2" max="2" value="0" oninput="setCam('brightness', this.value); $('#bVal').textContent=this.value">
         <span class="val-badge" id="bVal">0</span>
       </div>
       <div class="row">
-        <label>Contrast</label>
+        <label>🌓 Contrast</label>
         <input type="range" min="-2" max="2" value="0" oninput="setCam('contrast', this.value); $('#cVal').textContent=this.value">
         <span class="val-badge" id="cVal">0</span>
       </div>
       <div class="row">
-        <label>Saturation</label>
+        <label>🎨 Saturation</label>
         <input type="range" min="-2" max="2" value="0" oninput="setCam('saturation', this.value); $('#sVal').textContent=this.value">
         <span class="val-badge" id="sVal">0</span>
+      </div>
+      <div class="row">
+        <label>🎭 Optical Filter</label>
+        <select onchange="setCam('special_effect', this.value)">
+          <option value="0" selected>Normal (Full Spectrum)</option>
+          <option value="6">Sepia (Fungal Lesion Boost)</option>
+          <option value="1">Negative / Inverted (Vein Contrast)</option>
+          <option value="2">Grayscale (Chlorophyll Density)</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>🔄 Orientation</label>
+        <div style="display:flex;gap:8px;flex:1">
+          <button class="btn" style="flex:1;padding:7px;border-radius:8px" onclick="toggleVflip(this)">↕️ Invert Cam (V-Flip)</button>
+          <button class="btn" style="flex:1;padding:7px;border-radius:8px" onclick="toggleHflip(this)">↔️ Mirror (H-Flip)</button>
+        </div>
       </div>
       <div class="row">
         <label>JPEG Quality</label>
@@ -733,6 +762,18 @@ void handleRoot() {
 
     function setCam(v, val) {
       fetch(`/control?var=${v}&val=${val}`).catch(console.warn);
+    }
+    let isVflip = false;
+    function toggleVflip(el) {
+      isVflip = !isVflip;
+      el.classList.toggle('active', isVflip);
+      setCam('vflip', isVflip ? 1 : 0);
+    }
+    let isHflip = false;
+    function toggleHflip(el) {
+      isHflip = !isHflip;
+      el.classList.toggle('active', isHflip);
+      setCam('hflip', isHflip ? 1 : 0);
     }
 
     function togglePump() {
@@ -888,6 +929,8 @@ void setup() {
   server.on("/", handleRoot);
   server.on("/capture.jpg", handleCapture);
   server.on("/control", handleControl);
+  server.on("/relay/stop", handleEmergencyStop);
+  server.on("/relay/emergency-stop", handleEmergencyStop);
   server.on("/sensors", handleSensorsJSON);
   server.on("/telemetry", handleSensorsJSON);
   server.on("/status", handleStatusJSON);

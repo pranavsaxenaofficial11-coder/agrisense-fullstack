@@ -201,7 +201,19 @@ void loop() {
 
       int httpResponseCode = http.POST(payload);
       if (httpResponseCode > 0) {
+        String resp = http.getString();
         Serial.printf("✓ Synced to Website Backend (HTTP %d)\n", httpResponseCode);
+        
+        // Fast API Actuator Control & Remote Stop Integration
+        if (resp.indexOf("\"pump_command\":false") != -1 || resp.indexOf("\"pump\":false") != -1 || resp.indexOf("\"emergency_stop\":true") != -1 || resp.indexOf("\"status\":\"halted\"") != -1) {
+          digitalWrite(PUMP_RELAY, RELAY_OFF);
+          pumpOn = false;
+          Serial.println(F("[FASTAPI REMOTE STOP] Pump HALTED via FastAPI Backend"));
+        } else if ((resp.indexOf("\"pump_command\":true") != -1 || resp.indexOf("\"pump\":true") != -1) && !tankLow) {
+          digitalWrite(PUMP_RELAY, RELAY_ON);
+          pumpOn = true;
+          Serial.println(F("[FASTAPI REMOTE START] Pump STARTED via FastAPI Backend"));
+        }
       } else {
         Serial.printf("⚠️ Ingestion error: %s\n", http.errorToString(httpResponseCode).c_str());
       }

@@ -840,8 +840,12 @@ void handleControl() {
     else if (var == "sharpness") s->set_sharpness(s, constrain(val, -2, 2));
     else if (var == "exposure") s->set_ae_level(s, constrain(val, -2, 2));
     else if (var == "wb_mode") { if (s->set_wb_mode) s->set_wb_mode(s, constrain(val, 0, 4)); }
-    else if (var == "vflip") { if (s->set_vflip) s->set_vflip(s, val ? 1 : 0); }
-    else if (var == "hflip") { if (s->set_hmirror) s->set_hmirror(s, val ? 1 : 0); }
+    else if (var == "special_effect" || var == "effect") {
+      // 0: Normal, 1: Negative/Invert, 2: Grayscale, 6: Sepia
+      if (s->set_special_effect) s->set_special_effect(s, constrain(val, 0, 6));
+    }
+    else if (var == "vflip" || var == "invert_cam" || var == "flip") { if (s->set_vflip) s->set_vflip(s, val ? 1 : 0); }
+    else if (var == "hflip" || var == "mirror") { if (s->set_hmirror) s->set_hmirror(s, val ? 1 : 0); }
     else if (var == "framesize") {
       s->set_framesize(s, (framesize_t)constrain(val, 0, 13));
     } else if (var == "reset") {

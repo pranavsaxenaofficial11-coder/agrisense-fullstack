@@ -10,11 +10,11 @@ class MarketListingOut(BaseModel):
     quantity: float
     unit: str
     price_per_unit: float
-    mandi_benchmark: float
-    quality_grade: str
+    mandi_benchmark: Optional[float] = 0.0
+    quality_grade: Optional[str] = "Grade A"
     location: str
     seller_name: str
-    seller_phone: str
+    seller_phone: Optional[str] = None
     description: Optional[str] = None
     is_available: bool
     created_at: datetime
@@ -33,7 +33,7 @@ class MarketListingCreate(BaseModel):
     quality_grade: Optional[str] = "Grade A"
     location: str
     seller_name: str
-    seller_phone: str
+    seller_phone: Optional[str] = None
     description: Optional[str] = None
 
 class BuyerRequirementOut(BaseModel):
@@ -45,7 +45,7 @@ class BuyerRequirementOut(BaseModel):
     unit: str
     max_budget_per_unit: float
     delivery_location: str
-    contact_phone: str
+    contact_phone: Optional[str] = None
     urgency: str
     notes: Optional[str] = None
     created_at: datetime

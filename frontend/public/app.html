@@ -4569,6 +4569,14 @@ function googleTranslateElementInit() {
         <span style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);padding:3px 8px;border-radius:6px;font-size:10.5px;font-family:var(--mono);color:#10b981;font-weight:700">● LIVE 30 FPS</span>
         <span id="s3ResTag" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);padding:3px 8px;border-radius:6px;font-size:10.5px;font-family:var(--mono);color:#38bdf8">QVGA 320x240</span>
       </div>
+
+      <!-- Quick Optics HUD Controls (Instant Sepia, Invert, Flip) -->
+      <div style="position:absolute;top:10px;right:12px;display:flex;gap:6px;align-items:center;z-index:10">
+        <button type="button" class="btn sm" id="hudSepiaBtn" style="padding:4px 9px;font-size:11px;font-weight:700;border-radius:8px;background:rgba(217,119,6,0.3);color:#fbbf24;border:1px solid #d97706;backdrop-filter:blur(4px);cursor:pointer" title="Toggle Sepia Optical Effect (Fungal Lesion Boost)">🍂 Sepia</button>
+        <button type="button" class="btn sm" id="hudInvertBtn" style="padding:4px 9px;font-size:11px;font-weight:700;border-radius:8px;background:rgba(168,85,247,0.3);color:#c084fc;border:1px solid #a855f7;backdrop-filter:blur(4px);cursor:pointer" title="Toggle Negative / Inverted Colors (Vein Contrast)">🔄 Invert</button>
+        <button type="button" class="btn sm" id="hudVflipBtn" style="padding:4px 9px;font-size:11px;font-weight:700;border-radius:8px;background:rgba(56,189,248,0.25);color:#38bdf8;border:1px solid #0284c7;backdrop-filter:blur(4px);cursor:pointer" title="Invert Camera Orientation (V-Flip)">↕️ Flip</button>
+        <button type="button" class="btn sm" id="hudResetFxBtn" style="padding:4px 8px;font-size:11px;font-weight:600;border-radius:8px;background:rgba(15,23,42,0.7);color:#94a3b8;border:1px solid rgba(255,255,255,0.2);backdrop-filter:blur(4px);cursor:pointer" title="Reset Camera Effects">↺</button>
+      </div>
     </div>
 
     <!-- Bottom Floating Stream Controls -->
@@ -23453,43 +23461,83 @@ const SCAN_MSGS = ['Scanning leaf surface…','Detecting spots & discolouration�
 // Camera hardware calibration settings
 
 const CAM_SETTINGS = {
-
   brightness: 0,
-
   contrast: 0,
-
   saturation: 0,
-
-  specialEffect: 'none',
-
+  specialEffect: 'none', // 'none', 'sepia', 'negative', 'grayscale'
+  vflip: false,          // Invert Cam (Vertical Flip)
+  hflip: false,          // Horizontal Mirror
   wbMode: 'auto',
-
   aec: true,
-
   agc: true
-
 };
 
+function sendCamHardware(varName, val) {
+  const ip = (typeof getActiveIp === 'function') ? getActiveIp() : (localStorage.getItem('agrisense_s3_cam_ip') || '192.168.4.1');
+  // 1. Direct hardware call (works on local network / HTTP)
+  try {
+    fetch('http://' + ip + '/control?var=' + varName + '&val=' + val, { mode: 'no-cors' }).catch(() => {});
+  } catch(_) {}
+  // 2. HTTPS/Proxy fallback via FastAPI backend
+  try {
+    fetch('/api/iot/camera/control', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ var: varName, val: Number(val), hardware_ip: ip })
+    }).catch(() => {});
+  } catch(_) {}
+}
+
 function applyCamFilterToPreview(){
-  const img = $('#scanPrev');
   const b = 1 + CAM_SETTINGS.brightness * 0.15;
   const c = 1 + CAM_SETTINGS.contrast * 0.2;
   const s = 1 + CAM_SETTINGS.saturation * 0.25;
   let fx = '';
   let espFxVal = 0;
   if (CAM_SETTINGS.specialEffect === 'grayscale') { fx = ' grayscale(100%)'; espFxVal = 2; }
-  else if (CAM_SETTINGS.specialEffect === 'sepia') { fx = ' sepia(80%)'; espFxVal = 6; }
+  else if (CAM_SETTINGS.specialEffect === 'sepia') { fx = ' sepia(85%) hue-rotate(-15deg)'; espFxVal = 6; }
   else if (CAM_SETTINGS.specialEffect === 'negative') { fx = ' invert(100%)'; espFxVal = 1; }
   
   const filterStr = `brightness(${b}) contrast(${c}) saturate(${s})${fx}`;
-  if (img) img.style.filter = filterStr;
-  const s3Img = $('#s3StreamImg');
-  if (s3Img) s3Img.style.filter = filterStr;
+  
+  let transformStr = '';
+  if (CAM_SETTINGS.vflip && CAM_SETTINGS.hflip) transformStr = 'scale(-1, -1)';
+  else if (CAM_SETTINGS.vflip) transformStr = 'scaleY(-1)';
+  else if (CAM_SETTINGS.hflip) transformStr = 'scaleX(-1)';
 
-  try {
-    const ip = (typeof getActiveIp === 'function') ? getActiveIp() : (localStorage.getItem('agrisense_s3_cam_ip') || '192.168.4.1');
-    fetch('http://' + ip + '/control?var=special_effect&val=' + espFxVal).catch(() => {});
-  } catch(_) {}
+  const targets = [$('#scanPrev'), $('#s3StreamImg')];
+  targets.forEach(el => {
+    if (el) {
+      el.style.filter = filterStr;
+      el.style.transform = transformStr;
+      el.style.transition = 'filter 0.2s ease, transform 0.2s ease';
+    }
+  });
+
+  // Update HUD button active states if visible
+  const sepiaBtn = $('#hudSepiaBtn');
+  if (sepiaBtn) {
+    sepiaBtn.style.background = (CAM_SETTINGS.specialEffect === 'sepia') ? '#d97706' : 'rgba(217,119,6,0.3)';
+    sepiaBtn.style.color = (CAM_SETTINGS.specialEffect === 'sepia') ? '#ffffff' : '#fbbf24';
+  }
+  const invertBtn = $('#hudInvertBtn');
+  if (invertBtn) {
+    invertBtn.style.background = (CAM_SETTINGS.specialEffect === 'negative') ? '#9333ea' : 'rgba(168,85,247,0.3)';
+    invertBtn.style.color = (CAM_SETTINGS.specialEffect === 'negative') ? '#ffffff' : '#c084fc';
+  }
+  const vflipBtn = $('#hudVflipBtn');
+  if (vflipBtn) {
+    vflipBtn.style.background = CAM_SETTINGS.vflip ? '#0284c7' : 'rgba(56,189,248,0.25)';
+    vflipBtn.style.color = CAM_SETTINGS.vflip ? '#ffffff' : '#38bdf8';
+  }
+
+  // Send hardware controls to ESP32
+  sendCamHardware('special_effect', espFxVal);
+  sendCamHardware('vflip', CAM_SETTINGS.vflip ? 1 : 0);
+  sendCamHardware('hflip', CAM_SETTINGS.hflip ? 1 : 0);
+  sendCamHardware('brightness', CAM_SETTINGS.brightness);
+  sendCamHardware('contrast', CAM_SETTINGS.contrast);
+  sendCamHardware('saturation', CAM_SETTINGS.saturation);
 }
 
 function openCameraLabSheet(){
@@ -23574,11 +23622,11 @@ function openCameraLabSheet(){
 
                 <option value="none" ${CAM_SETTINGS.specialEffect==='none'?'selected':''}>Normal (Full Spectrum)</option>
 
-                <option value="grayscale" ${CAM_SETTINGS.specialEffect==='grayscale'?'selected':''}>Grayscale (Chlorophyll Density)</option>
-
                 <option value="sepia" ${CAM_SETTINGS.specialEffect==='sepia'?'selected':''}>Sepia (Fungal Lesion Boost)</option>
 
-                <option value="negative" ${CAM_SETTINGS.specialEffect==='negative'?'selected':''}>Negative (Inverted Vein Contrast)</option>
+                <option value="negative" ${CAM_SETTINGS.specialEffect==='negative'?'selected':''}>Negative / Inverted (Vein Contrast)</option>
+
+                <option value="grayscale" ${CAM_SETTINGS.specialEffect==='grayscale'?'selected':''}>Grayscale (Chlorophyll Density)</option>
 
               </select>
 
@@ -23598,6 +23646,17 @@ function openCameraLabSheet(){
 
             </div>
 
+          </div>
+
+          <!-- Camera Orientation & Quick Optics Presets -->
+          <div style="margin-top:10px">
+            <div style="font-size:12px;font-weight:700;margin-bottom:6px;color:var(--ink)">Camera Orientation & Quick Optics</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button type="button" class="btn sm" id="labSepiaBtn" style="flex:1;font-size:11px;padding:6px 10px;border-radius:8px;background:${CAM_SETTINGS.specialEffect==='sepia'?'#d97706':'rgba(217,119,6,0.2)'};color:${CAM_SETTINGS.specialEffect==='sepia'?'#fff':'#fbbf24'};border:1px solid #d97706">🍂 Sepia Mode</button>
+              <button type="button" class="btn sm" id="labInvertBtn" style="flex:1;font-size:11px;padding:6px 10px;border-radius:8px;background:${CAM_SETTINGS.specialEffect==='negative'?'#9333ea':'rgba(168,85,247,0.2)'};color:${CAM_SETTINGS.specialEffect==='negative'?'#fff':'#c084fc'};border:1px solid #a855f7">🔄 Inverted Mode</button>
+              <button type="button" class="btn sm" id="labVflipBtn" style="flex:1;font-size:11px;padding:6px 10px;border-radius:8px;background:${CAM_SETTINGS.vflip?'#0284c7':'rgba(56,189,248,0.2)'};color:${CAM_SETTINGS.vflip?'#fff':'#38bdf8'};border:1px solid #0284c7">↕️ Invert Cam (V-Flip)</button>
+              <button type="button" class="btn sm ghost" id="labResetBtn" style="font-size:11px;padding:6px 10px;border-radius:8px">Reset All</button>
+            </div>
           </div>
 
         </div>
@@ -23671,9 +23730,41 @@ function openCameraLabSheet(){
   });
 
   $('#camWbSelect').addEventListener('change', (e) => {
-
     CAM_SETTINGS.wbMode = e.target.value;
+    const wbMap = { auto: 0, sunny: 1, cloudy: 2 };
+    sendCamHardware('wb_mode', wbMap[e.target.value] || 0);
+  });
 
+  $('#labSepiaBtn').addEventListener('click', () => {
+    CAM_SETTINGS.specialEffect = (CAM_SETTINGS.specialEffect === 'sepia') ? 'none' : 'sepia';
+    $('#camEffectSelect').value = CAM_SETTINGS.specialEffect;
+    applyCamFilterToPreview();
+    openCameraLabSheet();
+  });
+
+  $('#labInvertBtn').addEventListener('click', () => {
+    CAM_SETTINGS.specialEffect = (CAM_SETTINGS.specialEffect === 'negative') ? 'none' : 'negative';
+    $('#camEffectSelect').value = CAM_SETTINGS.specialEffect;
+    applyCamFilterToPreview();
+    openCameraLabSheet();
+  });
+
+  $('#labVflipBtn').addEventListener('click', () => {
+    CAM_SETTINGS.vflip = !CAM_SETTINGS.vflip;
+    applyCamFilterToPreview();
+    openCameraLabSheet();
+  });
+
+  $('#labResetBtn').addEventListener('click', () => {
+    CAM_SETTINGS.specialEffect = 'none';
+    CAM_SETTINGS.vflip = false;
+    CAM_SETTINGS.hflip = false;
+    CAM_SETTINGS.brightness = 0;
+    CAM_SETTINGS.contrast = 0;
+    CAM_SETTINGS.saturation = 0;
+    applyCamFilterToPreview();
+    sendCamHardware('reset', 1);
+    openCameraLabSheet();
   });
 
   const runLabTest = async (mode) => {
@@ -24205,7 +24296,10 @@ function initScan() {
       scanData = String(dataUrl).split(',')[1] || '';
 
       const prev = document.getElementById('scanPrev');
-      if (prev) prev.src = dataUrl;
+      if (prev) {
+        prev.src = dataUrl;
+        setTimeout(applyCamFilterToPreview, 50);
+      }
       const wrap = document.getElementById('scanPrevWrap');
       if (wrap) {
         wrap.style.display = 'block';
@@ -24279,7 +24373,10 @@ function initScan() {
       scanData = String(dataUrl).split(',')[1] || '';
 
       const prev = document.getElementById('scanPrev');
-      if (prev) prev.src = dataUrl;
+      if (prev) {
+        prev.src = dataUrl;
+        setTimeout(applyCamFilterToPreview, 50);
+      }
       const wrap = document.getElementById('scanPrevWrap');
       if (wrap) {
         wrap.style.display = 'block';
@@ -24404,6 +24501,53 @@ function initScan() {
         s3StreamImg.src = '';
         s3StreamBtn.textContent = '▶ Live Viewfinder';
       }
+    };
+  }
+
+  // Quick Viewfinder HUD Controls (Sepia, Invert, Flip)
+  const hudSepia = document.getElementById('hudSepiaBtn');
+  if (hudSepia && !hudSepia._wired) {
+    hudSepia._wired = true;
+    hudSepia.onclick = () => {
+      CAM_SETTINGS.specialEffect = (CAM_SETTINGS.specialEffect === 'sepia') ? 'none' : 'sepia';
+      applyCamFilterToPreview();
+      toast(CAM_SETTINGS.specialEffect === 'sepia' ? '✨ Sepia Filter Active (Fungal Lesion Boost)' : 'Normal Colors Restored');
+    };
+  }
+
+  const hudInvert = document.getElementById('hudInvertBtn');
+  if (hudInvert && !hudInvert._wired) {
+    hudInvert._wired = true;
+    hudInvert.onclick = () => {
+      CAM_SETTINGS.specialEffect = (CAM_SETTINGS.specialEffect === 'negative') ? 'none' : 'negative';
+      applyCamFilterToPreview();
+      toast(CAM_SETTINGS.specialEffect === 'negative' ? '🔄 Inverted Colors Active (Vein Contrast)' : 'Normal Colors Restored');
+    };
+  }
+
+  const hudVflip = document.getElementById('hudVflipBtn');
+  if (hudVflip && !hudVflip._wired) {
+    hudVflip._wired = true;
+    hudVflip.onclick = () => {
+      CAM_SETTINGS.vflip = !CAM_SETTINGS.vflip;
+      applyCamFilterToPreview();
+      toast(CAM_SETTINGS.vflip ? '↕️ Camera Inverted (V-Flip ON)' : '↕️ Camera Normal (V-Flip OFF)');
+    };
+  }
+
+  const hudResetFx = document.getElementById('hudResetFxBtn');
+  if (hudResetFx && !hudResetFx._wired) {
+    hudResetFx._wired = true;
+    hudResetFx.onclick = () => {
+      CAM_SETTINGS.specialEffect = 'none';
+      CAM_SETTINGS.vflip = false;
+      CAM_SETTINGS.hflip = false;
+      CAM_SETTINGS.brightness = 0;
+      CAM_SETTINGS.contrast = 0;
+      CAM_SETTINGS.saturation = 0;
+      applyCamFilterToPreview();
+      sendCamHardware('reset', 1);
+      toast('↺ Camera filters reset to normal');
     };
   }
 
