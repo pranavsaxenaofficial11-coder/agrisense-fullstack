@@ -522,9 +522,81 @@ void updateOledHUD() {
   display.display();
 }
 
-// -------------------- 12. USB WEB SERIAL JSON STREAM --------------------
+// -------------------- 12. USB WEB SERIAL & BEAUTIFUL HUD STREAM --------------------
+static void printProgressBar(float pct, int width = 8) {
+  int filled = constrain((int)round((pct / 100.0f) * width), 0, width);
+  Serial.print(F("["));
+  for (int i = 0; i < filled; i++) Serial.print(F("="));
+  if (filled < width) Serial.print(F(">"));
+  for (int i = filled + 1; i < width; i++) Serial.print(F(" "));
+  Serial.printf("] %4.0f%%", pct);
+}
+
+void printVisualDashboard() {
+  unsigned long s = millis() / 1000;
+  int hrs = s / 3600;
+  int mins = (s % 3600) / 60;
+  int secs = s % 60;
+
+  Serial.println(F("\n+======================================================================================+"));
+  Serial.println(F("|        🌱  AGRISENSE 39-SENSOR MASTER EDGE IoT GATEWAY  |  PRECISION AGRI HUD        |"));
+  Serial.println(F("+======================================================================================+"));
+  Serial.printf("| 📶 Wi-Fi: %-14s | ⏱️ Uptime: %02d:%02d:%02d | ⚙️ Mode: %-9s | 📡 Baud: 115200  |\n",
+    WiFi.status() == WL_CONNECTED ? "[ONLINE]" : "[OFFLINE]",
+    hrs, mins, secs,
+    autoMode ? "AUTO" : "MANUAL"
+  );
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.printf("| 🌐 Node IP: %-15s | ☁️ FastAPI: [READY]     | 📊 Sheets: [SYNCED]           |\n",
+      WiFi.localIP().toString().c_str()
+    );
+  }
+  Serial.println(F("+--------------------------------------------------------------------------------------+"));
+  Serial.println(F("| [1] 🌡️  ATMOSPHERE & MICROCLIMATE                                                     |"));
+  Serial.printf("|   • Air Temp   : %5.1f °C       • Humidity  : %5.1f %%         • Pressure : %6.1f hPa  |\n",
+    s_airTemp, s_airHumidity, s_pressure);
+  Serial.printf("|   • Light Level: %5.0f Lux      • Rain Gauge: %5.1f %% (%-4s)   • CO2 Level: %6.0f ppm  |\n",
+    s_light, s_rain, s_rain > 10.0f ? "WET" : "DRY", s_co2);
+  Serial.printf("|   • UV Index   : %5.1f Index    • Wind Speed: %5.1f km/h      • Dew Point: %6.1f °C   |\n",
+    s_uv, s_wind, s_dewPoint);
+  Serial.println(F("+--------------------------------------------------------------------------------------+"));
+  Serial.println(F("| [2] 🌱  SOIL & SUB-SURFACE MATRIX                                                    |"));
+  Serial.print(F("|   • Soil A     : ")); printProgressBar(s_soilA, 8);
+  Serial.print(F("  • Soil B    : ")); printProgressBar(s_soilB, 8);
+  Serial.println(F("  |"));
+  Serial.print(F("|   • Soil Avg   : ")); printProgressBar(s_soilAvg, 8);
+  Serial.printf("  • Soil Temp : %5.1f °C      • Soil pH  : %4.2f pH     |\n", s_soilTemp, s_soilPH);
+  Serial.printf("|   • Soil EC    : %5.2f mS/cm    • Soil O2   : %5.1f %%         • Leaf Wet : %5.1f %%      |\n",
+    s_soilEC, s_soilO2, s_leafWet);
+  Serial.println(F("+--------------------------------------------------------------------------------------+"));
+  Serial.println(F("| [3] 🧪  CROP NPK, CANOPY & BIOMETRICS                                                |"));
+  Serial.printf("|   • Nitrogen(N): %5.0f mg/kg    • Phosphorus(P): %4.0f mg/kg   • Potassium(K): %4.0f mg/kg |\n",
+    s_nitrogen, s_phosphorus, s_potassium);
+  Serial.printf("|   • NDVI Canopy: %5.2f Index    • Sap Flow  : %5.1f mL/h      • Stem Dia : %5.2f mm   |\n",
+    s_ndvi, s_sapFlow, s_stemDia);
+  Serial.printf("|   • AcousticMic: %4.0f dB       • Plant Vib : %5.1f Hz        • Pest Count: %4.0f bugs |\n",
+    s_pestMic, s_vibration, s_pestCount);
+  Serial.println(F("+--------------------------------------------------------------------------------------+"));
+  Serial.println(F("| [4] 💧  HYDROLOGY & SMART ACTUATOR CONTROLS                                          |"));
+  Serial.print(F("|   • Water Tank : ")); printProgressBar(s_waterTank, 8);
+  Serial.printf("                 • Water Flow : %4.1f L/min     |\n", s_flow);
+  Serial.printf("|   • Main Pump  : [%-11s]        • Cooling Fan: [%-11s]             |\n",
+    pumpState ? "ON (ACTIVE)" : "OFF (IDLE)",
+    fanState ? "ON (COOL)" : "OFF (IDLE)");
+  Serial.printf("|   • Solenoid A : [%-11s]        • Solenoid B : [%-11s]             |\n",
+    valveAState ? "OPEN" : "CLOSED",
+    valveBState ? "OPEN" : "CLOSED");
+  Serial.printf("|   • Agronomy   : %-67s |\n",
+    s_soilAvg < 35.0f ? "ALERT: Dry Soil -> Autonomous Irrigation Active" :
+    (s_airTemp > 32.0f ? "WARNING: High Heat -> Thermal Protection Active" : "HEALTHY: All 39 Feeds within Agronomic Optimum"));
+  Serial.println(F("+======================================================================================+"));
+}
+
 void streamSerialTelemetry() {
-  // Real-time JSON stream consumed directly by app.html Web Serial reader
+  // 1. Beautiful Human-Readable Visual Terminal Dashboard
+  printVisualDashboard();
+
+  // 2. Machine-Readable Single-Line JSON for Web Serial
   Serial.printf(
     "{\"soilA\":%.1f,\"soilB\":%.1f,\"soilC\":%.1f,\"soilD\":%.1f,\"soilAvg\":%.1f,\"airTemp\":%.1f,\"airHumidity\":%.1f,\"soilTemp\":%.1f,\"light\":%.1f,\"pressure\":%.1f,\"waterTank\":%.1f,\"rain\":%.1f,\"airQuality\":%.1f,\"waterTemp\":%.1f,\"smoke\":%.1f,\"tds\":%.1f,\"soilPH\":%.2f,\"nitrogen\":%.1f,\"phosphorus\":%.1f,\"potassium\":%.1f,\"leafWet\":%.1f,\"co2\":%.1f,\"flow\":%.1f,\"soilEC\":%.2f,\"wind\":%.1f,\"uv\":%.1f,\"windDir\":%.1f,\"dewPoint\":%.1f,\"par\":%.1f,\"soilO2\":%.1f,\"waterFlow\":%.1f,\"waterPH\":%.2f,\"pestMic\":%.1f,\"vibration\":%.1f,\"ndvi\":%.2f,\"sapFlow\":%.1f,\"stemDia\":%.2f,\"pestCount\":%.1f,\"frost\":%.1f,\"pump\":%s,\"fan\":%s,\"valveA\":%s,\"valveB\":%s,\"mode\":\"%s\"}\n",
     s_soilA, s_soilB, s_soilC, s_soilD, s_soilAvg, s_airTemp, s_airHumidity, s_soilTemp, s_light, s_pressure,
@@ -544,10 +616,16 @@ void setup() {
   Serial.begin(115200);
   delay(500);
 
-  Serial.println(F("\n========================================================"));
-  Serial.println(F("🌱 AgriSense 39-Sensor Master Edge IoT Gateway"));
-  Serial.println(F("BAL BHARATI PUBLIC SCHOOL — RESEARCH & INNOVATION CELL"));
-  Serial.println(F("========================================================"));
+  Serial.println(F("\n\n"));
+  Serial.println(F("  █████╗  ██████╗ ██████╗ ██╗███████╗███████╗███╗   ██╗███████╗███████╗"));
+  Serial.println(F(" ██╔══██╗██╔════╝ ██╔══██╗██║██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝"));
+  Serial.println(F(" ███████║██║  ███╗██████╔╝██║███████╗█████╗  ██╔██╗ ██║███████╗█████╗  "));
+  Serial.println(F(" ██╔══██║██║   ██║██╔══██╗██║╚════██║██╔══╝  ██║╚██╗██║╚════██║██╔══╝  "));
+  Serial.println(F(" ██║  ██║╚██████╔╝██║  ██║██║███████║███████╗██║ ╚████║███████║███████╗"));
+  Serial.println(F(" ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚═╝  ╚═══╝╚══════╝╚══════╝"));
+  Serial.println(F("               🌱 PRECISION AGRICULTURE EDGE IoT SYSTEM                "));
+  Serial.println(F("        BAL BHARATI PUBLIC SCHOOL — RESEARCH & INNOVATION CELL         "));
+  Serial.println(F("========================================================================\n"));
 
   pinMode(PUMP_RELAY_PIN, OUTPUT);
   pinMode(FAN_RELAY_PIN, OUTPUT);
@@ -615,8 +693,8 @@ void loop() {
     updateOledHUD();
   }
 
-  // 3. Stream 39-sensor telemetry over USB Serial (1000ms)
-  if (now - lastSerialStream >= 1000) {
+  // 3. Stream 39-sensor telemetry & visual HUD over USB Serial (2500ms)
+  if (now - lastSerialStream >= 2500) {
     lastSerialStream = now;
     streamSerialTelemetry();
   }
