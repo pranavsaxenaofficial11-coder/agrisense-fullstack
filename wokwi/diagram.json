@@ -1,20 +1,20 @@
 {
   "version": 1,
-  "author": "AgriSense Innovation Cell - Bal Bharati Public School",
+  "author": "Pranav Saxena — AgriSense Innovation Cell",
   "editor": "wokwi",
   "parts": [
-    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 40, "left": 10, "attrs": {} },
-    { "type": "wokwi-dht22", "id": "dht", "top": -120, "left": 180, "attrs": { "temperature": "28.5", "humidity": "62" } },
-    { "type": "wokwi-potentiometer", "id": "potSoil1", "top": -120, "left": -160, "attrs": { "value": "450", "label": "Soil Moisture 1 (Zone A)" } },
-    { "type": "wokwi-potentiometer", "id": "potSoil2", "top": -120, "left": -50, "attrs": { "value": "420", "label": "Soil Moisture 2 (Zone B)" } },
-    { "type": "wokwi-photoresistor-sensor", "id": "ldr", "top": 140, "left": -160, "attrs": { "label": "LDR Sunlight" } },
-    { "type": "wokwi-potentiometer", "id": "potRain", "top": 260, "left": -160, "attrs": { "value": "0", "label": "Rainfall Level" } },
-    { "type": "wokwi-hc-sr04", "id": "sonar", "top": -240, "left": 20, "attrs": { "distance": "12", "label": "Water Reservoir Level" } },
-    { "type": "wokwi-relay-module", "id": "relayPump", "top": 60, "left": 220, "attrs": { "label": "Water Pump Relay" } },
-    { "type": "wokwi-relay-module", "id": "relayFan", "top": 180, "left": 220, "attrs": { "label": "Cooling Fan Relay" } },
-    { "type": "wokwi-ssd1306", "id": "oled", "top": 320, "left": 20, "attrs": { "label": "Live Telemetry OLED" } },
-    { "type": "wokwi-led", "id": "ledValveA", "top": -40, "left": 240, "attrs": { "color": "green", "label": "Zone A Solenoid" } },
-    { "type": "wokwi-led", "id": "ledValveB", "top": 0, "left": 240, "attrs": { "color": "blue", "label": "Zone B Solenoid" } }
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 180, "left": 230, "attrs": {} },
+    { "type": "wokwi-dht22", "id": "dht", "top": 30, "left": 430, "attrs": { "temperature": "28.5", "humidity": "62" } },
+    { "type": "wokwi-potentiometer", "id": "potSoil1", "top": 40, "left": 30, "attrs": { "value": "450", "label": "Soil Moisture 1 (Zone A)" } },
+    { "type": "wokwi-potentiometer", "id": "potSoil2", "top": 40, "left": 130, "attrs": { "value": "420", "label": "Soil Moisture 2 (Zone B)" } },
+    { "type": "wokwi-photoresistor-sensor", "id": "ldr", "top": 200, "left": 30, "attrs": { "label": "LDR Sunlight" } },
+    { "type": "wokwi-potentiometer", "id": "potRain", "top": 340, "left": 30, "attrs": { "value": "0", "label": "Rainfall Level" } },
+    { "type": "wokwi-hc-sr04", "id": "sonar", "top": 30, "left": 230, "attrs": { "distance": "12", "label": "Water Reservoir Level" } },
+    { "type": "wokwi-relay-module", "id": "relayPump", "top": 200, "left": 450, "attrs": { "label": "Water Pump Relay" } },
+    { "type": "wokwi-relay-module", "id": "relayFan", "top": 320, "left": 450, "attrs": { "label": "Cooling Fan Relay" } },
+    { "type": "wokwi-ssd1306", "id": "oled", "top": 430, "left": 230, "attrs": { "label": "Live Telemetry OLED" } },
+    { "type": "wokwi-led", "id": "ledValveA", "top": 120, "left": 450, "attrs": { "color": "green", "label": "Zone A Solenoid" } },
+    { "type": "wokwi-led", "id": "ledValveB", "top": 155, "left": 450, "attrs": { "color": "blue", "label": "Zone B Solenoid" } }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
