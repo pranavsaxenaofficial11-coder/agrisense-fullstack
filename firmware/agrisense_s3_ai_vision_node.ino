@@ -29,8 +29,46 @@
 #include "img_converters.h"
 #include <WiFi.h>
 #include <WebServer.h>
+#include <HTTPClient.h>
 #include "FS.h"
 #include "SD_MMC.h"
+
+// -------------------- AGRISENSE FASTAPI BACKEND PIPELINE --------------------
+const char* BACKEND_UPLOAD_URL    = "https://agrisense-backend-kb22.onrender.com/api/iot/camera/upload";
+const char* BACKEND_TELEMETRY_URL = "https://agrisense-backend-kb22.onrender.com/api/iot/camera/telemetry";
+static unsigned long lastBackendTelemetryMs = 0;
+
+void pushTelemetryToBackend() {
+  if (WiFi.status() != WL_CONNECTED) return;
+  HTTPClient http;
+  http.begin(BACKEND_TELEMETRY_URL);
+  http.addHeader("Content-Type", "application/json");
+
+  String jsonPayload = "{";
+  jsonPayload += "\"ip\":\"" + WiFi.localIP().toString() + "\",";
+  jsonPayload += "\"fps\":30.0,";
+  jsonPayload += "\"resolution\":\"QVGA 320x240\",";
+  jsonPayload += "\"psram_free_kb\":" + String(ESP.getFreePsram() / 1024);
+  jsonPayload += "}";
+
+  int code = http.POST(jsonPayload);
+  if (code > 0) {
+    Serial.printf("[BACKEND] Telemetry pushed to FastAPI (Status %d)\n", code);
+  }
+  http.end();
+}
+
+void uploadFrameToBackend(uint8_t *buf, size_t len) {
+  if (WiFi.status() != WL_CONNECTED || !buf || len == 0) return;
+  HTTPClient http;
+  http.begin(BACKEND_UPLOAD_URL);
+  http.addHeader("Content-Type", "image/jpeg");
+  int code = http.POST(buf, len);
+  if (code > 0) {
+    Serial.printf("[BACKEND] Foliar frame dispatched to FastAPI pipeline (Status %d, %d bytes)\n", code, len);
+  }
+  http.end();
+}
 
 // -------------------- DATA TYPES (Pre-declared for Arduino Compiler) --------------------
 typedef struct {
@@ -737,15 +775,28 @@ void handleDiagnose() {
     if (fJpg) {
       if (fb->format == PIXFORMAT_JPEG) {
         fJpg.write(fb->buf, fb->len);
+        uploadFrameToBackend(fb->buf, fb->len);
       } else {
         uint8_t *jpg_buf = NULL;
         size_t jpg_len = 0;
         if (fmt2jpg(fb->buf, fb->len, fb->width, fb->height, fb->format, jpegQuality, &jpg_buf, &jpg_len) && jpg_buf) {
           fJpg.write(jpg_buf, jpg_len);
+          uploadFrameToBackend(jpg_buf, jpg_len);
           free(jpg_buf);
         }
       }
       fJpg.close();
+    } else {
+      if (fb->format == PIXFORMAT_JPEG) {
+        uploadFrameToBackend(fb->buf, fb->len);
+      } else {
+        uint8_t *jpg_buf = NULL;
+        size_t jpg_len = 0;
+        if (fmt2jpg(fb->buf, fb->len, fb->width, fb->height, fb->format, jpegQuality, &jpg_buf, &jpg_len) && jpg_buf) {
+          uploadFrameToBackend(jpg_buf, jpg_len);
+          free(jpg_buf);
+        }
+      }
     }
     File fJson = SD_MMC.open(pathJson, FILE_WRITE);
     if (fJson) {
@@ -1043,8 +1094,15 @@ void loop() {
     Serial.print(rMsg);
     Serial0.print(rMsg);
     wasWifiConnected = true;
+    pushTelemetryToBackend();
   } else if (!isConn && wasWifiConnected) {
     wasWifiConnected = false;
+  }
+
+  // Periodic telemetry heartbeat to AgriSense backend pipeline (every 30s)
+  if (isConn && (millis() - lastBackendTelemetryMs > 30000)) {
+    lastBackendTelemetryMs = millis();
+    pushTelemetryToBackend();
   }
 
   delay(2);

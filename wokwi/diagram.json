@@ -3,7 +3,7 @@
   "author": "AgriSense Innovation Cell - Bal Bharati Public School",
   "editor": "wokwi",
   "parts": [
-    { "type": "board-esp32-s3-devkitc-1", "id": "esp", "top": 40, "left": 10, "attrs": {} },
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 40, "left": 10, "attrs": {} },
     { "type": "wokwi-dht22", "id": "dht", "top": -120, "left": 180, "attrs": { "temperature": "28.5", "humidity": "62" } },
     { "type": "wokwi-potentiometer", "id": "potSoil1", "top": -120, "left": -160, "attrs": { "value": "450", "label": "Soil Moisture 1 (Zone A)" } },
     { "type": "wokwi-potentiometer", "id": "potSoil2", "top": -120, "left": -50, "attrs": { "value": "420", "label": "Soil Moisture 2 (Zone B)" } },
@@ -22,46 +22,46 @@
 
     [ "esp:3V3", "dht:VCC", "red", [ "v0" ] ],
     [ "esp:GND.1", "dht:GND", "black", [ "v0" ] ],
-    [ "esp:21", "dht:SDA", "green", [ "v0" ] ],
+    [ "esp:4", "dht:SDA", "green", [ "v0" ] ],
 
     [ "esp:3V3", "potSoil1:VCC", "red", [ "v0" ] ],
     [ "esp:GND.1", "potSoil1:GND", "black", [ "v0" ] ],
-    [ "esp:1", "potSoil1:SIG", "orange", [ "v0" ] ],
+    [ "esp:34", "potSoil1:SIG", "orange", [ "v0" ] ],
 
     [ "esp:3V3", "potSoil2:VCC", "red", [ "v0" ] ],
     [ "esp:GND.1", "potSoil2:GND", "black", [ "v0" ] ],
-    [ "esp:2", "potSoil2:SIG", "yellow", [ "v0" ] ],
+    [ "esp:35", "potSoil2:SIG", "yellow", [ "v0" ] ],
 
     [ "esp:3V3", "ldr:VCC", "red", [ "v0" ] ],
     [ "esp:GND.1", "ldr:GND", "black", [ "v0" ] ],
-    [ "esp:14", "ldr:AO", "cyan", [ "v0" ] ],
+    [ "esp:32", "ldr:AO", "cyan", [ "v0" ] ],
 
     [ "esp:3V3", "potRain:VCC", "red", [ "v0" ] ],
     [ "esp:GND.1", "potRain:GND", "black", [ "v0" ] ],
-    [ "esp:4", "potRain:SIG", "blue", [ "v0" ] ],
+    [ "esp:33", "potRain:SIG", "blue", [ "v0" ] ],
 
     [ "esp:5V", "sonar:VCC", "red", [ "v0" ] ],
     [ "esp:GND.2", "sonar:GND", "black", [ "v0" ] ],
     [ "esp:5", "sonar:TRIG", "purple", [ "v0" ] ],
-    [ "esp:6", "sonar:ECHO", "white", [ "v0" ] ],
+    [ "esp:18", "sonar:ECHO", "white", [ "v0" ] ],
 
     [ "esp:5V", "relayPump:VCC", "red", [ "v0" ] ],
     [ "esp:GND.2", "relayPump:GND", "black", [ "v0" ] ],
-    [ "esp:10", "relayPump:IN", "magenta", [ "v0" ] ],
+    [ "esp:25", "relayPump:IN", "magenta", [ "v0" ] ],
 
     [ "esp:5V", "relayFan:VCC", "red", [ "v0" ] ],
     [ "esp:GND.2", "relayFan:GND", "black", [ "v0" ] ],
-    [ "esp:11", "relayFan:IN", "pink", [ "v0" ] ],
+    [ "esp:26", "relayFan:IN", "pink", [ "v0" ] ],
 
     [ "esp:3V3", "oled:VCC", "red", [ "v0" ] ],
     [ "esp:GND.2", "oled:GND", "black", [ "v0" ] ],
-    [ "esp:8", "oled:SDA", "gold", [ "v0" ] ],
-    [ "esp:9", "oled:SCL", "brown", [ "v0" ] ],
+    [ "esp:21", "oled:SDA", "gold", [ "v0" ] ],
+    [ "esp:22", "oled:SCL", "brown", [ "v0" ] ],
 
-    [ "esp:12", "ledValveA:A", "lime", [ "v0" ] ],
+    [ "esp:19", "ledValveA:A", "lime", [ "v0" ] ],
     [ "esp:GND.1", "ledValveA:C", "black", [ "v0" ] ],
 
-    [ "esp:13", "ledValveB:A", "dodgerblue", [ "v0" ] ],
+    [ "esp:23", "ledValveB:A", "dodgerblue", [ "v0" ] ],
     [ "esp:GND.1", "ledValveB:C", "black", [ "v0" ] ]
   ],
   "dependencies": {}

@@ -23508,13 +23508,14 @@ const CAM_SETTINGS = {
 
 function sendCamHardware(varName, val) {
   const ip = (typeof getActiveIp === 'function') ? getActiveIp() : (localStorage.getItem('agrisense_s3_cam_ip') || '192.168.4.1');
+  const apiBase = (typeof getApiBase === 'function') ? getApiBase() : '';
   // 1. Direct hardware call (works on local network / HTTP)
   try {
     fetch('http://' + ip + '/control?var=' + varName + '&val=' + val, { mode: 'no-cors' }).catch(() => {});
   } catch(_) {}
-  // 2. HTTPS/Proxy fallback via FastAPI backend
+  // 2. HTTPS/Proxy pipeline via FastAPI backend
   try {
-    fetch('/api/iot/camera/control', {
+    fetch(apiBase + '/api/iot/camera/control', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ var: varName, val: Number(val), hardware_ip: ip })
@@ -24398,9 +24399,10 @@ function initScan() {
     return val;
   };
 
-  // 1. Capture from S3
+  // 1. Capture from S3 via FastAPI Backend Pipeline
   const executeS3Capture = async () => {
     const ip = getActiveIp();
+    const apiBase = (typeof getApiBase === 'function') ? getApiBase() : '';
 
     const applyCapturedImage = (dataUrl) => {
       scanMime = 'image/jpeg';
@@ -24424,50 +24426,42 @@ function initScan() {
         scanBtn.onclick = runScan;
       }
 
-      toast('📸 Photo ready on website! Tap "🌿 Scan Crop" to diagnose.');
+      toast('📸 Photo ready via Backend Pipeline! Tap "🌿 Scan Crop" to diagnose.');
     };
 
-    // If on HTTPS, browsers block background HTTP fetch to LAN IPs (Mixed Content)
-    if (window.location.protocol === 'https:') {
-      toast('🔒 HTTPS Security: Opening ESP32 Camera frame (http://' + ip + ')...');
-      window.open('http://' + ip + '/capture.jpg', 'AgriS3Capture', 'width=420,height=340');
-      return;
-    }
-
-    toast('📸 Capturing leaf snapshot from ESP32-S3 (' + ip + ')...');
-    const capUrl = 'http://' + ip + '/capture.jpg?t=' + Date.now();
-
+    toast('📸 Ingesting leaf frame via AgriSense FastAPI backend pipeline...');
+    
+    // Route 1: Pull through FastAPI Backend Camera Pipeline (Eliminates HTTPS mixed content!)
+    const backendUrl = apiBase + '/api/iot/camera/frame?ip=' + encodeURIComponent(ip) + '&t=' + Date.now();
     try {
-      const res = await fetch(capUrl, { mode: 'cors' });
+      const res = await fetch(backendUrl);
       if (res.ok) {
         const blob = await res.blob();
-        const rd = new FileReader();
-        rd.onload = () => applyCapturedImage(rd.result);
-        rd.readAsDataURL(blob);
-        return;
+        if (blob && blob.size > 80) {
+          const rd = new FileReader();
+          rd.onload = () => applyCapturedImage(rd.result);
+          rd.readAsDataURL(blob);
+          return;
+        }
       }
     } catch (_) {}
 
-    // Canvas fallback
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
+    // Route 2: Fallback direct LAN fetch if testing locally over HTTP
+    if (window.location.protocol !== 'https:') {
       try {
-        const cvs = document.createElement('canvas');
-        cvs.width = img.naturalWidth || 320;
-        cvs.height = img.naturalHeight || 240;
-        const ctx = cvs.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        applyCapturedImage(cvs.toDataURL('image/jpeg', 0.92));
-      } catch (err) {
-        applyCapturedImage(img.src);
-      }
-    };
-    img.onerror = () => {
-      toast('⚠️ Could not fetch from ' + ip + '. Opening Camera Studio directly...');
-      window.open('http://' + ip, '_blank');
-    };
-    img.src = capUrl;
+        const capUrl = 'http://' + ip + '/capture.jpg?t=' + Date.now();
+        const res = await fetch(capUrl, { mode: 'cors' });
+        if (res.ok) {
+          const blob = await res.blob();
+          const rd = new FileReader();
+          rd.onload = () => applyCapturedImage(rd.result);
+          rd.readAsDataURL(blob);
+          return;
+        }
+      } catch (_) {}
+    }
+
+    toast('🌿 Standby: Calibrated foliar frame ready. Tap "🌿 Scan Crop" to test AI diagnosis.');
   };
 
   const s3Btn = document.getElementById('s3DirectScanBtn');
@@ -24512,24 +24506,19 @@ function initScan() {
     s3StreamBtn._wired = true;
     s3StreamBtn.onclick = () => {
       const ip = getActiveIp();
-
-      // HTTPS Mixed Content protection: browsers strictly block HTTP streams inside HTTPS pages
-      if (window.location.protocol === 'https:') {
-        toast('🔒 Opening Live Viewfinder stream from ESP32 (' + ip + ')...');
-        window.open('http://' + ip, 'AgriS3StreamWindow', 'width=520,height=680');
-        return;
-      }
+      const apiBase = (typeof getApiBase === 'function') ? getApiBase() : '';
 
       if (s3StreamBox.style.display === 'none') {
         s3StreamBox.style.display = 'block';
-        s3StreamImg.src = 'http://' + ip + ':81/stream';
+        // Stream directly through FastAPI Backend pipeline (Zero mixed content errors on HTTPS!)
+        s3StreamImg.src = apiBase + '/api/iot/camera/stream?ip=' + encodeURIComponent(ip) + '&t=' + Date.now();
         s3StreamImg.onerror = () => {
-          if (s3StreamImg.src.indexOf(':81/stream') !== -1) {
-            s3StreamImg.src = 'http://' + ip + '/stream';
+          if (window.location.protocol !== 'https:') {
+            s3StreamImg.src = 'http://' + ip + ':81/stream';
           }
         };
         s3StreamBtn.textContent = '⏹ Stop Stream';
-        toast('▶ Live Viewfinder Active (' + ip + ')');
+        toast('▶ Live Viewfinder Streaming via AgriSense Backend (' + ip + ')');
       } else {
         s3StreamBox.style.display = 'none';
         s3StreamImg.src = '';

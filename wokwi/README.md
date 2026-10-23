@@ -1,7 +1,10 @@
 # 🌾 AgriSense Wokwi Simulation & Precision IoT Gateway Guide
 ### Bal Bharati Public School Innovation Cell — Precision Agriculture & Edge AI
 
-Complete hardware simulation package for **AgriSense 39-Sensor Precision Agriculture Platform**, featuring native **ESP32-S3 DevKitC-1** chip configuration, dual-route pipeline (Google Sheets primary + Direct FastAPI failover), OLED telemetry HUD, and bidirectional edge actuator control.
+> [!IMPORTANT]
+> **Hardware Architecture & Scope Separation**:
+> - **Wokwi Simulation**: Strictly dedicated to the **39-Sensor Precision IoT Gateway** (Soil Dynamics, NPK, Micro-Climate, Hydraulics, Canopy, Environment/Pests, Actuators). Simulates sensor telemetry, OLED HUD, relay actuation, and the dual-route data pipeline (`ESP32 -> Google Sheets -> FastAPI Backend -> Website` with direct `ESP32 -> FastAPI Backend` failover).
+> - **ESP32-S3 Camera Module**: Operates independently through the **FastAPI Backend Pipeline** (`/api/iot/camera/upload`, `/frame`, `/stream`, `/control`, `/diagnose`). It does **NOT** run through Wokwi, because Wokwi does not emulate camera DVP hardware buses (OV2640 / GC2145). The backend handles camera frames, live MJPEG streaming, optical filtering, and edge AI foliar diagnosis.
 
 ---
 
