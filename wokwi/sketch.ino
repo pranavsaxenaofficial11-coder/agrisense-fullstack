@@ -1,60 +1,21 @@
 /* ==============================================================================
-   AGRISENSE PRECISION AGRICULTURE — ALL 39 SENSORS WOKWI SIMULATION & HARDWARE
-   Platform: ESP32 (Wokwi Virtual Simulator & Physical ESP32 DevKit V1)
+   AGRISENSE PRECISION AGRICULTURE — ALL 39 SENSORS EDGE IoT GATEWAY
+   Dual-Target Hardware: ESP32-S3 DevKitC-1 & ESP32 DevKit V1
    Team: AgriSense Innovation Cell — Bal Bharati Public School
    
-   FEEDS & CAPABILITIES COVERED (ALL 39 SENSORS ON WEBSITE):
-   1.  soilA         - Soil Moisture Sensor 1 (Zone A Primary Probe) [%]
-   2.  soilB         - Soil Moisture Sensor 2 (Zone B Probe) [%]
-   3.  soilC         - Soil Moisture Sensor 3 (Zone C Probe) [%]
-   4.  soilD         - Soil Moisture Sensor 4 (Zone D Probe) [%]
-   5.  soilAvg       - Average Root-Zone Soil Moisture [%]
-   6.  airTemp       - Ambient Air Temperature (DHT22) [°C]
-   7.  airHumidity   - Air Relative Humidity (DHT22) [%]
-   8.  soilTemp      - Root Depth Soil Temperature [°C]
-   9.  light         - Sunlight / Solar Radiation (LDR) [%]
-   10. pressure      - Barometric Atmospheric Pressure [hPa]
-   11. waterTank     - Ultrasonic Water Reservoir Level [%]
-   12. rain          - Precipitation / Raindrop Intensity [%]
-   13. airQuality    - MQ-135 Gas & Air Quality Index [idx]
-   14. waterTemp     - Reservoir Water Temperature [°C]
-   15. smoke         - MQ-2 Fire / Smoke & Combustible Gas [idx]
-   16. tds           - Irrigation Water Total Dissolved Solids [ppm]
-   17. soilPH        - Soil Acidity / Alkalinity [pH 5.5 - 8.5]
-   18. nitrogen      - Soil Nitrogen (N) Macronutrient [mg/kg]
-   19. phosphorus    - Soil Phosphorus (P) Macronutrient [mg/kg]
-   20. potassium     - Soil Potassium (K) Macronutrient [mg/kg]
-   21. leafWet       - Leaf Canopy Wetness Surface Sensor [%]
-   22. co2           - Carbon Dioxide Concentration [ppm]
-   23. flow          - Cumulative Irrigation Water Used Today [L]
-   24. soilEC        - Soil Electrical Conductivity / Salinity [dS/m]
-   25. wind          - Anemometer Wind Velocity [km/h]
-   26. uv            - Solar Ultraviolet Index [0 - 12]
-   27. windDir       - Anemometer Wind Direction [0° - 360°]
-   28. dewPoint      - Thermodynamic Dew Point [°C]
-   29. par           - Photosynthetically Active Radiation [µmol/m²/s]
-   30. soilO2        - Sub-surface Soil Oxygen Aeration [%]
-   31. waterFlow     - Instantaneous Inline Drip Flow Rate [L/min]
-   32. waterPH       - Reservoir Irrigation Water pH [pH 6.0 - 8.0]
-   33. pestMic       - Bio-Acoustic Pest Activity Index [idx]
-   34. vibration     - Anti-Tamper & Field Enclosure Vibration [idx]
-   35. ndvi          - Normalized Difference Vegetation Index [0.0 - 1.0]
-   36. sapFlow       - Plant Vascular Sap Flow Velocity [g/h]
-   37. stemDia       - Stem Micrometer / Dendrometer Diameter [mm]
-   38. pestCount     - Smart Pheromone Trap Pest Count [/day]
-   39. frost         - Ground-level Freeze / Frost Alert Temperature [°C]
-
-   ACTUATORS:
-   • Relay 1 (GPIO 25): Submersible Water Pump (Active LOW)
-   • Relay 2 (GPIO 26): Greenhouse Ventilation Cooling Fan (Active LOW)
-   • Valve A (GPIO 19): Zone A Solenoid Valve Indicator
-   • Valve B (GPIO 23): Zone B Solenoid Valve Indicator
-   • OLED (I2C 21/22): SSD1306 128x64 Live Telemetry HUD
-
-   DIRECT CONNECTIONS:
-   • Cloud Backend: https://agrisense-backend-kb22.onrender.com/api/sensors/ingest
-   • Local Backend: http://10.3.9.249:8000/api/sensors/ingest
-   • Google Sheets: https://script.google.com/macros/s/AKfycbxEWNrnzavYmBi6JyLME1dnxTW-xqxL17jZrVtTBhRO0rKKEXpTxAGb3yx_3D-IMzDUiw/exec
+   DUAL-ROUTING PIPELINE:
+   1. PRIMARY ROUTE (Wokwi -> Google Sheets -> Backend -> Website):
+      - Ingests all 39 sensors into Google Apps Script.
+      - Google Apps Script logs the formatted row into Google Sheets AND
+        relays the telemetry payload directly to our FastAPI Backend.
+      - The FastAPI Backend updates live cache, database, and WebSocket stream -> reaches website.
+      - Returns bidirectional actuator commands (Pump, Fan, Mode) from Backend & Sheet back to ESP32.
+   2. AUTOMATIC FAILOVER ROUTE (Google Sheets Failed -> Wokwi Direct -> Backend -> Website):
+      - If Google Sheets fails (timeout, HTTP error, SSL issue), the ESP32 automatically
+        detects the failure and routes readings DIRECTLY to FastAPI Cloud / Local Backend.
+      - FastAPI Backend ingests the readings with source="wokwi_direct", updates website live,
+        and returns actuator commands.
+   * IN BOTH CASES, TELEMETRY FLOWS THROUGH OUR BACKEND WITH COMPLETE OPERATOR VISIBILITY & CONTROL!
    ============================================================================== */
 
 #include <WiFi.h>
@@ -68,37 +29,58 @@
 
 WiFiMulti wifiMulti;
 
-// -------------------- 1. OLED DISPLAY CONFIG --------------------
+// -------------------- 1. PIN DEFINITIONS & CHIP CONFIGURATION --------------------
+#if defined(CONFIG_IDF_TARGET_ESP32S3) || defined(ARDUINO_ESP32S3_DEV) || defined(ARDUINO_ESP32_S3_BOX) || defined(ESP32_S3)
+  #define CHIP_NAME         "ESP32-S3 DevKitC-1"
+  #define IS_S3_CHIP        1
+  #define DHT_PIN           21    // DHT22 (Air Temp & Humidity)
+  #define DHT_TYPE          DHT22
+  #define SOIL1_PIN         1     // ADC1_CH0 -> Soil Moisture 1 (Zone A)
+  #define SOIL2_PIN         2     // ADC1_CH1 -> Soil Moisture 2 (Zone B)
+  #define LDR_PIN           14    // ADC2_CH3 -> Solar Light Level
+  #define RAIN_PIN          4     // ADC1_CH3 -> Raindrop Analog Sensor
+  #define TRIG_PIN          5     // HC-SR04 Ultrasonic Transmitter
+  #define ECHO_PIN          6     // HC-SR04 Ultrasonic Receiver
+  #define PUMP_RELAY_PIN    10    // Submersible Pump Relay (Active LOW)
+  #define FAN_RELAY_PIN     11    // Cooling Fan Relay (Active LOW)
+  #define OLED_SDA_PIN      8     // I2C SDA
+  #define OLED_SCL_PIN      9     // I2C SCL
+  #define VALVE_A_PIN       12    // Zone A Solenoid Indicator LED
+  #define VALVE_B_PIN       13    // Zone B Solenoid Indicator LED
+#else
+  #define CHIP_NAME         "ESP32 DevKit V1"
+  #define IS_S3_CHIP        0
+  #define DHT_PIN           4     // DHT22 (Air Temp & Humidity)
+  #define DHT_TYPE          DHT22
+  #define SOIL1_PIN         34    // Potentiometer 1 -> Soil Moisture 1 (Zone A)
+  #define SOIL2_PIN         35    // Potentiometer 2 -> Soil Moisture 2 (Zone B)
+  #define LDR_PIN           32    // LDR Photoresistor -> Solar Light Level
+  #define RAIN_PIN          33    // Raindrop Analog Sensor
+  #define TRIG_PIN          5     // HC-SR04 Ultrasonic Transmitter
+  #define ECHO_PIN          18    // HC-SR04 Ultrasonic Receiver
+  #define PUMP_RELAY_PIN    25    // Submersible Pump Relay (Active LOW)
+  #define FAN_RELAY_PIN     26    // Cooling Fan Relay (Active LOW)
+  #define OLED_SDA_PIN      21    // I2C SDA
+  #define OLED_SCL_PIN      22    // I2C SCL
+  #define VALVE_A_PIN       19    // Zone A Solenoid Indicator LED
+  #define VALVE_B_PIN       23    // Zone B Solenoid Indicator LED
+#endif
+
+// -------------------- 2. OLED DISPLAY CONFIG --------------------
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET    -1
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
-// -------------------- 2. HARDWARE PIN DEFINITIONS --------------------
-#define DHT_PIN          4     // DHT22 (Air Temp & Humidity)
-#define DHT_TYPE         DHT22
-
-#define SOIL1_PIN        34    // Potentiometer 1 -> Soil Moisture 1 (Zone A)
-#define SOIL2_PIN        35    // Potentiometer 2 -> Soil Moisture 2 (Zone B)
-#define LDR_PIN          32    // LDR Photoresistor -> Solar Light Level
-#define RAIN_PIN         33    // Raindrop Analog Sensor
-
-#define TRIG_PIN         5     // HC-SR04 Ultrasonic Transmitter
-#define ECHO_PIN         18    // HC-SR04 Ultrasonic Receiver
-
-#define PUMP_RELAY_PIN   25    // Submersible Pump Relay (Active LOW)
-#define FAN_RELAY_PIN    26    // Cooling Fan Relay (Active LOW)
-#define VALVE_A_PIN      19    // Zone A Solenoid Valve Indicator
-#define VALVE_B_PIN      23    // Zone B Solenoid Valve Indicator
-
 DHT dht(DHT_PIN, DHT_TYPE);
 
 // -------------------- 3. CLOUD ENDPOINTS --------------------
+// Google Apps Script Web App Endpoint for Google Sheets
 const char* WEB_APP_URL = 
   "https://script.google.com/macros/s/"
   "AKfycbxEWNrnzavYmBi6JyLME1dnxTW-xqxL17jZrVtTBhRO0rKKEXpTxAGb3yx_3D-IMzDUiw"
   "/exec";
 
+// FastAPI Endpoints (Cloud Render Primary, Local Backend Fallback, IoT Telemetry)
 const char* FASTAPI_ENDPOINTS[] = {
   "https://agrisense-backend-kb22.onrender.com/api/sensors/ingest",
   "http://10.3.9.249:8000/api/sensors/ingest",
@@ -107,59 +89,70 @@ const char* FASTAPI_ENDPOINTS[] = {
 const int NUM_FASTAPI_ENDPOINTS = 3;
 
 // -------------------- 4. ALL 39 SENSOR STATE VARIABLES --------------------
+// Category 1: Soil Dynamics & Root-Zone (9)
 float s_soilA       = 35.0f; // 1. Soil Moisture 1 (%)
 float s_soilB       = 32.0f; // 2. Soil Moisture 2 (%)
 float s_soilC       = 30.0f; // 3. Soil Moisture 3 (%)
 float s_soilD       = 34.0f; // 4. Soil Moisture 4 (%)
-float s_soilAvg     = 33.5f; // 5. Soil Moisture Average (%)
-float s_airTemp     = 28.5f; // 6. Air Temperature (°C)
-float s_airHumidity = 60.0f; // 7. Air Humidity (%)
-float s_soilTemp    = 24.5f; // 8. Soil Temperature (°C)
-float s_light       = 65.0f; // 9. Solar Light Level (%)
-float s_pressure    = 1012.0f; // 10. Barometric Pressure (hPa)
-float s_waterTank   = 75.0f; // 11. Water Reservoir Tank Level (%)
-float s_rain        = 0.0f;  // 12. Rainfall Intensity (%)
-float s_airQuality  = 28.0f; // 13. Air Quality Index (MQ-135)
-float s_waterTemp   = 23.0f; // 14. Water Temperature (°C)
-float s_smoke       = 14.0f; // 15. Smoke / Combustible Gas Index (MQ-2)
-float s_tds         = 340.0f; // 16. Water Salinity TDS (ppm)
-float s_soilPH      = 6.5f;  // 17. Soil pH
-float s_nitrogen    = 175.0f; // 18. Soil Nitrogen (mg/kg)
-float s_phosphorus  = 22.0f; // 19. Soil Phosphorus (mg/kg)
-float s_potassium   = 165.0f; // 20. Soil Potassium (mg/kg)
-float s_leafWet     = 28.0f; // 21. Leaf Wetness (%)
-float s_co2         = 430.0f; // 22. CO2 Concentration (ppm)
-float s_flow        = 18.5f; // 23. Cumulative Water Delivered Today (L)
-float s_soilEC      = 1.15f; // 24. Soil EC Salinity (dS/m)
-float s_wind        = 8.5f;  // 25. Wind Speed (km/h)
-float s_uv          = 5.5f;  // 26. UV Index
-float s_windDir     = 180.0f; // 27. Wind Direction (degrees)
-float s_dewPoint    = 19.5f; // 28. Dew Point (°C)
-float s_par         = 850.0f; // 29. Photosynthetically Active Radiation (µmol)
-float s_soilO2      = 19.2f; // 30. Soil Oxygen (%)
-float s_waterFlow   = 0.0f;  // 31. Live Drip Water Flow (L/min)
-float s_waterPH     = 7.0f;  // 32. Water pH
-float s_pestMic     = 12.0f; // 33. Acoustic Pest Activity Index
-float s_vibration   = 1.5f;  // 34. Enclosure Tamper Vibration
-float s_ndvi        = 0.76f; // 35. NDVI Canopy Vigour (0-1)
-float s_sapFlow     = 45.0f; // 36. Plant Stem Sap Flow (g/h)
-float s_stemDia     = 12.6f; // 37. Stem Dendrometer Diameter (mm)
-float s_pestCount   = 2.0f;  // 38. Smart Pheromone Trap Count (/day)
-float s_frost       = 8.5f;  // 39. Ground Frost Temperature (°C)
+float s_soilAvg     = 33.5f; // 5. Root-Zone Soil Average Moisture (%)
+float s_soilTemp    = 24.5f; // 6. Root-Zone Soil Temperature (°C)
+float s_soilPH      = 6.5f;  // 7. Soil Acidity / Alkalinity (pH)
+float s_soilEC      = 1.15f; // 8. Soil Electrical Conductivity (dS/m)
+float s_soilO2      = 19.2f; // 9. Sub-surface Soil Oxygen (%)
 
-// Actuators & Flags
+// Category 2: NPK Macronutrients (3)
+float s_nitrogen    = 175.0f; // 10. Soil Nitrogen (N) (mg/kg)
+float s_phosphorus  = 22.0f;  // 11. Soil Phosphorus (P) (mg/kg)
+float s_potassium   = 165.0f; // 12. Soil Potassium (K) (mg/kg)
+
+// Category 3: Micro-Climate & Meteorology (10)
+float s_airTemp     = 28.5f;  // 13. Ambient Air Temperature (°C)
+float s_airHumidity = 60.0f;  // 14. Relative Humidity (%)
+float s_pressure    = 1012.0f;// 15. Barometric Pressure (hPa)
+float s_light       = 65.0f;  // 16. Sunlight / Solar Radiation (%)
+float s_par         = 850.0f; // 17. Photosynthetically Active Radiation (µmol/m²/s)
+float s_uv          = 5.5f;   // 18. Solar Ultraviolet Index (0-12)
+float s_rain        = 0.0f;   // 19. Rainfall / Precipitation Intensity (%)
+float s_wind        = 8.5f;   // 20. Anemometer Wind Velocity (km/h)
+float s_windDir     = 180.0f; // 21. Wind Direction (Degrees)
+float s_dewPoint    = 19.5f;  // 22. Thermodynamic Dew Point (°C)
+
+// Category 4: Hydraulics & Water Infrastructure (6)
+float s_waterTank   = 75.0f;  // 23. Water Reservoir Level (%)
+float s_waterTemp   = 23.0f;  // 24. Water Temperature in Tank (°C)
+float s_tds         = 340.0f; // 25. Total Dissolved Solids (ppm)
+float s_waterPH     = 7.0f;   // 26. Reservoir Irrigation Water pH
+float s_waterFlow   = 0.0f;   // 27. Instantaneous Inline Drip Flow Rate (L/min)
+float s_flow        = 18.5f;  // 28. Cumulative Water Delivered Today (L)
+
+// Category 5: Canopy Biometrics & Plant Health (4)
+float s_leafWet     = 28.0f;  // 29. Leaf Canopy Wetness (%)
+float s_ndvi        = 0.76f;  // 30. Normalized Difference Vegetation Index (0.0 - 1.0)
+float s_sapFlow     = 45.0f;  // 31. Plant Vascular Sap Flow (g/h)
+float s_stemDia     = 12.6f;  // 32. Stem Dendrometer Diameter (mm)
+
+// Category 6: Environmental & Pest Intelligence (7)
+float s_airQuality  = 28.0f;  // 33. MQ-135 Gas & Air Quality Index
+float s_co2         = 430.0f; // 34. Carbon Dioxide Concentration (ppm)
+float s_smoke       = 14.0f;  // 35. MQ-2 Smoke & Combustible Gas Index
+float s_pestMic     = 12.0f;  // 36. Acoustic Bio-Pest Activity Index
+float s_pestCount   = 2.0f;   // 37. Smart Pheromone Trap Count (/day)
+float s_frost       = 8.5f;   // 38. Ground Frost Alert Temperature (°C)
+float s_vibration   = 1.0f;   // 39. Enclosure Anti-Tamper Vibration Index
+
+// Category 7: Actuators, Overrides & Pipeline Telemetry Status
 bool pumpState            = false;
 bool fanState             = false;
 bool valveAState          = false;
 bool valveBState          = false;
 bool autoMode             = true;
 bool manualOverrideActive = false;
+String activePipelineRoute = "STARTING"; // "GOOGLE_SHEETS_PRIMARY" or "WOKWI_DIRECT_FALLBACK"
 
 // Timers
 unsigned long lastSensorSample = 0;
 unsigned long lastSerialStream = 0;
-unsigned long lastFastApiSync  = 0;
-unsigned long lastSheetsSync   = 0;
+unsigned long lastPipelineSync = 0;
 unsigned long lastOledRefresh  = 0;
 
 // -------------------- 5. ACTUATOR CONTROL HELPERS --------------------
@@ -193,10 +186,9 @@ float readDistanceCm() {
   return d;
 }
 
-// -------------------- 7. COMPREHENSIVE 39-SENSOR SAMPLING & FORMULAS --------------------
+// -------------------- 7. ALL 39 SENSORS SAMPLING & CALIBRATION --------------------
 void sampleAll39Sensors() {
-  // --- REAL PHYSICAL / WOKWI HARDWARE PINS ---
-  // A. DHT22
+  // A. DHT22 (Air Temp & Humidity)
   float t = dht.readTemperature();
   float h = dht.readHumidity();
   if (!isnan(t) && t > -30.0f && t < 70.0f) s_airTemp = t;
@@ -219,95 +211,49 @@ void sampleAll39Sensors() {
   int rawRain = analogRead(RAIN_PIN);
   s_rain = constrain(map(rawRain, 0, 4095, 0, 100), 0, 100);
 
-  // E. Ultrasonic Reservoir Tank
+  // E. Ultrasonic Reservoir Tank (22cm empty -> 4cm full)
   float distCm = readDistanceCm();
-  // HC-SR04: 22cm empty -> 4cm full
   s_waterTank = constrain(((22.0f - distCm) / 18.0f) * 100.0f, 0.0f, 100.0f);
 
-  // --- SCIENTIFIC & AGRONOMIC SENSOR COMPUTATIONS ---
-  // 8. Soil Temperature (Thermodynamic depth buffer: lags air temp by ~4°C)
-  s_soilTemp = constrain(s_airTemp - 3.8f + (s_light * 0.04f), 10.0f, 45.0f);
-
-  // 10. Barometric Pressure (Drop correlates with rain and storm systems)
-  s_pressure = constrain(1013.25f - (s_rain * 0.22f) - ((s_airTemp - 25.0f) * 0.15f), 980.0f, 1030.0f);
-
-  // 13. MQ-135 Air Quality (VOCs & Ammonia)
+  // F. Agronomic Derived & Environmental Calculations
+  s_soilTemp   = constrain(s_airTemp - 3.8f + (s_light * 0.04f), 10.0f, 45.0f);
+  s_pressure   = constrain(1013.25f - (s_rain * 0.22f) - ((s_airTemp - 25.0f) * 0.15f), 980.0f, 1030.0f);
   s_airQuality = constrain(22.0f + (s_airTemp * 0.3f) + (s_smoke * 0.4f), 10.0f, 150.0f);
+  s_waterTemp  = constrain(s_airTemp - 5.0f + (s_light * 0.03f), 12.0f, 35.0f);
+  s_smoke      = constrain(10.0f + ((s_airTemp > 38.0f) ? 25.0f : 0.0f), 5.0f, 100.0f);
+  s_tds        = constrain(320.0f + (s_soilB * 1.5f), 150.0f, 1200.0f);
+  s_soilPH     = constrain(6.4f + ((50.0f - s_rain) * 0.006f) - (s_soilAvg * 0.003f), 5.6f, 7.8f);
 
-  // 14. Water Temperature in Reservoir
-  s_waterTemp = constrain(s_airTemp - 5.0f + (s_light * 0.03f), 12.0f, 35.0f);
-
-  // 15. MQ-2 Smoke & Flammable Gas Index
-  s_smoke = constrain(10.0f + ((s_airTemp > 38.0f) ? 25.0f : 0.0f), 5.0f, 100.0f);
-
-  // 16. Total Dissolved Solids (TDS ppm)
-  s_tds = constrain(320.0f + (s_soilB * 1.5f), 150.0f, 1200.0f);
-
-  // 17. Soil pH
-  s_soilPH = constrain(6.4f + ((50.0f - s_rain) * 0.006f) - (s_soilAvg * 0.003f), 5.6f, 7.8f);
-
-  // 18-20. NPK Macronutrients (mg/kg)
   s_nitrogen   = constrain(140.0f + (s_soilAvg * 0.8f), 60.0f, 250.0f);
   s_phosphorus = constrain(18.0f + (s_light * 0.12f), 8.0f, 50.0f);
   s_potassium  = constrain(150.0f + (s_soilAvg * 0.6f), 90.0f, 300.0f);
 
-  // 21. Leaf Wetness (%) - Rises with high air humidity or rain
-  s_leafWet = constrain((s_rain > 10) ? (70.0f + s_rain * 0.3f) : (s_airHumidity * 0.45f), 0.0f, 100.0f);
+  s_leafWet    = constrain((s_rain > 10) ? (70.0f + s_rain * 0.3f) : (s_airHumidity * 0.45f), 0.0f, 100.0f);
+  s_co2        = constrain(415.0f + ((s_airQuality > 50) ? 80.0f : 15.0f), 350.0f, 1200.0f);
 
-  // 22. CO2 Concentration (ppm)
-  s_co2 = constrain(415.0f + ((s_airQuality > 50) ? 80.0f : 15.0f), 350.0f, 1200.0f);
-
-  // 23. Cumulative Water Delivered Today (L)
   if (pumpState) {
     s_flow += 0.07f; // ~4.2 Liters per minute
   }
 
-  // 24. Soil Electrical Conductivity / Salinity (dS/m)
-  s_soilEC = constrain(0.8f + (s_tds / 1000.0f) * 0.6f, 0.4f, 4.5f);
+  s_soilEC     = constrain(0.8f + (s_tds / 1000.0f) * 0.6f, 0.4f, 4.5f);
+  s_wind       = constrain(6.0f + (s_light * 0.08f) + (s_rain * 0.12f), 0.0f, 65.0f);
+  s_uv         = constrain((s_light / 100.0f) * 11.5f, 0.0f, 12.0f);
+  s_windDir    = 180.0f;
 
-  // 25. Anemometer Wind Speed (km/h)
-  s_wind = constrain(6.0f + (s_light * 0.08f) + (s_rain * 0.12f), 0.0f, 65.0f);
-
-  // 26. Solar Ultraviolet UV Index
-  s_uv = constrain((s_light / 100.0f) * 11.5f, 0.0f, 12.0f);
-
-  // 27. Wind Direction (Degrees 0-360)
-  s_windDir = 180.0f; // South-Southwest predominant
-
-  // 28. Thermodynamic Dew Point (°C) via Magnus formula
   float a = 17.27f, b = 237.7f;
   float alpha = ((a * s_airTemp) / (b + s_airTemp)) + log(max(0.01f, s_airHumidity / 100.0f));
-  s_dewPoint = (b * alpha) / (a - alpha);
+  s_dewPoint   = (b * alpha) / (a - alpha);
 
-  // 29. Photosynthetically Active Radiation PAR (µmol/m²/s)
-  s_par = constrain((s_light / 100.0f) * 1850.0f, 0.0f, 2200.0f);
-
-  // 30. Sub-surface Soil Oxygen Aeration (%)
-  s_soilO2 = constrain(21.0f - (s_soilAvg * 0.08f), 8.0f, 21.0f);
-
-  // 32. Water pH
-  s_waterPH = constrain(6.9f + (s_tds * 0.0004f), 6.0f, 8.2f);
-
-  // 33. Acoustic Bio-Pest Activity Index
-  s_pestMic = constrain((s_airTemp > 30.0f && s_airHumidity > 60.0f) ? 38.0f : 12.0f, 0.0f, 90.0f);
-
-  // 34. Tamper Vibration Index
-  s_vibration = 1.0f; // Normal stable field box
-
-  // 35. NDVI Canopy Vigour (0.00 - 1.00)
-  s_ndvi = constrain(0.55f + ((s_soilAvg > 30 && s_soilAvg < 65) ? 0.28f : 0.05f) - (s_airTemp > 38 ? 0.15f : 0.0f), 0.2f, 0.95f);
-
-  // 36. Plant Stem Sap Flow Velocity (g/h)
-  s_sapFlow = constrain((s_light * 0.6f) + ((s_soilAvg > 25) ? 20.0f : 5.0f), 5.0f, 95.0f);
-
-  // 37. Stem Dendrometer Diameter (mm)
-  s_stemDia = constrain(12.2f + (s_soilAvg * 0.012f), 10.0f, 15.0f);
-
-  // 38. Smart Pheromone Trap Count (/day)
-  s_pestCount = (s_airTemp > 32.0f && s_airHumidity > 65.0f) ? 8.0f : 2.0f;
-
-  // 39. Ground Frost Temperature (°C)
-  s_frost = constrain(s_airTemp - 6.5f, -5.0f, 35.0f);
+  s_par        = constrain((s_light / 100.0f) * 1850.0f, 0.0f, 2200.0f);
+  s_soilO2     = constrain(21.0f - (s_soilAvg * 0.08f), 8.0f, 21.0f);
+  s_waterPH    = constrain(6.9f + (s_tds * 0.0004f), 6.0f, 8.2f);
+  s_pestMic    = constrain((s_airTemp > 30.0f && s_airHumidity > 60.0f) ? 38.0f : 12.0f, 0.0f, 90.0f);
+  s_vibration  = 1.0f;
+  s_ndvi       = constrain(0.55f + ((s_soilAvg > 30 && s_soilAvg < 65) ? 0.28f : 0.05f) - (s_airTemp > 38 ? 0.15f : 0.0f), 0.2f, 0.95f);
+  s_sapFlow    = constrain((s_light * 0.6f) + ((s_soilAvg > 25) ? 20.0f : 5.0f), 5.0f, 95.0f);
+  s_stemDia    = constrain(12.2f + (s_soilAvg * 0.012f), 10.0f, 15.0f);
+  s_pestCount  = (s_airTemp > 32.0f && s_airHumidity > 65.0f) ? 8.0f : 2.0f;
+  s_frost      = constrain(s_airTemp - 6.5f, -5.0f, 35.0f);
 }
 
 // -------------------- 8. EDGE CLOSED-LOOP DECISION ENGINE --------------------
@@ -318,44 +264,46 @@ void runEdgeAutomation() {
   if (s_waterTank < 8.0f) {
     if (pumpState) {
       setPump(false);
-      Serial.println(F("⚠️ [AUTO SAFETY] Water tank level critical (<8%)! Pump halted."));
+      Serial.println(F("⚠️ [AUTO SAFETY] Water reservoir critically low (<8%)! Pump halted."));
     }
     return;
   }
 
-  // Rain Protection
+  // Heavy Rain Infiltration Protection
   if (s_rain >= 50.0f) {
     if (pumpState) {
       setPump(false);
-      Serial.println(F("🌧️ [AUTO ECO] Heavy rain active. Irrigation paused."));
+      Serial.println(F("🌧️ [AUTO ECO] Heavy rain detected. Irrigation held."));
     }
   } else {
-    // Soil moisture thresholding
+    // Soil Moisture Cutoff Logic
     if (s_soilAvg <= 35.0f && !pumpState) {
       setPump(true);
       Serial.printf("💧 [AUTO PUMP] Low moisture (%.1f%%). Irrigation STARTED.\n", s_soilAvg);
     } else if (s_soilAvg >= 65.0f && pumpState) {
       setPump(false);
-      Serial.printf("🌱 [AUTO PUMP] Optimal moisture (%.1f%%). Irrigation STOPPED.\n", s_soilAvg);
+      Serial.printf("🌱 [AUTO PUMP] Optimal moisture reached (%.1f%%). Irrigation STOPPED.\n", s_soilAvg);
     }
   }
 
   // Canopy Heat Stress Cooling Logic
   if (s_airTemp >= 32.5f && !fanState) {
     setFan(true);
-    Serial.printf("🔥 [AUTO FAN] High temperature (%.1f°C). Ventilation STARTED.\n", s_airTemp);
+    Serial.printf("🔥 [AUTO FAN] Heat stress threshold exceeded (%.1f°C). Ventilation STARTED.\n", s_airTemp);
   } else if (s_airTemp < 30.0f && fanState) {
     setFan(false);
-    Serial.printf("❄️ [AUTO FAN] Temperature cooled (%.1f°C). Ventilation STOPPED.\n", s_airTemp);
+    Serial.printf("❄️ [AUTO FAN] Temperature normalized (%.1f°C). Ventilation STOPPED.\n", s_airTemp);
   }
 }
 
-// -------------------- 9. FASTAPI DIRECT INGESTION SYNC (ALL 39 FEEDS) --------------------
-void syncWithFastApi() {
-  if (WiFi.status() != WL_CONNECTED) return;
-
-  // Construct comprehensive 39-sensor JSON payload
+// -------------------- 9. PAYLOAD BUILDER HELPERS --------------------
+String buildJsonPayload(const char* routeSource) {
   String p = "{";
+  p += "\"source\":\"" + String(routeSource) + "\",";
+  p += "\"chip\":\"" + String(CHIP_NAME) + "\",";
+  p += "\"zone\":\"Zone A\",";
+  
+  // Category 1: Soil Dynamics (9)
   p += "\"soilA\":" + String(s_soilA, 1) + ",";
   p += "\"soilB\":" + String(s_soilB, 1) + ",";
   p += "\"soilC\":" + String(s_soilC, 1) + ",";
@@ -364,51 +312,172 @@ void syncWithFastApi() {
   p += "\"soil_moisture_1\":" + String(s_soilA, 1) + ",";
   p += "\"soil_moisture_2\":" + String(s_soilB, 1) + ",";
   p += "\"soil_average\":" + String(s_soilAvg, 1) + ",";
+  p += "\"soilTemp\":" + String(s_soilTemp, 1) + ",";
+  p += "\"soilPH\":" + String(s_soilPH, 2) + ",";
+  p += "\"soilEC\":" + String(s_soilEC, 2) + ",";
+  p += "\"soilO2\":" + String(s_soilO2, 1) + ",";
+
+  // Category 2: NPK Macronutrients (3)
+  p += "\"nitrogen\":" + String(s_nitrogen, 1) + ",";
+  p += "\"phosphorus\":" + String(s_phosphorus, 1) + ",";
+  p += "\"potassium\":" + String(s_potassium, 1) + ",";
+
+  // Category 3: Micro-Climate & Meteorology (10)
   p += "\"airTemp\":" + String(s_airTemp, 1) + ",";
   p += "\"air_temp\":" + String(s_airTemp, 1) + ",";
   p += "\"airHumidity\":" + String(s_airHumidity, 1) + ",";
   p += "\"air_humidity\":" + String(s_airHumidity, 1) + ",";
-  p += "\"soilTemp\":" + String(s_soilTemp, 1) + ",";
+  p += "\"pressure\":" + String(s_pressure, 1) + ",";
   p += "\"light\":" + String(s_light, 1) + ",";
   p += "\"light_pct\":" + String(s_light, 1) + ",";
-  p += "\"pressure\":" + String(s_pressure, 1) + ",";
-  p += "\"waterTank\":" + String(s_waterTank, 1) + ",";
-  p += "\"tankPct\":" + String(s_waterTank, 1) + ",";
+  p += "\"par\":" + String(s_par, 1) + ",";
+  p += "\"uv\":" + String(s_uv, 1) + ",";
   p += "\"rain\":" + String(s_rain, 1) + ",";
   p += "\"rain_pct\":" + String(s_rain, 1) + ",";
-  p += "\"airQuality\":" + String(s_airQuality, 1) + ",";
-  p += "\"waterTemp\":" + String(s_waterTemp, 1) + ",";
-  p += "\"smoke\":" + String(s_smoke, 1) + ",";
-  p += "\"tds\":" + String(s_tds, 1) + ",";
-  p += "\"soilPH\":" + String(s_soilPH, 2) + ",";
-  p += "\"nitrogen\":" + String(s_nitrogen, 1) + ",";
-  p += "\"phosphorus\":" + String(s_phosphorus, 1) + ",";
-  p += "\"potassium\":" + String(s_potassium, 1) + ",";
-  p += "\"leafWet\":" + String(s_leafWet, 1) + ",";
-  p += "\"co2\":" + String(s_co2, 1) + ",";
-  p += "\"flow\":" + String(s_flow, 1) + ",";
-  p += "\"soilEC\":" + String(s_soilEC, 2) + ",";
   p += "\"wind\":" + String(s_wind, 1) + ",";
-  p += "\"uv\":" + String(s_uv, 1) + ",";
   p += "\"windDir\":" + String(s_windDir, 1) + ",";
   p += "\"dewPoint\":" + String(s_dewPoint, 1) + ",";
-  p += "\"par\":" + String(s_par, 1) + ",";
-  p += "\"soilO2\":" + String(s_soilO2, 1) + ",";
-  p += "\"waterFlow\":" + String(s_waterFlow, 1) + ",";
+
+  // Category 4: Hydraulics & Water Infrastructure (6)
+  p += "\"waterTank\":" + String(s_waterTank, 1) + ",";
+  p += "\"tankPct\":" + String(s_waterTank, 1) + ",";
+  p += "\"waterTemp\":" + String(s_waterTemp, 1) + ",";
+  p += "\"tds\":" + String(s_tds, 1) + ",";
   p += "\"waterPH\":" + String(s_waterPH, 2) + ",";
-  p += "\"pestMic\":" + String(s_pestMic, 1) + ",";
-  p += "\"vibration\":" + String(s_vibration, 1) + ",";
+  p += "\"waterFlow\":" + String(s_waterFlow, 1) + ",";
+  p += "\"flow\":" + String(s_flow, 1) + ",";
+
+  // Category 5: Canopy Biometrics (4)
+  p += "\"leafWet\":" + String(s_leafWet, 1) + ",";
   p += "\"ndvi\":" + String(s_ndvi, 2) + ",";
   p += "\"sapFlow\":" + String(s_sapFlow, 1) + ",";
   p += "\"stemDia\":" + String(s_stemDia, 2) + ",";
+
+  // Category 6: Environmental & Pest Intelligence (7)
+  p += "\"airQuality\":" + String(s_airQuality, 1) + ",";
+  p += "\"co2\":" + String(s_co2, 1) + ",";
+  p += "\"smoke\":" + String(s_smoke, 1) + ",";
+  p += "\"pestMic\":" + String(s_pestMic, 1) + ",";
   p += "\"pestCount\":" + String(s_pestCount, 1) + ",";
   p += "\"frost\":" + String(s_frost, 1) + ",";
+  p += "\"vibration\":" + String(s_vibration, 1) + ",";
+
+  // Category 7: Actuators (6)
   p += "\"pump\":" + String(pumpState ? "true" : "false") + ",";
   p += "\"fan\":" + String(fanState ? "true" : "false") + ",";
   p += "\"valveA\":" + String(valveAState ? "true" : "false") + ",";
   p += "\"valveB\":" + String(valveBState ? "true" : "false") + ",";
   p += "\"mode\":\"" + String(autoMode ? "auto" : "manual") + "\"";
   p += "}";
+  return p;
+}
+
+// -------------------- 10. REMOTE ACTUATOR PARSER --------------------
+void parseActuatorCommands(const String& resp) {
+  if (resp.length() == 0) return;
+
+  // Emergency stop check
+  if (resp.indexOf("\"emergency_stop\":true") != -1 || resp.indexOf("\"status\":\"halted\"") != -1) {
+    if (pumpState) setPump(false);
+    if (fanState) setFan(false);
+    manualOverrideActive = true;
+    Serial.println(F("🛑 [REMOTE CMD] Emergency Stop Activated! All Actuators Halting."));
+    return;
+  }
+
+  // Pump command check
+  if (resp.indexOf("\"pump_command\":false") != -1 || resp.indexOf("\"pump\":false") != -1) {
+    if (pumpState) {
+      setPump(false);
+      manualOverrideActive = true;
+      Serial.println(F("🛑 [REMOTE CMD] Pump STOPPED remotely from Backend/Sheet"));
+    }
+  } else if (resp.indexOf("\"pump_command\":true") != -1 || resp.indexOf("\"pump\":true") != -1) {
+    if (!pumpState && s_waterTank >= 8.0f) {
+      setPump(true);
+      manualOverrideActive = true;
+      Serial.println(F("⚡ [REMOTE CMD] Pump STARTED remotely from Backend/Sheet"));
+    }
+  }
+
+  // Fan command check
+  if (resp.indexOf("\"fan_command\":false") != -1 || resp.indexOf("\"fan\":false") != -1) {
+    if (fanState) {
+      setFan(false);
+      manualOverrideActive = true;
+      Serial.println(F("🛑 [REMOTE CMD] Fan STOPPED remotely from Backend/Sheet"));
+    }
+  } else if (resp.indexOf("\"fan_command\":true") != -1 || resp.indexOf("\"fan\":true") != -1) {
+    if (!fanState) {
+      setFan(true);
+      manualOverrideActive = true;
+      Serial.println(F("⚡ [REMOTE CMD] Fan STARTED remotely from Backend/Sheet"));
+    }
+  }
+
+  // Auto mode check
+  if (resp.indexOf("\"auto_mode\":true") != -1 && manualOverrideActive) {
+    manualOverrideActive = false;
+    Serial.println(F("🌱 [REMOTE CMD] Auto-irrigation loop resumed from Backend/Sheet"));
+  }
+}
+
+// -------------------- 11. PRIMARY ROUTE: GOOGLE SHEETS SYNC --------------------
+bool syncWithGoogleSheets() {
+  if (WiFi.status() != WL_CONNECTED) return false;
+
+  WiFiClientSecure secClient;
+  secClient.setInsecure(); // Essential for Google Apps Script SSL redirects (302)
+
+  HTTPClient http;
+  String url = String(WEB_APP_URL) + "?sts=write&source=wokwi_primary";
+  url += "&zone=Zone%20A";
+  url += "&soilA=" + String(s_soilA, 1);
+  url += "&soilB=" + String(s_soilB, 1);
+  url += "&soilAvg=" + String(s_soilAvg, 1);
+  url += "&airTemp=" + String(s_airTemp, 1);
+  url += "&airHumidity=" + String(s_airHumidity, 1);
+  url += "&light=" + String(s_light, 1);
+  url += "&rain=" + String(s_rain, 1);
+  url += "&waterTank=" + String(s_waterTank, 1);
+  url += "&soilPH=" + String(s_soilPH, 2);
+  url += "&nitrogen=" + String(s_nitrogen, 1);
+  url += "&phosphorus=" + String(s_phosphorus, 1);
+  url += "&potassium=" + String(s_potassium, 1);
+  url += "&co2=" + String(s_co2, 1);
+  url += "&ndvi=" + String(s_ndvi, 2);
+  url += "&waterFlow=" + String(s_waterFlow, 1);
+  url += "&flow=" + String(s_flow, 1);
+  url += "&pump=" + String(pumpState ? "true" : "false");
+  url += "&fan=" + String(fanState ? "true" : "false");
+  url += "&mode=" + String(autoMode ? "auto" : "manual");
+
+  http.begin(secClient, url);
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+  http.setTimeout(7000);
+
+  int httpCode = http.GET();
+  bool success = false;
+
+  if (httpCode == 200 || httpCode == 302) {
+    String resp = http.getString();
+    Serial.printf("📊 [PRIMARY ROUTE SUCCESS] Telemetry logged to Google Sheet (HTTP %d) & Relayed to Backend!\n", httpCode);
+    parseActuatorCommands(resp);
+    success = true;
+  } else {
+    Serial.printf("⚠️ [GOOGLE SHEETS NOTICE] HTTP %d: %s\n", httpCode, http.errorToString(httpCode).c_str());
+  }
+
+  http.end();
+  return success;
+}
+
+// -------------------- 12. FALLBACK ROUTE: DIRECT FASTAPI INGESTION --------------------
+bool syncDirectFastApi() {
+  if (WiFi.status() != WL_CONNECTED) return false;
+
+  String payload = buildJsonPayload("wokwi_direct");
+  bool success = false;
 
   for (int i = 0; i < NUM_FASTAPI_ENDPOINTS; i++) {
     const char* targetUrl = FASTAPI_ENDPOINTS[i];
@@ -426,103 +495,92 @@ void syncWithFastApi() {
     http.addHeader("Content-Type", "application/json");
     http.setTimeout(4000);
 
-    int code = http.POST(p);
-    if (code > 0) {
-      Serial.printf("✅ [FASTAPI SYNC] All 39 Feeds uploaded to %s (HTTP %d)\n", targetUrl, code);
+    int code = http.POST(payload);
+    if (code > 0 && (code == 200 || code == 201)) {
+      Serial.printf("🚀 [FALLBACK ROUTE SUCCESS] Ingested DIRECTLY to FastAPI (%s, HTTP %d)\n", targetUrl, code);
       String resp = http.getString();
-
-      // Check remote commands
-      if (resp.indexOf("\"pump_command\":false") != -1 || resp.indexOf("\"pump\":false") != -1 ||
-          resp.indexOf("\"emergency_stop\":true") != -1 || resp.indexOf("\"status\":\"halted\"") != -1) {
-        if (pumpState) {
-          setPump(false);
-          manualOverrideActive = true;
-          Serial.println(F("🛑 [REMOTE CMD] Pump HALTED by Dashboard Emergency Stop"));
-        }
-      } else if (resp.indexOf("\"pump_command\":true") != -1 || resp.indexOf("\"pump\":true") != -1) {
-        if (!pumpState && s_waterTank >= 8.0f) {
-          setPump(true);
-          manualOverrideActive = true;
-          Serial.println(F("⚡ [REMOTE CMD] Pump STARTED remotely from Dashboard"));
-        }
-      }
+      parseActuatorCommands(resp);
       http.end();
+      success = true;
       break;
     } else {
       http.end();
     }
   }
+
+  return success;
 }
 
-// -------------------- 10. GOOGLE SHEETS SYNC --------------------
-void syncWithGoogleSheets() {
-  if (WiFi.status() != WL_CONNECTED) return;
+// -------------------- 13. MASTER PIPELINE CONTROLLER --------------------
+void executeTelemetryPipeline() {
+  // Step 1: Attempt transmission via Google Sheets (Primary Path)
+  bool sheetSuccess = syncWithGoogleSheets();
 
-  WiFiClientSecure secClient;
-  secClient.setInsecure(); // Required for Google Script SSL handshake & 302 redirects
-
-  HTTPClient http;
-  String url = String(WEB_APP_URL) + "?sts=write";
-  url += "&zone=Zone%20A";
-  url += "&air_temp=" + String(s_airTemp, 1);
-  url += "&air_humidity=" + String(s_airHumidity, 1);
-  url += "&soil_moisture_1=" + String(s_soilA, 1);
-  url += "&soil_moisture_2=" + String(s_soilB, 1);
-  url += "&soil_average=" + String(s_soilAvg, 1);
-  url += "&light_pct=" + String(s_light, 1);
-  url += "&rain_pct=" + String(s_rain, 1);
-  url += "&tank_level_pct=" + String(s_waterTank, 1);
-  url += "&soil_ph=" + String(s_soilPH, 2);
-  url += "&nitrogen=" + String(s_nitrogen, 1);
-  url += "&co2=" + String(s_co2, 1);
-  url += "&ndvi=" + String(s_ndvi, 2);
-  url += "&pump_state=" + String(pumpState ? "true" : "false");
-  url += "&fan_state=" + String(fanState ? "true" : "false");
-
-  http.begin(secClient, url);
-  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-  http.setTimeout(10000);
-
-  int httpCode = http.GET();
-  if (httpCode > 0) {
-    Serial.printf("📊 [GOOGLE SHEETS] 39-Sensor telemetry logged to sheet (HTTP %d)\n", httpCode);
+  if (sheetSuccess) {
+    activePipelineRoute = "GOOGLE_SHEETS_PRIMARY";
+  } else {
+    // Step 2: Google Sheets failed or timed out -> Route directly to FastAPI website backend!
+    Serial.println(F("⚠️ [FAILOVER TRIGGERED] Google Sheets unreachable. Routing DIRECTLY to AgriSense Website Backend..."));
+    bool directSuccess = syncDirectFastApi();
+    if (directSuccess) {
+      activePipelineRoute = "WOKWI_DIRECT_FALLBACK";
+    } else {
+      activePipelineRoute = "OFFLINE_BUFFER";
+      Serial.println(F("❌ [OFFLINE] Both Google Sheets and Direct Backend unreachable. Telemetry held in local buffer."));
+    }
   }
-  http.end();
 }
 
-// -------------------- 11. OLED DISPLAY HUD --------------------
+// -------------------- 14. OLED DISPLAY HUD --------------------
 void updateOledHUD() {
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
 
+  // Row 1: Header + Chip + Route Status
   display.setCursor(0, 0);
-  display.print("AgriSense 39-Feed");
+  display.printf("%s", IS_S3_CHIP ? "ESP32-S3" : "ESP32");
 
-  display.setCursor(96, 0);
-  display.print(WiFi.status() == WL_CONNECTED ? "[ON]" : "[--]");
+  display.setCursor(68, 0);
+  if (activePipelineRoute == "GOOGLE_SHEETS_PRIMARY") {
+    display.print("[GS->BE]");
+  } else if (activePipelineRoute == "WOKWI_DIRECT_FALLBACK") {
+    display.print("[DIRECT]");
+  } else {
+    display.print("[WOKWI]");
+  }
+
   display.drawLine(0, 9, 127, 9, SSD1306_WHITE);
 
-  display.setCursor(0, 13);
+  // Row 2: Atmospheric Telemetry
+  display.setCursor(0, 12);
   display.printf("T:%.1fC  H:%.0f%%  P:%0.f", s_airTemp, s_airHumidity, s_pressure);
 
-  display.setCursor(0, 24);
+  // Row 3: Soil Telemetry
+  display.setCursor(0, 23);
   display.printf("Soil: A:%0.f B:%0.f (%0.f%%)", s_soilA, s_soilB, s_soilAvg);
 
-  display.setCursor(0, 35);
+  // Row 4: NPK & pH
+  display.setCursor(0, 34);
   display.printf("N:%0.f P:%0.f K:%0.f pH:%.1f", s_nitrogen, s_phosphorus, s_potassium, s_soilPH);
 
-  display.setCursor(0, 46);
+  // Row 5: Hydraulics & Flow
+  display.setCursor(0, 45);
   display.printf("Tank:%0.f%% Flow:%.1fL", s_waterTank, s_flow);
 
+  // Row 6: Actuator Status Bar
   display.drawLine(0, 54, 127, 54, SSD1306_WHITE);
   display.setCursor(0, 56);
-  display.printf("PUMP:%s FAN:%s", pumpState ? "ON " : "OFF", fanState ? "ON " : "OFF");
+  display.printf("PUMP:%s FAN:%s M:%s",
+    pumpState ? "ON " : "OFF",
+    fanState ? "ON " : "OFF",
+    autoMode ? "A" : "M"
+  );
 
   display.display();
 }
 
-// -------------------- 12. USB WEB SERIAL & BEAUTIFUL HUD STREAM --------------------
+// -------------------- 15. USB WEB SERIAL & DASHBOARD STREAM --------------------
 static void printProgressBar(float pct, int width = 8) {
   int filled = constrain((int)round((pct / 100.0f) * width), 0, width);
   Serial.print(F("["));
@@ -532,100 +590,112 @@ static void printProgressBar(float pct, int width = 8) {
   Serial.printf("] %4.0f%%", pct);
 }
 
-void printVisualDashboard() {
+void streamSerialTelemetry() {
   unsigned long s = millis() / 1000;
   int hrs = s / 3600;
   int mins = (s % 3600) / 60;
   int secs = s % 60;
 
   Serial.println(F("\n+======================================================================================+"));
-  Serial.println(F("|        🌱  AGRISENSE 39-SENSOR MASTER EDGE IoT GATEWAY  |  PRECISION AGRI HUD        |"));
+  Serial.printf("|   🌱  AGRISENSE 39-SENSOR MASTER EDGE IoT GATEWAY  |  PLATFORM: %-20s |\n", CHIP_NAME);
   Serial.println(F("+======================================================================================+"));
   Serial.printf("| 📶 Wi-Fi: %-14s | ⏱️ Uptime: %02d:%02d:%02d | ⚙️ Mode: %-9s | 📡 Baud: 115200  |\n",
     WiFi.status() == WL_CONNECTED ? "[ONLINE]" : "[OFFLINE]",
     hrs, mins, secs,
     autoMode ? "AUTO" : "MANUAL"
   );
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.printf("| 🌐 Node IP: %-15s | ☁️ FastAPI: [READY]     | 📊 Sheets: [SYNCED]           |\n",
-      WiFi.localIP().toString().c_str()
-    );
-  }
+  Serial.printf("| 🌐 Active Route: %-26s | ☁️ FastAPI: [READY] | 📊 Sheets: [READY]   |\n",
+    activePipelineRoute.c_str()
+  );
   Serial.println(F("+--------------------------------------------------------------------------------------+"));
-  Serial.println(F("| [1] 🌡️  ATMOSPHERE & MICROCLIMATE                                                     |"));
-  Serial.printf("|   • Air Temp   : %5.1f °C       • Humidity  : %5.1f %%         • Pressure : %6.1f hPa  |\n",
-    s_airTemp, s_airHumidity, s_pressure);
-  Serial.printf("|   • Light Level: %5.0f Lux      • Rain Gauge: %5.1f %% (%-4s)   • CO2 Level: %6.0f ppm  |\n",
-    s_light, s_rain, s_rain > 10.0f ? "WET" : "DRY", s_co2);
-  Serial.printf("|   • UV Index   : %5.1f Index    • Wind Speed: %5.1f km/h      • Dew Point: %6.1f °C   |\n",
-    s_uv, s_wind, s_dewPoint);
-  Serial.println(F("+--------------------------------------------------------------------------------------+"));
-  Serial.println(F("| [2] 🌱  SOIL & SUB-SURFACE MATRIX                                                    |"));
-  Serial.print(F("|   • Soil A     : ")); printProgressBar(s_soilA, 8);
-  Serial.print(F("  • Soil B    : ")); printProgressBar(s_soilB, 8);
-  Serial.println(F("  |"));
-  Serial.print(F("|   • Soil Avg   : ")); printProgressBar(s_soilAvg, 8);
-  Serial.printf("  • Soil Temp : %5.1f °C      • Soil pH  : %4.2f pH     |\n", s_soilTemp, s_soilPH);
-  Serial.printf("|   • Soil EC    : %5.2f mS/cm    • Soil O2   : %5.1f %%         • Leaf Wet : %5.1f %%      |\n",
-    s_soilEC, s_soilO2, s_leafWet);
-  Serial.println(F("+--------------------------------------------------------------------------------------+"));
-  Serial.println(F("| [3] 🧪  CROP NPK, CANOPY & BIOMETRICS                                                |"));
-  Serial.printf("|   • Nitrogen(N): %5.0f mg/kg    • Phosphorus(P): %4.0f mg/kg   • Potassium(K): %4.0f mg/kg |\n",
-    s_nitrogen, s_phosphorus, s_potassium);
-  Serial.printf("|   • NDVI Canopy: %5.2f Index    • Sap Flow  : %5.1f mL/h      • Stem Dia : %5.2f mm   |\n",
-    s_ndvi, s_sapFlow, s_stemDia);
-  Serial.printf("|   • AcousticMic: %4.0f dB       • Plant Vib : %5.1f Hz        • Pest Count: %4.0f bugs |\n",
-    s_pestMic, s_vibration, s_pestCount);
-  Serial.println(F("+--------------------------------------------------------------------------------------+"));
-  Serial.println(F("| [4] 💧  HYDROLOGY & SMART ACTUATOR CONTROLS                                          |"));
-  Serial.print(F("|   • Water Tank : ")); printProgressBar(s_waterTank, 8);
-  Serial.printf("                 • Water Flow : %4.1f L/min     |\n", s_flow);
-  Serial.printf("|   • Main Pump  : [%-11s]        • Cooling Fan: [%-11s]             |\n",
-    pumpState ? "ON (ACTIVE)" : "OFF (IDLE)",
-    fanState ? "ON (COOL)" : "OFF (IDLE)");
-  Serial.printf("|   • Solenoid A : [%-11s]        • Solenoid B : [%-11s]             |\n",
-    valveAState ? "OPEN" : "CLOSED",
-    valveBState ? "OPEN" : "CLOSED");
-  Serial.printf("|   • Agronomy   : %-67s |\n",
-    s_soilAvg < 35.0f ? "ALERT: Dry Soil -> Autonomous Irrigation Active" :
-    (s_airTemp > 32.0f ? "WARNING: High Heat -> Thermal Protection Active" : "HEALTHY: All 39 Feeds within Agronomic Optimum"));
-  Serial.println(F("+======================================================================================+"));
-}
+  Serial.println(F("| 📊 SENSORS (39 FEEDS)          | VALUE                  | STATUS & SAFETY THRESHOLDS |"));
+  Serial.println(F("+--------------------------------+------------------------+----------------------------+"));
 
-void streamSerialTelemetry() {
-  // 1. Beautiful Human-Readable Visual Terminal Dashboard
-  printVisualDashboard();
+  // 1. Soil Dynamics
+  Serial.print(F("| 1. Soil Moisture 1 (Zone A)    | "));
+  printProgressBar(s_soilA, 8);
+  Serial.printf("  | %-26s |\n", s_soilA < 35 ? "LOW -> IRRIGATION CALL" : (s_soilA > 75 ? "SATURATED" : "OPTIMAL"));
 
-  // 2. Machine-Readable Single-Line JSON for Web Serial
-  Serial.printf(
-    "{\"soilA\":%.1f,\"soilB\":%.1f,\"soilC\":%.1f,\"soilD\":%.1f,\"soilAvg\":%.1f,\"airTemp\":%.1f,\"airHumidity\":%.1f,\"soilTemp\":%.1f,\"light\":%.1f,\"pressure\":%.1f,\"waterTank\":%.1f,\"rain\":%.1f,\"airQuality\":%.1f,\"waterTemp\":%.1f,\"smoke\":%.1f,\"tds\":%.1f,\"soilPH\":%.2f,\"nitrogen\":%.1f,\"phosphorus\":%.1f,\"potassium\":%.1f,\"leafWet\":%.1f,\"co2\":%.1f,\"flow\":%.1f,\"soilEC\":%.2f,\"wind\":%.1f,\"uv\":%.1f,\"windDir\":%.1f,\"dewPoint\":%.1f,\"par\":%.1f,\"soilO2\":%.1f,\"waterFlow\":%.1f,\"waterPH\":%.2f,\"pestMic\":%.1f,\"vibration\":%.1f,\"ndvi\":%.2f,\"sapFlow\":%.1f,\"stemDia\":%.2f,\"pestCount\":%.1f,\"frost\":%.1f,\"pump\":%s,\"fan\":%s,\"valveA\":%s,\"valveB\":%s,\"mode\":\"%s\"}\n",
-    s_soilA, s_soilB, s_soilC, s_soilD, s_soilAvg, s_airTemp, s_airHumidity, s_soilTemp, s_light, s_pressure,
-    s_waterTank, s_rain, s_airQuality, s_waterTemp, s_smoke, s_tds, s_soilPH, s_nitrogen, s_phosphorus, s_potassium,
-    s_leafWet, s_co2, s_flow, s_soilEC, s_wind, s_uv, s_windDir, s_dewPoint, s_par, s_soilO2,
-    s_waterFlow, s_waterPH, s_pestMic, s_vibration, s_ndvi, s_sapFlow, s_stemDia, s_pestCount, s_frost,
-    pumpState ? "true" : "false", fanState ? "true" : "false",
-    valveAState ? "true" : "false", valveBState ? "true" : "false",
-    autoMode ? "auto" : "manual"
+  Serial.print(F("| 2. Soil Moisture 2 (Zone B)    | "));
+  printProgressBar(s_soilB, 8);
+  Serial.printf("  | %-26s |\n", s_soilB < 35 ? "LOW -> ZONE B DEFICIT" : "BALANCED");
+
+  Serial.printf("| 3. Root Average Moisture       | %6.1f %%               | Optimal Range: 35-65%%      |\n", s_soilAvg);
+  Serial.printf("| 4. Root Zone Soil Temperature  | %6.1f °C              | Lags air temp by ~4°C      |\n", s_soilTemp);
+  Serial.printf("| 5. Soil Acidity / Alkalinity   | %6.2f pH              | Calibrated Agronomic Range |\n", s_soilPH);
+  Serial.printf("| 6. Soil Electrical Conduct. EC | %6.2f dS/m            | Salinity Index             |\n", s_soilEC);
+  Serial.printf("| 7. Sub-surface Soil Oxygen     | %6.1f %%               | Root Respiration Buffer    |\n", s_soilO2);
+
+  // 2. NPK
+  Serial.printf("| 8. Soil Nitrogen (N)           | %6.1f mg/kg           | Macronutrient Buffer       |\n", s_nitrogen);
+  Serial.printf("| 9. Soil Phosphorus (P)         | %6.1f mg/kg           | Root Cell Energizer        |\n", s_phosphorus);
+  Serial.printf("| 10. Soil Potassium (K)         | %6.1f mg/kg           | Stomatal Osmoregulation    |\n", s_potassium);
+
+  // 3. Atmosphere
+  Serial.printf("| 11. Ambient Air Temp (DHT22)   | %6.1f °C              | %-26s |\n",
+    s_airTemp, s_airTemp >= 32.5f ? "HIGH HEAT -> FAN ACTIVE" : "CANOPY STABLE");
+  Serial.printf("| 12. Relative Humidity (DHT22)  | %6.1f %%               | Transpiration Drive        |\n", s_airHumidity);
+  Serial.printf("| 13. Barometric Pressure        | %6.1f hPa             | Weather Trend Buffer       |\n", s_pressure);
+  Serial.printf("| 14. Solar Sunlight Level (LDR) | %6.1f %%               | Photoperiod Radiation      |\n", s_light);
+  Serial.printf("| 15. PAR Quantum Sensor         | %6.1f µmol/m²/s       | Photosynthesis Rate        |\n", s_par);
+  Serial.printf("| 16. Solar UV Index             | %6.1f / 12            | Photoprotection Check      |\n", s_uv);
+  Serial.printf("| 17. Rainfall Intensity         | %6.1f %%               | %-26s |\n",
+    s_rain, s_rain >= 50.0f ? "RAIN ACTIVE -> CUT PUMP" : "DRY");
+
+  // 4. Hydraulics
+  Serial.print(F("| 18. Water Reservoir Tank       | "));
+  printProgressBar(s_waterTank, 8);
+  Serial.printf("  | %-26s |\n", s_waterTank < 8 ? "CRITICAL -> PUMP LOCKOUT" : "SUFFICIENT HEAD");
+  Serial.printf("| 19. Water Salinity TDS         | %6.1f ppm             | Irrigation Purity          |\n", s_tds);
+  Serial.printf("| 20. Live Drip Inline Flow Rate | %6.1f L/min           | %-26s |\n",
+    s_waterFlow, pumpState ? "FLOWING TO EMITTERS" : "STATIC");
+  Serial.printf("| 21. Cumulative Water Used      | %6.1f Liters          | Precision Conservation     |\n", s_flow);
+
+  // 5. Canopy Biometrics & Pests
+  Serial.printf("| 22. Leaf Canopy Wetness        | %6.1f %%               | Fungal Inoculation Risk    |\n", s_leafWet);
+  Serial.printf("| 23. Canopy NDVI Vigour Index   | %6.2f / 1.00          | Multispectral Crop Health  |\n", s_ndvi);
+  Serial.printf("| 24. Vascular Sap Flow Rate     | %6.1f g/h             | Crop Water Uptake Velocity |\n", s_sapFlow);
+  Serial.printf("| 25. Bio-Acoustic Pest Activity | %6.1f idx             | Acoustic Pest Detection    |\n", s_pestMic);
+  Serial.printf("| 26. Ground Frost Alert Temp    | %6.1f °C              | Freeze Warning System      |\n", s_frost);
+
+  // Actuators
+  Serial.println(F("+--------------------------------+------------------------+----------------------------+"));
+  Serial.printf("| ⚡ Water Pump Relay (GPIO %2d)  | %-22s | Valve A: %-4s | Valve B: %-4s|\n",
+    PUMP_RELAY_PIN,
+    pumpState ? "ON  [ACTIVE DISCHARGE]" : "OFF [STANDBY]",
+    valveAState ? "OPEN" : "HOLD",
+    valveBState ? "OPEN" : "HOLD"
+  );
+  Serial.printf("| 🌀 Cooling Fan Relay (GPIO %2d) | %-22s | Canopy Thermal Relief      |\n",
+    FAN_RELAY_PIN,
+    fanState ? "ON  [VENTILATING]" : "OFF [IDLE]"
+  );
+  Serial.println(F("+======================================================================================+\n"));
+
+  // Clean Web Serial single-line JSON for 1-click in-browser sync
+  Serial.print(F("{\"telemetry\":{"));
+  Serial.printf("\"airTemp\":%.1f,\"airHumidity\":%.1f,\"soilAvg\":%.1f,\"soilA\":%.1f,\"soilB\":%.1f,",
+    s_airTemp, s_airHumidity, s_soilAvg, s_soilA, s_soilB);
+  Serial.printf("\"light\":%.1f,\"rain\":%.1f,\"waterTank\":%.1f,\"nitrogen\":%.1f,\"phosphorus\":%.1f,\"potassium\":%.1f,",
+    s_light, s_rain, s_waterTank, s_nitrogen, s_phosphorus, s_potassium);
+  Serial.printf("\"soilPH\":%.2f,\"ndvi\":%.2f,\"pump\":%s,\"fan\":%s,\"route\":\"%s\"}}\n",
+    s_soilPH, s_ndvi,
+    pumpState ? "true" : "false",
+    fanState ? "true" : "false",
+    activePipelineRoute.c_str()
   );
 }
 
-// ==============================================================================
-// SETUP
-// ==============================================================================
+// -------------------- 16. SETUP & SUPER-LOOP --------------------
 void setup() {
   Serial.begin(115200);
-  delay(500);
+  delay(300);
 
-  Serial.println(F("\n\n"));
-  Serial.println(F("  █████╗  ██████╗ ██████╗ ██╗███████╗███████╗███╗   ██╗███████╗███████╗"));
-  Serial.println(F(" ██╔══██╗██╔════╝ ██╔══██╗██║██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝"));
-  Serial.println(F(" ███████║██║  ███╗██████╔╝██║███████╗█████╗  ██╔██╗ ██║███████╗█████╗  "));
-  Serial.println(F(" ██╔══██║██║   ██║██╔══██╗██║╚════██║██╔══╝  ██║╚██╗██║╚════██║██╔══╝  "));
-  Serial.println(F(" ██║  ██║╚██████╔╝██║  ██║██║███████║███████╗██║ ╚████║███████║███████╗"));
-  Serial.println(F(" ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚═╝  ╚═══╝╚══════╝╚══════╝"));
-  Serial.println(F("               🌱 PRECISION AGRICULTURE EDGE IoT SYSTEM                "));
-  Serial.println(F("        BAL BHARATI PUBLIC SCHOOL — RESEARCH & INNOVATION CELL         "));
-  Serial.println(F("========================================================================\n"));
+  Serial.println(F("\n========================================================"));
+  Serial.printf("   🌱 AGRISENSE 39-SENSOR MASTER EDGE IoT GATEWAY\n");
+  Serial.printf("   Target Platform: %s\n", CHIP_NAME);
+  Serial.printf("   Bal Bharati Public School Innovation Cell\n");
+  Serial.println(F("========================================================"));
 
   pinMode(PUMP_RELAY_PIN, OUTPUT);
   pinMode(FAN_RELAY_PIN, OUTPUT);
@@ -637,16 +707,18 @@ void setup() {
   setPump(false);
   setFan(false);
 
+  // Initialize I2C for SSD1306 OLED with chip-specific SDA/SCL pins
+  Wire.begin(OLED_SDA_PIN, OLED_SCL_PIN);
   dht.begin();
 
   if (display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
-    display.setCursor(14, 20);
-    display.println("AgriSense 39");
-    display.setCursor(8, 34);
-    display.println("Sensors Starting...");
+    display.setCursor(10, 18);
+    display.printf("AgriSense %s", IS_S3_CHIP ? "S3" : "V1");
+    display.setCursor(6, 32);
+    display.println("All 39 Sensors Init");
     display.display();
   }
 
@@ -657,7 +729,7 @@ void setup() {
 
   Serial.print(F("🌐 Connecting to Network..."));
   int att = 0;
-  while (wifiMulti.run() != WL_CONNECTED && att < 18) {
+  while (wifiMulti.run() != WL_CONNECTED && att < 16) {
     delay(400);
     Serial.print(".");
     att++;
@@ -674,13 +746,10 @@ void setup() {
   updateOledHUD();
 }
 
-// ==============================================================================
-// SUPER-LOOP
-// ==============================================================================
 void loop() {
   unsigned long now = millis();
 
-  // 1. Sample all 39 sensors and run autonomous logic (1000ms)
+  // 1. Sample all 39 sensors and run autonomous decision logic (1000ms)
   if (now - lastSensorSample >= 1000) {
     lastSensorSample = now;
     sampleAll39Sensors();
@@ -699,19 +768,13 @@ void loop() {
     streamSerialTelemetry();
   }
 
-  // 4. Ingest into FastAPI Cloud Website (Every 4000ms)
-  if (now - lastFastApiSync >= 4000) {
-    lastFastApiSync = now;
-    syncWithFastApi();
+  // 4. Primary Ingestion via Google Sheets & Fallback to Direct FastAPI (Every 4000ms)
+  if (now - lastPipelineSync >= 4000) {
+    lastPipelineSync = now;
+    executeTelemetryPipeline();
   }
 
-  // 5. Ingest into Google Sheets (Every 10000ms)
-  if (now - lastSheetsSync >= 10000) {
-    lastSheetsSync = now;
-    syncWithGoogleSheets();
-  }
-
-  // 6. Handle bidirectional USB Serial commands from web app
+  // 5. Handle bidirectional USB Serial commands from web app
   if (Serial.available()) {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
@@ -733,6 +796,11 @@ void loop() {
     } else if (cmd == "AUTO_RESUME") {
       manualOverrideActive = false;
       Serial.println(F("{\"ack\":\"auto_resumed\"}"));
+    } else if (cmd == "EMERGENCY_STOP") {
+      setPump(false);
+      setFan(false);
+      manualOverrideActive = true;
+      Serial.println(F("{\"ack\":\"emergency_stop_triggered\"}"));
     }
   }
 

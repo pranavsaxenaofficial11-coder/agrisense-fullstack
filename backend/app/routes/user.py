@@ -14,6 +14,41 @@ router = APIRouter(prefix="/api/user", tags=["User Profile"])
 def hash_password_with_salt(password: str, salt: str) -> str:
     return hashlib.sha256(f"{salt}:{password}".encode("utf-8")).hexdigest()
 
+
+def record_login_event(user: models.User, client_ip: str, ua: str, method: str = "Web Auth"):
+    now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    device = "Desktop Web Browser"
+    if "iPhone" in ua:
+        device = "Apple iPhone (iOS)"
+    elif "iPad" in ua:
+        device = "Apple iPad (iPadOS)"
+    elif "Android" in ua:
+        device = "Android Mobile (Chrome)"
+    elif "Windows" in ua:
+        device = "Windows PC / Chrome"
+    elif "Macintosh" in ua:
+        device = "MacBook / macOS"
+
+    user.last_ip = client_ip
+    user.user_agent = ua
+    user.device_type = device
+    user.last_login = now_str
+    user.login_count = (user.login_count or 0) + 1
+
+    try:
+        logins = json.loads(user.recent_logins) if user.recent_logins else []
+    except Exception:
+        logins = []
+
+    logins.insert(0, {
+        "timestamp": now_str,
+        "ip": client_ip,
+        "device": device,
+        "user_agent": ua,
+        "method": method
+    })
+    user.recent_logins = json.dumps(logins[:25])
+
 @router.post("/register")
 def register_user(req: UserRegisterRequest, request: Request, db: Session = Depends(get_db)):
     """Secure user registration endpoint with SHA-256 cryptographic salt and hashing."""
@@ -60,6 +95,7 @@ def register_user(req: UserRegisterRequest, request: Request, db: Session = Depe
         )
         db.add(user)
 
+    record_login_event(user, client_ip, ua, "Account Registration")
     db.commit()
     db.refresh(user)
 
@@ -143,11 +179,7 @@ def login_user(req: UserLoginRequest, request: Request, db: Session = Depends(ge
 
     client_ip = request.client.host if request.client else "127.0.0.1"
     ua = request.headers.get("user-agent", "Mozilla/5.0")
-    user.last_ip = client_ip
-    user.user_agent = ua
-    user.last_login = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-    user.login_count = (user.login_count or 0) + 1
-
+    record_login_event(user, client_ip, ua, "Email Login")
     db.commit()
     db.refresh(user)
 
@@ -519,11 +551,6 @@ def sync_firebase_user(payload: dict, request: Request, db: Session = Depends(ge
         db.add(user)
     else:
         user.name = name or user.name
-        user.login_count = (user.login_count or 0) + 1
-        user.last_login = now_str
-        user.last_ip = client_ip
-        user.user_agent = ua
-        user.device_type = device
         if payload.get("phone"): user.phone = payload.get("phone")
         if payload.get("state"): user.state = payload.get("state")
         if payload.get("district"): user.district = payload.get("district")
@@ -531,6 +558,18 @@ def sync_firebase_user(payload: dict, request: Request, db: Session = Depends(ge
         if payload.get("role"): user.role = payload.get("role")
         if payload.get("business_name"): user.business_name = payload.get("business_name")
 
+    record_login_event(user, client_ip, ua, payload.get("method") or "Firebase Auth")
     db.commit()
     db.refresh(user)
     return {"status": "success", "message": f"User {user.email} synced successfully into custom backend.", "user_id": user.id}
+
+
+@router.post("/sync_all_firebase")
+def trigger_firebase_full_sync():
+    """Admin trigger: Synchronizes all real Firebase users, posts, messages into SQLite and exports snapshot."""
+    try:
+        from sync_all_firebase import sync_firebase_now
+        success = sync_firebase_now()
+        return {"status": "success" if success else "error", "message": "Firebase full synchronization executed."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

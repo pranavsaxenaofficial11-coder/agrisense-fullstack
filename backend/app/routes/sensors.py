@@ -138,8 +138,15 @@ class HardwareIngest(BaseModel):
     valveA: Optional[Any] = None
     valveB: Optional[Any] = None
     mode: Optional[str] = None
+    source: Optional[str] = "wokwi_direct"
+    route: Optional[str] = None
+    chip: Optional[str] = None
 
 latest_hardware_cache: Dict[str, Any] = {
+    "source": "google_sheets",
+    "route": "Via Google Sheets (Primary)",
+    "chip": "ESP32-S3 DevKitC-1",
+    "last_updated": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
     "soilA": 38.4, "soilB": 36.2, "soilC": 35.0, "soilD": 40.0, "soilAvg": 38.4,
     "soil_moisture_1": 38.4, "soil_moisture_2": 36.2, "soil_average": 38.4,
     "airTemp": 28.5, "air_temp": 28.5,
@@ -230,6 +237,12 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
         latest_hardware_cache["fan"] = bool(fan_bool)
         latest_hardware_cache["fan_state"] = bool(fan_bool)
 
+    route_label = "Via Google Sheets (Primary)" if (data.source == "google_sheets" or data.route == "google_sheets") else "Direct Wokwi Link (Failover / Direct)"
+    latest_hardware_cache["source"] = data.source or "wokwi_direct"
+    latest_hardware_cache["route"] = route_label
+    latest_hardware_cache["chip"] = data.chip or "ESP32-S3 DevKitC-1"
+    latest_hardware_cache["last_updated"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+
     # Record in SQLite history
     reading = models.SensorReading(
         zone=data.zone or "Zone A",
@@ -288,9 +301,12 @@ async def ingest_hardware_reading(data: HardwareIngest, db: Session = Depends(ge
 
     return {
         "status": "success",
+        "source": latest_hardware_cache.get("source", "wokwi_direct"),
+        "route": latest_hardware_cache.get("route", "Via Google Sheets (Primary)"),
+        "chip": latest_hardware_cache.get("chip", "ESP32-S3 DevKitC-1"),
         "pump_command": bool(ctrl.pump_state) if ctrl else False,
         "pump": bool(ctrl.pump_state) if ctrl else False,
-        "fan": bool(latest_hardware_cache["fan_state"]),
+        "fan": bool(latest_hardware_cache.get("fan_state", False)),
         "auto_mode": bool(ctrl.auto_mode) if ctrl else True,
         "manual_override": bool(ctrl.manual_override) if ctrl else False,
         "sensors_recorded_count": len([k for k, v in incoming_dict.items() if v is not None]),

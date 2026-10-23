@@ -7557,12 +7557,12 @@ $('#signInBtn').addEventListener('click', async () => {
     state.user = { ...state.user, ...foundUser };
 
     try { localStorage.setItem('agrisense_current_user', JSON.stringify(state.user)); } catch(e){}
-
     const isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(uEmail.toLowerCase());
 
     state.isAdmin = isAdmin || uEmail.toLowerCase().includes('pranav') || uEmail.toLowerCase().includes('admin');
 
     recordLoginDemo(state.user.name, uEmail, 'Email');
+    if (typeof syncFirebaseUserToCustomBackend === 'function') syncFirebaseUserToCustomBackend({ email: uEmail, displayName: state.user.name }, { method: 'Email Login', ...foundUser });
 
     showApp();
 
@@ -25096,6 +25096,7 @@ $$('.gbtn').forEach(b => b.addEventListener('click', async (e) => {
 /* Bridge: called by the Firebase module script after a real sign-in */
 
 window.handleFirebaseLogin = function(u, isAdmin){
+  if (typeof syncFirebaseUserToCustomBackend === 'function') syncFirebaseUserToCustomBackend(u, { method: 'Firebase / Google' });
 
   const foundMatch = inferUserFromEmail(u.email);
 
@@ -26781,8 +26782,9 @@ window.addEventListener('DOMContentLoaded', () => {
 // Automatic Firebase -> Custom Backend Sync Bridge
 async function syncFirebaseUserToCustomBackend(user, extraProfile = {}) {
   if (!user || !user.email) return;
+  const apiBase = (typeof getApiBase === 'function') ? getApiBase() : '';
   const payload = {
-    uid: user.uid,
+    uid: user.uid || ('usr_' + Math.random().toString(36).substr(2, 9)),
     email: user.email,
     name: user.displayName || extraProfile.name || (user.email.split('@')[0]),
     phone: user.phoneNumber || extraProfile.phone || null,
@@ -26793,28 +26795,43 @@ async function syncFirebaseUserToCustomBackend(user, extraProfile = {}) {
     village: extraProfile.village || 'Samrala',
     device_type: navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop Web Browser',
     user_agent: navigator.userAgent,
+    method: extraProfile.method || 'Web Login',
     last_login: new Date().toISOString()
   };
 
-  try {
-    const endpoints = ['/api/user/sync_firebase', 'http://127.0.0.1:8000/api/user/sync_firebase'];
-    for (const ep of endpoints) {
-      try {
-        const resp = await fetch(ep, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (resp.ok) {
-          console.log('[Sync] Successfully synced Firebase user to custom backend:', user.email);
-          break;
-        }
-      } catch (e) {}
-    }
-  } catch (err) {
-    console.warn('[Sync] Non-blocking backend sync notice:', err);
+  const endpoints = [];
+  if (apiBase) endpoints.push(`${apiBase}/api/user/sync_firebase`);
+  endpoints.push('/api/user/sync_firebase');
+  endpoints.push('https://agrisense-backend-kb22.onrender.com/api/user/sync_firebase');
+  endpoints.push('http://127.0.0.1:8000/api/user/sync_firebase');
+
+  for (const ep of endpoints) {
+    try {
+      const resp = await fetch(ep, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (resp.ok) {
+        console.log('[Sync] Successfully synced user to backend:', ep, user.email);
+        break;
+      }
+    } catch (e) {}
   }
 }
+
+// Auto-sync on startup
+window.addEventListener('load', () => {
+  try {
+    const cached = localStorage.getItem('agrisense_current_user');
+    if (cached) {
+      const cu = JSON.parse(cached);
+      if (cu && cu.email) {
+        setTimeout(() => syncFirebaseUserToCustomBackend(cu, { method: 'Session Restored' }), 1200);
+      }
+    }
+  } catch(e){}
+});
 </script>
 
 </body>

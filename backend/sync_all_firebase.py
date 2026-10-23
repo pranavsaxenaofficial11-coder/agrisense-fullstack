@@ -74,15 +74,26 @@ def sync_firebase_now():
     print("[*] Synchronizing 100% Real Firebase Data [*]")
     print("==========================================")
 
-    if not os.path.exists(KEY_PATH):
-        print(f"[ERROR] Service account not found at: {KEY_PATH}")
-        return False
-
     # 1. Google OAuth2 Token
-    cred = service_account.Credentials.from_service_account_file(
-        KEY_PATH,
-        scopes=['https://www.googleapis.com/auth/cloud-platform']
-    )
+    cred = None
+    env_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+    if env_json:
+        try:
+            info = json.loads(env_json)
+            cred = service_account.Credentials.from_service_account_info(
+                info,
+                scopes=['https://www.googleapis.com/auth/cloud-platform']
+            )
+        except Exception as e:
+            print(f"[WARN] Failed parsing FIREBASE_SERVICE_ACCOUNT_JSON: {e}")
+    if not cred:
+        if not os.path.exists(KEY_PATH):
+            print(f"[ERROR] Service account not found at: {KEY_PATH}")
+            return False
+        cred = service_account.Credentials.from_service_account_file(
+            KEY_PATH,
+            scopes=['https://www.googleapis.com/auth/cloud-platform']
+        )
     cred.refresh(google.auth.transport.requests.Request())
     token = cred.token
     headers = {'Authorization': f'Bearer {token}'}
@@ -371,6 +382,8 @@ def sync_firebase_now():
 
     sqlite_db.commit()
     sqlite_db.close()
+    export_current_db_to_snapshot()
+    export_current_db_to_snapshot()
     print("\n==========================================")
     print(f"[SUCCESS] CLEAN REAL DATA SYNCED:")
     print(f" • {len(users_dict)} Real Users")
@@ -385,3 +398,42 @@ def sync_firebase_now():
 
 if __name__ == '__main__':
     sync_firebase_now()
+
+def export_current_db_to_snapshot():
+    """Serializes the clean active SQLite database into initial_db_snapshot.json."""
+    try:
+        from sqlalchemy import inspect, text
+        from app.database import engine
+        insp = inspect(engine)
+        tables = [
+            'users', 'sensor_readings', 'zone_info', 'control_system',
+            'market_listings', 'buyer_requirements', 'community_posts',
+            'direct_messages', 'transport_listings', 'finance_records',
+            'calendar_events', 'activity_logs', 'govt_schemes'
+        ]
+        snapshot = {}
+        with engine.connect() as conn:
+            for t in tables:
+                if not insp.has_table(t):
+                    continue
+                cols = [c['name'] for c in insp.get_columns(t)]
+                res = conn.execute(text(f"SELECT * FROM {t}")).fetchall()
+                rows = []
+                for r in res:
+                    row_vals = []
+                    for val in r:
+                        if hasattr(val, 'isoformat'):
+                            row_vals.append(val.isoformat())
+                        else:
+                            row_vals.append(val)
+                    rows.append(row_vals)
+                snapshot[t] = {'columns': cols, 'rows': rows}
+
+        out_path = os.path.join(os.path.dirname(__file__), "app", "services", "initial_db_snapshot.json")
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(snapshot, f, indent=2)
+        print(f"[OK] Exported fresh database snapshot to {out_path} ({len(snapshot.get('users', {}).get('rows', []))} users)")
+        return True
+    except Exception as e:
+        print(f"[ERROR] Failed exporting snapshot: {e}")
+        return False

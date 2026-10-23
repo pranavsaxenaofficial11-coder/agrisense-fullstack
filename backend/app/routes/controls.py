@@ -37,6 +37,22 @@ def toggle_pump(db: Session = Depends(get_db)):
     db.refresh(ctrl)
     return ctrl
 
+@router.post("/fan/toggle")
+def toggle_fan(db: Session = Depends(get_db)):
+    from app.routes.sensors import latest_hardware_cache
+    cur = bool(latest_hardware_cache.get("fan_state", False))
+    new_state = not cur
+    latest_hardware_cache["fan"] = new_state
+    latest_hardware_cache["fan_state"] = new_state
+    log = models.ActivityLog(
+        level="INFO",
+        category="FAN",
+        message=f"Cooling fan {'STARTED' if new_state else 'STOPPED'} via operator dashboard."
+    )
+    db.add(log)
+    db.commit()
+    return {"status": "success", "fan_state": new_state, "fan": new_state}
+
 @router.post("/pump/stop", response_model=ControlStatusOut)
 async def stop_pump(db: Session = Depends(get_db)):
     """Explicitly stops the irrigation pump immediately."""

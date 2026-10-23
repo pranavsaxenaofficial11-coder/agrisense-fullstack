@@ -1,15 +1,62 @@
-# 🌾 AgriSense Wokwi Simulation & Hardware Integration Guide
+# 🌾 AgriSense Wokwi Simulation & Precision IoT Gateway Guide
+### Bal Bharati Public School Innovation Cell — Precision Agriculture & Edge AI
 
-Complete simulation package for **AgriSense** — Smart AI-Based Precision Agriculture & Edge-IoT Automation.
+Complete hardware simulation package for **AgriSense 39-Sensor Precision Agriculture Platform**, featuring native **ESP32-S3 DevKitC-1** chip configuration, dual-route pipeline (Google Sheets primary + Direct FastAPI failover), OLED telemetry HUD, and bidirectional edge actuator control.
 
 ---
 
-## 🚀 How to Run in Wokwi (1-Minute Setup)
+## ⚡ Architecture: Systematic Dual-Route Telemetry Pipeline
 
-1. Open **[wokwi.com](https://wokwi.com)** and start an **ESP32** project (or choose "New ESP32").
-2. In the code editor tab, replace the code in `sketch.ino` with the contents of [`sketch.ino`](./sketch.ino).
-3. In the circuit tab (`diagram.json`), click the raw JSON editor and replace it with [`diagram.json`](./diagram.json).
-4. In the `libraries.txt` tab, paste:
+```
+                                  +------------------------------+
+                                  |   Wokwi ESP32-S3 Simulator  |
+                                  |     (All 39 Sensors HUD)     |
+                                  +--------------+---------------+
+                                                 |
+                        [Attempt Primary Route]  |
+                                                 v
+                        +-----------------------------------------------+
+                        |   Google Sheets Cloud App (Google Apps Script) |
+                        |   - Systematic 7-Category Tabulation          |
+                        |   - Real-time row append & pruning            |
+                        +-----------------------+-----------------------+
+                                                |
+                                   (Success)    |   (If Failed / Timeout)
+                                                v            v
+           +-----------------------------------------+   [Direct Fallback]
+           |   AgriSense FastAPI Cloud Backend       |<----------+
+           |   - Ingests all 39 categorized feeds    |
+           |   - Live Cache, DB storage, WS manager  |
+           |   - Operator Actuator Control Plane     |
+           +--------------------+--------------------+
+                                |
+                                v
+           +-----------------------------------------+
+           |   Live Website & Dashboard              |
+           |   (WebSockets & Instant Live Telemetry) |
+           +-----------------------------------------+
+```
+
+1. **Primary Ingestion Route (ESP32 -> Google Sheets -> Backend -> Website)**:
+   - ESP32 samples all 39 sensors and transmits telemetry to the Google Apps Script Web App.
+   - Google Apps Script logs the data into categorized columns in Google Sheets.
+   - Google Apps Script automatically relays the payload to our FastAPI backend (`/api/sensors/ingest?source=google_sheets`).
+   - The backend pushes live readings via WebSockets to the website dashboard.
+   - Any remote pump or fan commands from the backend or Google Sheet are returned in the response back to the ESP32!
+2. **Automatic Failover Route (ESP32 Direct -> Backend -> Website)**:
+   - If Google Sheets is unavailable, times out, or hits a quota limit, the ESP32 automatically detects the failure and routes readings directly to the FastAPI backend (`/api/sensors/ingest?source=wokwi_direct`).
+   - Telemetry flows uninterrupted to the website.
+3. **Operator Control in Both Cases**:
+   - In both cases, the readings flow through our backend where operators can see the active route badge, view all 39 feeds, and control the actuators (Pump, Fan, Solenoids, Mode).
+
+---
+
+## 🚀 How to Run in Wokwi (ESP32-S3)
+
+1. Open **[wokwi.com](https://wokwi.com)** and create a new **ESP32-S3** project (or start from ESP32).
+2. In the **Circuit Editor** tab (`diagram.json`), switch to the JSON code view and paste the contents of [`diagram.json`](./diagram.json) (or [`diagram-esp32-s3.json`](./diagram-esp32-s3.json)).
+3. In the **Code Editor** tab (`sketch.ino`), replace all code with the contents of [`sketch.ino`](./sketch.ino).
+4. In the `libraries.txt` tab, ensure the following libraries are present:
    ```txt
    DHT sensor library
    Adafruit Unified Sensor
@@ -19,53 +66,55 @@ Complete simulation package for **AgriSense** — Smart AI-Based Precision Agric
    ```
 5. Click **▶ Play (Start Simulation)**!
 
----
-
-## ⚡ Direct Cloud & Website Connection
-
-The simulation connects to the virtual network `Wokwi-GUEST`, giving the virtual ESP32 direct outbound internet access:
-
-1. **Website Telemetry Ingestion (FastAPI Cloud)**:
-   - **Endpoint**: `https://agrisense-backend-kb22.onrender.com/api/sensors/ingest`
-   - **Local Endpoint Fallback**: `http://10.3.9.249:8000/api/sensors/ingest`
-   - Posts live telemetry every 4 seconds.
-   - Automatically polls for remote **Emergency Stop**, **Pump Toggle**, and **Fan Toggle** commands executed on the dashboard.
-
-2. **Google Sheets Live Logging**:
-   - **Endpoint**: `https://script.google.com/macros/s/AKfycbxEWNrnzavYmBi6JyLME1dnxTW-xqxL17jZrVtTBhRO0rKKEXpTxAGb3yx_3D-IMzDUiw/exec`
-   - Uses `WiFiClientSecure` with `secClient.setInsecure()` to handle SSL handshakes and 302 redirects.
-   - Appends a new real-time row to your Google Sheet every 10 seconds.
-
-3. **Simultaneous Web Serial (115200 baud)**:
-   - Streams clean single-line JSON (`airTemp`, `airHumidity`, `soilAvg`, `soil1`, `soil2`, `light`, `rain`, `tankPct`, `vpd`, `npk`, `pump`, `fan`).
-   - If you plug a physical board into your USB port and open [`app.html`](https://agrisense-269.pages.dev/app.html), clicking **"Connect ESP32 Hardware"** instantly streams this data directly into the web dashboard!
+> **Note for Classic ESP32 DevKit V1**: If using a classic ESP32 board instead of S3, use [`diagram-esp32-devkit-v1.json`](./diagram-esp32-devkit-v1.json). The sketch automatically detects the chip target at compile time!
 
 ---
 
-## 📌 Complete Pin Wiring Diagram
+## 📊 How to Set Up the Systematic Google Sheet
 
-| Component | Pin on ESP32 | Wokwi Part Type | Description |
+1. Open a new Google Sheet at **[sheets.google.com](https://sheets.google.com)**.
+2. In the top menu, go to **Extensions** → **Apps Script**.
+3. Delete any default code in `Code.gs` and paste the entire contents of [`google_apps_script.js`](./google_apps_script.js).
+4. Click **Save** (💾).
+5. In the toolbar, select the function **`setupSystematicSheet`** and click **Run** (▶) to initialize the 7-category color-coded header layout.
+6. Click **Deploy** → **New deployment**:
+   - Select type: **Web app**
+   - Description: `AgriSense 39-Sensor Master Gateway`
+   - Execute as: **Me**
+   - Who has access: **Anyone** (essential for ESP32 cloud HTTP calls)
+   - Click **Deploy** and copy the **Web app URL**.
+7. In `sketch.ino`, ensure `WEB_APP_URL` matches your deployed Web App URL!
+
+---
+
+## 🔬 Systematic 39-Sensor Categorization
+
+| Category | Feeds Included | Units |
+| :--- | :--- | :--- |
+| **1. Soil Dynamics & Root-Zone (9)** | `soilA`, `soilB`, `soilC`, `soilD`, `soilAvg`, `soilTemp`, `soilPH`, `soilEC`, `soilO2` | %, °C, pH, dS/m, % |
+| **2. NPK Macronutrients (3)** | `nitrogen`, `phosphorus`, `potassium` | mg/kg |
+| **3. Micro-Climate & Meteorology (10)** | `airTemp`, `airHumidity`, `pressure`, `light`, `par`, `uv`, `rain`, `wind`, `windDir`, `dewPoint` | °C, %, hPa, %, µmol/m²/s, idx, %, km/h, °, °C |
+| **4. Hydraulics & Water Infrastructure (6)** | `waterTank`, `waterTemp`, `tds`, `waterPH`, `waterFlow`, `flow` | %, °C, ppm, pH, L/min, L |
+| **5. Canopy Biometrics & Plant Health (4)** | `leafWet`, `ndvi`, `sapFlow`, `stemDia` | %, 0-1, g/h, mm |
+| **6. Environment & Pest Intelligence (7)** | `airQuality`, `co2`, `smoke`, `pestMic`, `pestCount`, `frost`, `vibration` | idx, ppm, idx, idx, /day, °C, idx |
+| **7. Actuators & Relay Diagnostics (6)** | `pump`, `fan`, `valveA`, `valveB`, `mode`, `route` | Boolean / String |
+
+---
+
+## 📌 Pinout Mapping (ESP32-S3 vs DevKit V1)
+
+| Component | ESP32-S3 Pin | ESP32 DevKit V1 Pin | Wokwi Part Type |
 | :--- | :--- | :--- | :--- |
-| **DHT22 Data** | **GPIO 4** | `wokwi-dht22` | Air Temperature & Relative Humidity |
-| **Soil Moisture 1 (Zone A)** | **GPIO 34** (ADC1) | `wokwi-potentiometer` | Root zone moisture probe for Polyhouse / Tomato |
-| **Soil Moisture 2 (Zone B)** | **GPIO 35** (ADC1) | `wokwi-potentiometer` | Root zone moisture probe for Field / Wheat |
-| **LDR Photoresistor** | **GPIO 32** (ADC1) | `wokwi-photoresistor-sensor` | Solar radiation & sunlight intensity |
-| **Raindrop / Flood Sensor** | **GPIO 33** (ADC1) | `wokwi-potentiometer` | Precipitation intensity & storm detection |
-| **HC-SR04 TRIG** | **GPIO 5** | `wokwi-hc-sr04` | Ultrasonic transmitter for water tank level |
-| **HC-SR04 ECHO** | **GPIO 18** | `wokwi-hc-sr04` | Ultrasonic receiver for water tank level |
-| **Water Pump Relay** | **GPIO 25** | `wokwi-relay-module` | Active LOW relay driving irrigation pump |
-| **Cooling Fan Relay** | **GPIO 26** | `wokwi-relay-module` | Active LOW relay driving exhaust ventilation fan |
-| **OLED Display (SDA)** | **GPIO 21** | `wokwi-ssd1306` | SSD1306 128x64 I2C Graphic Display Data line |
-| **OLED Display (SCL)** | **GPIO 22** | `wokwi-ssd1306` | SSD1306 128x64 I2C Graphic Display Clock line |
-| **Zone A Solenoid Valve** | **GPIO 19** | `wokwi-led` (Green) | Drip line solenoid valve for Zone A |
-| **Zone B Solenoid Valve** | **GPIO 23** | `wokwi-led` (Blue) | Drip line solenoid valve for Zone B |
-
----
-
-## 🔬 Future Scope Feeds Included in Code
-
-- **NPK Macronutrient Stream**: Nitrogen (`soilNitrogen`), Phosphorus (`soilPhosphorus`), Potassium (`soilPotassium`), Soil pH (`soilPh`), and Electrical Conductivity (`soilEc`).
-- **Vapor Pressure Deficit (VPD)**: Real-time Tetens calculation (`curVpdKpa` in kPa) to assess crop transpiration stress.
-- **Water Conservation Counter**: Dynamically computes cumulative liters saved by autonomous drip vs flood irrigation (`waterSavedLtr`).
-- **AI Foliar Health Score**: 0–100 dynamic index reflecting plant health and aphid/leaf pest risk.
-- **Multi-Zone Solenoid Routing**: Directs water flow selectively to Zone A or Zone B depending on individual soil moisture deficit.
+| **DHT22 Data (Temp & Hum)** | **GPIO 21** | **GPIO 4** | `wokwi-dht22` |
+| **Soil Moisture 1 (Zone A)** | **GPIO 1** (ADC1) | **GPIO 34** (ADC1) | `wokwi-potentiometer` |
+| **Soil Moisture 2 (Zone B)** | **GPIO 2** (ADC1) | **GPIO 35** (ADC1) | `wokwi-potentiometer` |
+| **LDR Sunlight Intensity** | **GPIO 14** (ADC2) | **GPIO 32** (ADC1) | `wokwi-photoresistor-sensor` |
+| **Raindrop / Flood Sensor** | **GPIO 4** (ADC1) | **GPIO 33** (ADC1) | `wokwi-potentiometer` |
+| **Ultrasonic TRIG (Water Level)** | **GPIO 5** | **GPIO 5** | `wokwi-hc-sr04` |
+| **Ultrasonic ECHO (Water Level)** | **GPIO 6** | **GPIO 18** | `wokwi-hc-sr04` |
+| **Water Pump Relay** | **GPIO 10** | **GPIO 25** | `wokwi-relay-module` |
+| **Cooling Fan Relay** | **GPIO 11** | **GPIO 26** | `wokwi-relay-module` |
+| **OLED Display (SDA)** | **GPIO 8** | **GPIO 21** | `wokwi-ssd1306` |
+| **OLED Display (SCL)** | **GPIO 9** | **GPIO 22** | `wokwi-ssd1306` |
+| **Zone A Solenoid Indicator** | **GPIO 12** | **GPIO 19** | `wokwi-led` (Green) |
+| **Zone B Solenoid Indicator** | **GPIO 13** | **GPIO 23** | `wokwi-led` (Blue) |

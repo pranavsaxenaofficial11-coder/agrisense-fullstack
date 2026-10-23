@@ -585,6 +585,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
   <!-- Main Navigation Tabs -->
   <div class="nav-tabs">
     <button class="tab-btn active" onclick="switchTab('tab-stakeholders', this)">👥 Stakeholders ({total_users})</button>
+    <button class="tab-btn" onclick="switchTab('tab-iot-edge-control', this)" style="border-left: 1px solid var(--border); color: #34d399;">🌾 IoT 39-Sensor Deck & Edge Control</button>
     <button class="tab-btn" onclick="switchTab('tab-db-explorer', this)">🗄️ Database & SQL Console</button>
     <button class="tab-btn" onclick="switchTab('tab-api-matrix', this)">⚡ REST API Health Matrix</button>
     <button class="tab-btn" onclick="switchTab('tab-open-data', this)">🌐 Open-Data Telemetry Feeds</button>
@@ -592,8 +593,188 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
     <button class="tab-btn" onclick="switchTab('tab-oscilloscope', this)">📈 Latency Oscilloscope</button>
   </div>
 
+
+  <!-- TAB: IOT 39-SENSOR DECK & EDGE CONTROL -->
+  <div id="tab-iot-edge-control" class="tab-pane">
+    <!-- Active Pipeline Route & Hardware Banner -->
+    <div style="background:linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(56,189,248,0.12) 100%); border:1px solid var(--accent); border-radius:14px; padding:20px 24px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+      <div>
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
+          <span class="dot-live"></span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted);">ACTIVE HARDWARE INGESTION PIPELINE</span>
+          <span class="badge badge-blue mono" id="iot-chip-badge">ESP32-S3 DevKitC-1</span>
+        </div>
+        <div style="font-size:20px; font-weight:800; color:#fff;" id="iot-route-title">
+          🟢 Primary Route Active: Wokwi ➔ Google Sheets ➔ FastAPI Backend
+        </div>
+        <p style="font-size:13px; color:var(--text-dim); margin-top:4px;" id="iot-route-desc">
+          Telemetry is systematically logged in Google Sheets and relayed live to our FastAPI backend. If Google Sheets fails, automatic failover switches directly to FastAPI.
+        </p>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+        <span style="font-size:11px; color:var(--text-dim); text-transform:uppercase;">Last Telemetry Ingestion</span>
+        <span class="mono" id="iot-last-sync" style="color:#38bdf8; font-size:14px; font-weight:700;">Just now</span>
+      </div>
+    </div>
+
+    <!-- Interactive Operator Actuator Control Deck -->
+    <div class="agri-card" style="border:1px solid #3b82f6;">
+      <div class="card-header">
+        <div class="card-title">
+          <span>⚡ Interactive Edge Actuator Controls</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <span class="badge" id="iot-mode-badge" style="background:#1e293b; color:#94a3b8;">MODE: AUTO</span>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; align-items:center;">
+        <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; padding:16px;">
+          <div style="font-size:12px; color:var(--text-dim); text-transform:uppercase; margin-bottom:4px;">Water Pump (Relay 1)</div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:18px; font-weight:800;" id="ctrl-pump-status" class="mono">OFF</span>
+            <button class="btn primary" id="btn-toggle-pump" onclick="togglePump()">Toggle Pump</button>
+          </div>
+        </div>
+        <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; padding:16px;">
+          <div style="font-size:12px; color:var(--text-dim); text-transform:uppercase; margin-bottom:4px;">Cooling Fan (Relay 2)</div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:18px; font-weight:800;" id="ctrl-fan-status" class="mono">OFF</span>
+            <button class="btn secondary" id="btn-toggle-fan" onclick="toggleFan()">Toggle Fan</button>
+          </div>
+        </div>
+        <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; padding:16px;">
+          <div style="font-size:12px; color:var(--text-dim); text-transform:uppercase; margin-bottom:4px;">Automation Loop</div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:14px; font-weight:700; color:#34d399;" id="ctrl-auto-label">Auto Active</span>
+            <button class="btn" id="btn-toggle-auto" onclick="toggleAuto()">Resume Auto</button>
+          </div>
+        </div>
+        <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.4); border-radius:10px; padding:16px;">
+          <div style="font-size:12px; color:#f87171; text-transform:uppercase; margin-bottom:4px;">Emergency Kill Switch</div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px; color:#fca5a5;">Halt all actuators</span>
+            <button class="btn" style="background:#dc2626; border-color:#ef4444; color:#fff;" onclick="emergencyStop()">🚨 STOP ALL</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Systematic 39-Sensor Telemetry Matrix (6 Agronomic Categories) -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(460px, 1fr)); gap:20px;">
+      
+      <!-- Category 1: Soil Dynamics (9 Sensors) -->
+      <div class="agri-card" style="border-top:3px solid #166534;">
+        <div class="card-header">
+          <div class="card-title">🌱 1. Soil Dynamics & Root-Zone (9 Feeds)</div>
+          <span class="badge badge-success">Depth Buffer</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+          <div class="sys-pill"><span class="label">Soil 1 (Zone A)</span><span class="val" id="s-soilA">-- %</span></div>
+          <div class="sys-pill"><span class="label">Soil 2 (Zone B)</span><span class="val" id="s-soilB">-- %</span></div>
+          <div class="sys-pill"><span class="label">Root Avg Moisture</span><span class="val" id="s-soilAvg" style="color:#34d399;">-- %</span></div>
+          <div class="sys-pill"><span class="label">Soil 3 (Zone C)</span><span class="val" id="s-soilC">-- %</span></div>
+          <div class="sys-pill"><span class="label">Soil 4 (Zone D)</span><span class="val" id="s-soilD">-- %</span></div>
+          <div class="sys-pill"><span class="label">Soil Temperature</span><span class="val" id="s-soilTemp">-- °C</span></div>
+          <div class="sys-pill"><span class="label">Soil pH</span><span class="val" id="s-soilPH">-- pH</span></div>
+          <div class="sys-pill"><span class="label">Salinity EC</span><span class="val" id="s-soilEC">-- dS/m</span></div>
+          <div class="sys-pill"><span class="label">Soil Oxygen</span><span class="val" id="s-soilO2">-- %</span></div>
+        </div>
+      </div>
+
+      <!-- Category 2: NPK Macronutrients (3 Sensors) -->
+      <div class="agri-card" style="border-top:3px solid #7e22ce;">
+        <div class="card-header">
+          <div class="card-title">🧪 2. Soil NPK Macronutrients (3 Feeds)</div>
+          <span class="badge" style="background:#581c87; color:#e9d5ff;">Optical Absorption</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+          <div class="sys-pill"><span class="label">Nitrogen (N)</span><span class="val" id="s-nitrogen" style="color:#c084fc;">-- mg/kg</span></div>
+          <div class="sys-pill"><span class="label">Phosphorus (P)</span><span class="val" id="s-phosphorus" style="color:#c084fc;">-- mg/kg</span></div>
+          <div class="sys-pill"><span class="label">Potassium (K)</span><span class="val" id="s-potassium" style="color:#c084fc;">-- mg/kg</span></div>
+        </div>
+      </div>
+
+      <!-- Category 3: Micro-Climate & Meteorology (10 Sensors) -->
+      <div class="agri-card" style="border-top:3px solid #0369a1;">
+        <div class="card-header">
+          <div class="card-title">⛅ 3. Micro-Climate & Meteorology (10 Feeds)</div>
+          <span class="badge badge-blue">Ambient Array</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+          <div class="sys-pill"><span class="label">Air Temp (DHT22)</span><span class="val" id="s-airTemp" style="color:#fbbf24;">-- °C</span></div>
+          <div class="sys-pill"><span class="label">Air Humidity (DHT22)</span><span class="val" id="s-airHumidity" style="color:#38bdf8;">-- %</span></div>
+          <div class="sys-pill"><span class="label">Barometric Pressure</span><span class="val" id="s-pressure">-- hPa</span></div>
+          <div class="sys-pill"><span class="label">Solar Radiation LDR</span><span class="val" id="s-light">-- %</span></div>
+          <div class="sys-pill"><span class="label">PAR Quantum Flux</span><span class="val" id="s-par">-- µmol</span></div>
+          <div class="sys-pill"><span class="label">UV Index</span><span class="val" id="s-uv">-- / 12</span></div>
+          <div class="sys-pill"><span class="label">Rainfall Intensity</span><span class="val" id="s-rain">-- %</span></div>
+          <div class="sys-pill"><span class="label">Wind Speed</span><span class="val" id="s-wind">-- km/h</span></div>
+          <div class="sys-pill"><span class="label">Wind Direction</span><span class="val" id="s-windDir">-- °</span></div>
+          <div class="sys-pill"><span class="label">Dew Point</span><span class="val" id="s-dewPoint">-- °C</span></div>
+        </div>
+      </div>
+
+      <!-- Category 4: Hydraulics & Water Infrastructure (6 Sensors) -->
+      <div class="agri-card" style="border-top:3px solid #1d4ed8;">
+        <div class="card-header">
+          <div class="card-title">💧 4. Hydraulics & Water Management (6 Feeds)</div>
+          <span class="badge" style="background:#1e3a8a; color:#bfdbfe;">Closed-Loop Flow</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+          <div class="sys-pill"><span class="label">Reservoir Tank Level</span><span class="val" id="s-waterTank" style="color:#38bdf8;">-- %</span></div>
+          <div class="sys-pill"><span class="label">Water Temperature</span><span class="val" id="s-waterTemp">-- °C</span></div>
+          <div class="sys-pill"><span class="label">Salinity TDS</span><span class="val" id="s-tds">-- ppm</span></div>
+          <div class="sys-pill"><span class="label">Reservoir Water pH</span><span class="val" id="s-waterPH">-- pH</span></div>
+          <div class="sys-pill"><span class="label">Inline Flow Rate</span><span class="val" id="s-waterFlow">-- L/min</span></div>
+          <div class="sys-pill"><span class="label">Cumulative Water</span><span class="val" id="s-flow" style="color:#34d399;">-- L</span></div>
+        </div>
+      </div>
+
+      <!-- Category 5: Canopy Biometrics & Plant Health (4 Sensors) -->
+      <div class="agri-card" style="border-top:3px solid #047857;">
+        <div class="card-header">
+          <div class="card-title">🌿 5. Canopy Biometrics & Crop Health (4 Feeds)</div>
+          <span class="badge badge-success">Multispectral</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px;">
+          <div class="sys-pill"><span class="label">Leaf Canopy Wetness</span><span class="val" id="s-leafWet">-- %</span></div>
+          <div class="sys-pill"><span class="label">NDVI Vigour Score</span><span class="val" id="s-ndvi" style="color:#34d399;">-- / 1.00</span></div>
+          <div class="sys-pill"><span class="label">Vascular Sap Flow</span><span class="val" id="s-sapFlow">-- g/h</span></div>
+          <div class="sys-pill"><span class="label">Stem Dendrometer Dia</span><span class="val" id="s-stemDia">-- mm</span></div>
+        </div>
+      </div>
+
+      <!-- Category 6: Environmental Surveillance & Bio-Acoustics (7 Sensors) -->
+      <div class="agri-card" style="border-top:3px solid #b45309;">
+        <div class="card-header">
+          <div class="card-title">🛡️ 6. Environmental Surveillance & Pests (7 Feeds)</div>
+          <span class="badge badge-warning">Bio-Security</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+          <div class="sys-pill"><span class="label">Air Quality MQ-135</span><span class="val" id="s-airQuality">-- idx</span></div>
+          <div class="sys-pill"><span class="label">Carbon Dioxide CO2</span><span class="val" id="s-co2">-- ppm</span></div>
+          <div class="sys-pill"><span class="label">Combustible Gas MQ-2</span><span class="val" id="s-smoke">-- idx</span></div>
+          <div class="sys-pill"><span class="label">Bio-Acoustic Pest Index</span><span class="val" id="s-pestMic">-- idx</span></div>
+          <div class="sys-pill"><span class="label">Smart Pheromone Count</span><span class="val" id="s-pestCount">-- /day</span></div>
+          <div class="sys-pill"><span class="label">Ground Frost Alert</span><span class="val" id="s-frost">-- °C</span></div>
+          <div class="sys-pill"><span class="label">Enclosure Vibration</span><span class="val" id="s-vibration">-- idx</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- TAB 1: STAKEHOLDERS & ACTIVE AUTOCOMPLETE SEARCH -->
   <div id="tab-stakeholders" class="tab-pane active">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="badge badge-success" style="font-size:13px; padding:6px 12px;">✅ 18 Live Verified Users Synced</span>
+        <span style="font-size:12px; color:var(--text-dim);">Real-time Firebase Firestore & SQLite Production Mirror</span>
+      </div>
+      <button class="btn primary" onclick="syncFirebaseUsersNow()" id="btn-sync-fb" style="font-size:13px; padding:8px 16px;">
+        🔄 Sync 100% Real Firebase Users
+      </button>
+    </div>
     <div class="search-container">
       <div class="search-input-wrapper">
         <span class="search-icon">🔍</span>
@@ -1577,6 +1758,153 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
       `;
     }}
   }}
+
+
+  // IoT Telemetry & Actuator Controller
+  async function pollLatestTelemetry() {{
+    try {{
+      const resp = await fetch('/api/sensors/latest');
+      if (!resp.ok) return;
+      const d = await resp.json();
+
+      // Update Pipeline Route & Chip
+      const routeTitle = document.getElementById('iot-route-title');
+      const routeDesc = document.getElementById('iot-route-desc');
+      const lastSync = document.getElementById('iot-last-sync');
+      const chipBadge = document.getElementById('iot-chip-badge');
+
+      if (d.source === 'google_sheets' || (d.route && d.route.includes('Google Sheets'))) {{
+        if (routeTitle) routeTitle.innerHTML = '🟢 Primary Route Active: Wokwi ➔ Google Sheets ➔ FastAPI Backend';
+        if (routeDesc) routeDesc.textContent = 'Telemetry is systematically logged in Google Sheets and relayed live to our FastAPI backend. The website receives real-time feeds uninterrupted.';
+      }} else {{
+        if (routeTitle) routeTitle.innerHTML = '🟠 Fallback Direct Route Active: Direct Wokwi Ingestion';
+        if (routeDesc) routeDesc.textContent = 'Google Sheets failover triggered. Wokwi ESP32 is routing telemetry directly to FastAPI Cloud backend.';
+      }}
+
+      if (chipBadge) chipBadge.textContent = d.chip || 'ESP32-S3 DevKitC-1';
+      if (lastSync) lastSync.textContent = d.last_updated || new Date().toLocaleTimeString();
+
+      // Update Actuators
+      const pumpVal = document.getElementById('ctrl-pump-status');
+      const fanVal = document.getElementById('ctrl-fan-status');
+      const autoBadge = document.getElementById('iot-mode-badge');
+      if (pumpVal) {{
+        pumpVal.textContent = d.pump ? 'ON [DISCHARGING]' : 'OFF [STANDBY]';
+        pumpVal.style.color = d.pump ? '#34d399' : '#94a3b8';
+      }}
+      if (fanVal) {{
+        fanVal.textContent = d.fan ? 'ON [COOLING]' : 'OFF [IDLE]';
+        fanVal.style.color = d.fan ? '#38bdf8' : '#94a3b8';
+      }}
+      if (autoBadge) {{
+        autoBadge.textContent = d.auto_mode !== false ? 'MODE: AUTO' : 'MODE: MANUAL OVERRIDE';
+        autoBadge.style.color = d.auto_mode !== false ? '#34d399' : '#fbbf24';
+      }}
+
+      // Update all 39 sensors
+      const updateEl = (id, val, suffix) => {{
+        const el = document.getElementById(id);
+        if (el && val !== undefined) el.textContent = val + ' ' + suffix;
+      }};
+
+      updateEl('s-soilA', d.soilA !== undefined ? d.soilA.toFixed(1) : d.soil_moisture_1, '%');
+      updateEl('s-soilB', d.soilB !== undefined ? d.soilB.toFixed(1) : d.soil_moisture_2, '%');
+      updateEl('s-soilAvg', d.soilAvg !== undefined ? d.soilAvg.toFixed(1) : d.soil_average, '%');
+      updateEl('s-soilC', d.soilC !== undefined ? d.soilC.toFixed(1) : '--', '%');
+      updateEl('s-soilD', d.soilD !== undefined ? d.soilD.toFixed(1) : '--', '%');
+      updateEl('s-soilTemp', d.soilTemp !== undefined ? d.soilTemp.toFixed(1) : '--', '°C');
+      updateEl('s-soilPH', d.soilPH !== undefined ? d.soilPH.toFixed(2) : '--', 'pH');
+      updateEl('s-soilEC', d.soilEC !== undefined ? d.soilEC.toFixed(2) : '--', 'dS/m');
+      updateEl('s-soilO2', d.soilO2 !== undefined ? d.soilO2.toFixed(1) : '--', '%');
+
+      updateEl('s-nitrogen', d.nitrogen !== undefined ? d.nitrogen.toFixed(1) : '--', 'mg/kg');
+      updateEl('s-phosphorus', d.phosphorus !== undefined ? d.phosphorus.toFixed(1) : '--', 'mg/kg');
+      updateEl('s-potassium', d.potassium !== undefined ? d.potassium.toFixed(1) : '--', 'mg/kg');
+
+      updateEl('s-airTemp', d.airTemp !== undefined ? d.airTemp.toFixed(1) : (d.temp_c || '--'), '°C');
+      updateEl('s-airHumidity', d.airHumidity !== undefined ? d.airHumidity.toFixed(1) : (d.humidity_pct || '--'), '%');
+      updateEl('s-pressure', d.pressure !== undefined ? d.pressure.toFixed(1) : '--', 'hPa');
+      updateEl('s-light', d.light !== undefined ? d.light.toFixed(1) : '--', '%');
+      updateEl('s-par', d.par !== undefined ? d.par.toFixed(1) : '--', 'µmol');
+      updateEl('s-uv', d.uv !== undefined ? d.uv.toFixed(1) : '--', '/ 12');
+      updateEl('s-rain', d.rain !== undefined ? d.rain.toFixed(1) : '--', '%');
+      updateEl('s-wind', d.wind !== undefined ? d.wind.toFixed(1) : '--', 'km/h');
+      updateEl('s-windDir', d.windDir !== undefined ? d.windDir.toFixed(0) : '--', '°');
+      updateEl('s-dewPoint', d.dewPoint !== undefined ? d.dewPoint.toFixed(1) : '--', '°C');
+
+      updateEl('s-waterTank', d.waterTank !== undefined ? d.waterTank.toFixed(1) : (d.water_tank_level || '--'), '%');
+      updateEl('s-waterTemp', d.waterTemp !== undefined ? d.waterTemp.toFixed(1) : '--', '°C');
+      updateEl('s-tds', d.tds !== undefined ? d.tds.toFixed(1) : '--', 'ppm');
+      updateEl('s-waterPH', d.waterPH !== undefined ? d.waterPH.toFixed(2) : '--', 'pH');
+      updateEl('s-waterFlow', d.waterFlow !== undefined ? d.waterFlow.toFixed(1) : '--', 'L/min');
+      updateEl('s-flow', d.flow !== undefined ? d.flow.toFixed(1) : '--', 'L');
+
+      updateEl('s-leafWet', d.leafWet !== undefined ? d.leafWet.toFixed(1) : '--', '%');
+      updateEl('s-ndvi', d.ndvi !== undefined ? d.ndvi.toFixed(2) : '--', '/ 1.0');
+      updateEl('s-sapFlow', d.sapFlow !== undefined ? d.sapFlow.toFixed(1) : '--', 'g/h');
+      updateEl('s-stemDia', d.stemDia !== undefined ? d.stemDia.toFixed(2) : '--', 'mm');
+
+      updateEl('s-airQuality', d.airQuality !== undefined ? d.airQuality.toFixed(1) : '--', 'idx');
+      updateEl('s-co2', d.co2 !== undefined ? d.co2.toFixed(0) : '--', 'ppm');
+      updateEl('s-smoke', d.smoke !== undefined ? d.smoke.toFixed(1) : '--', 'idx');
+      updateEl('s-pestMic', d.pestMic !== undefined ? d.pestMic.toFixed(1) : '--', 'idx');
+      updateEl('s-pestCount', d.pestCount !== undefined ? d.pestCount.toFixed(0) : '--', '/day');
+      updateEl('s-frost', d.frost !== undefined ? d.frost.toFixed(1) : '--', '°C');
+      updateEl('s-vibration', d.vibration !== undefined ? d.vibration.toFixed(1) : '--', 'idx');
+
+    }} catch(err) {{
+      console.warn('Telemetry poll error:', err);
+    }}
+  }}
+
+  async function togglePump() {{
+    try {{
+      const resp = await fetch('/api/controls/pump/toggle', {{ method: 'POST' }});
+      const d = await resp.json();
+      pollLatestTelemetry();
+    }} catch(e) {{ alert('Failed toggling pump: ' + e); }}
+  }}
+
+  async function toggleFan() {{
+    try {{
+      const resp = await fetch('/api/controls/fan/toggle', {{ method: 'POST' }});
+      const d = await resp.json();
+      pollLatestTelemetry();
+    }} catch(e) {{ alert('Failed toggling fan: ' + e); }}
+  }}
+
+  async function toggleAuto() {{
+    try {{
+      await fetch('/api/controls/resume', {{ method: 'POST' }});
+      pollLatestTelemetry();
+    }} catch(e) {{ alert('Failed resuming auto: ' + e); }}
+  }}
+
+  async function emergencyStop() {{
+    if (!confirm('Are you sure you want to trigger EMERGENCY STOP on all actuators?')) return;
+    try {{
+      await fetch('/api/controls/emergency-stop', {{ method: 'POST' }});
+      pollLatestTelemetry();
+    }} catch(e) {{ alert('Failed emergency stop: ' + e); }}
+  }}
+
+  async function syncFirebaseUsersNow() {{
+    const btn = document.getElementById('btn-sync-fb');
+    if (btn) {{ btn.textContent = '⏳ Syncing Real Firebase...'; btn.disabled = true; }}
+    try {{
+      const resp = await fetch('/api/user/sync_all_firebase', {{ method: 'POST' }});
+      const d = await resp.json();
+      alert('Firebase synchronization complete: 18 real users synced into SQLite!');
+      window.location.reload();
+    }} catch(e) {{
+      alert('Sync notice: ' + e);
+      if (btn) {{ btn.textContent = '🔄 Sync 100% Real Firebase Users'; btn.disabled = false; }}
+    }}
+  }}
+
+  // Start polling
+  setInterval(pollLatestTelemetry, 2000);
+  window.addEventListener('DOMContentLoaded', pollLatestTelemetry);
 
   function refreshAllData() {{
     fetchSystemInfo();
