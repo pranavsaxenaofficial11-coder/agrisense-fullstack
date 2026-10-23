@@ -239,3 +239,56 @@ def health():
         "security": "hardened",
         "compression": "gzip_enabled"
     }
+
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+frontend_public_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend", "public")
+frontend_dist_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend", "dist")
+
+@app.get("/app.html", response_class=HTMLResponse)
+@app.get("/app", response_class=HTMLResponse)
+def serve_app_html():
+    app_html_path = os.path.join(frontend_public_dir, "app.html")
+    if os.path.exists(app_html_path):
+        return FileResponse(app_html_path, media_type="text/html")
+    return HTMLResponse("<h1>AgriSense App</h1><p>app.html not found</p>", status_code=404)
+
+@app.get("/sw.js")
+def serve_sw():
+    sw_path = os.path.join(frontend_public_dir, "sw.js")
+    if os.path.exists(sw_path):
+        return FileResponse(sw_path, media_type="application/javascript", headers={"Service-Worker-Allowed": "/"})
+    return Response(status_code=404)
+
+@app.get("/manifest.json")
+def serve_manifest():
+    p = os.path.join(frontend_public_dir, "manifest.json")
+    if os.path.exists(p):
+        return FileResponse(p, media_type="application/json")
+    return Response(status_code=404)
+
+@app.get("/logo.jpeg")
+def serve_logo():
+    p = os.path.join(frontend_public_dir, "logo.jpeg")
+    if os.path.exists(p):
+        return FileResponse(p, media_type="image/jpeg")
+    return Response(status_code=404)
+
+@app.get("/favicon.svg")
+def serve_favicon():
+    p = os.path.join(frontend_public_dir, "favicon.svg")
+    if os.path.exists(p):
+        return FileResponse(p, media_type="image/svg+xml")
+    return Response(status_code=404)
+
+@app.get("/bharat_challenge_deck.html")
+def serve_deck():
+    p = os.path.join(frontend_public_dir, "bharat_challenge_deck.html")
+    if os.path.exists(p):
+        return FileResponse(p, media_type="text/html")
+    return Response(status_code=404)
+
+if os.path.exists(os.path.join(frontend_dist_dir, "assets")):
+    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist_dir, "assets")), name="assets")
