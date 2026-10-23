@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
- * AGRISENSE PRECISION AGRICULTURE — ALL 39 SENSORS GOOGLE APPS SCRIPT
- * Team: AgriSense Innovation Cell — Bal Bharati Public School
+ * AGRISENSE PRECISION AGRICULTURE -- ALL 39 SENSORS GOOGLE APPS SCRIPT
+ * Team: AgriSense Innovation Cell -- Bal Bharati Public School
  * 
  * CLEAN LIGHT THEME EDITION:
  * - Soft pastel category banners (mint, lavender, sky, cyan, warm amber, indigo)
@@ -42,7 +42,7 @@ var SYSTEMATIC_COLUMNS = [
   "Soil Moisture 3 [%]",
   "Soil Moisture 4 [%]",
   "Root Average Moisture [%]",
-  "Root Soil Temp [°C]",
+  "Root Soil Temp [C]",
   "Soil pH",
   "Soil EC [dS/m]",
   "Sub-surface Soil O2 [%]",
@@ -53,20 +53,20 @@ var SYSTEMATIC_COLUMNS = [
   "Soil Potassium (K) [mg/kg]",
 
   // Category 3: Micro-Climate & Meteorology (10)
-  "Air Temperature [°C]",
+  "Air Temperature [C]",
   "Relative Humidity [%]",
   "Barometric Pressure [hPa]",
   "Solar Sunlight [%]",
-  "PAR Flux [µmol/m²/s]",
+  "PAR Flux [umol/m2/s]",
   "UV Index [0-12]",
   "Rainfall Intensity [%]",
   "Wind Velocity [km/h]",
-  "Wind Direction [°]",
-  "Dew Point [°C]",
+  "Wind Direction [deg]",
+  "Dew Point [C]",
 
   // Category 4: Hydraulics & Water Infrastructure (6)
   "Water Reservoir [%]",
-  "Water Temp [°C]",
+  "Water Temp [C]",
   "Salinity TDS [ppm]",
   "Water pH",
   "Drip Flow Rate [L/min]",
@@ -84,7 +84,7 @@ var SYSTEMATIC_COLUMNS = [
   "Smoke Level [ppm]",
   "Bio-Acoustic Pest Level",
   "Pheromone Pest Count",
-  "Frost Margin [°C]",
+  "Frost Margin [C]",
   "Equipment Vibration",
 
   // Category 7: Actuators & Edge Control (6)
@@ -103,25 +103,25 @@ var MIN_COLUMN_WIDTHS = [
   120, // 3. Target Zone
   135, 135, 135, 135, // 4-7. Soil Moisture 1-4
   160, // 8. Root Average Moisture [%]
-  145, // 9. Root Soil Temp [°C]
+  145, // 9. Root Soil Temp [C]
   100, // 10. Soil pH
   130, // 11. Soil EC [dS/m]
   165, // 12. Sub-surface Soil O2 [%]
   175, // 13. Soil Nitrogen (N) [mg/kg]
   180, // 14. Soil Phosphorus (P) [mg/kg]
   175, // 15. Soil Potassium (K) [mg/kg]
-  145, // 16. Air Temperature [°C]
+  145, // 16. Air Temperature [C]
   155, // 17. Relative Humidity [%]
   175, // 18. Barometric Pressure [hPa]
   140, // 19. Solar Sunlight [%]
-  170, // 20. PAR Flux [µmol/m²/s]
+  170, // 20. PAR Flux [umol/m2/s]
   125, // 21. UV Index [0-12]
   150, // 22. Rainfall Intensity [%]
   145, // 23. Wind Velocity [km/h]
-  135, // 24. Wind Direction [°]
-  135, // 25. Dew Point [°C]
+  135, // 24. Wind Direction [deg]
+  135, // 25. Dew Point [C]
   150, // 26. Water Reservoir [%]
-  135, // 27. Water Temp [°C]
+  135, // 27. Water Temp [C]
   140, // 28. Salinity TDS [ppm]
   100, // 29. Water pH
   160, // 30. Drip Flow Rate [L/min]
@@ -135,7 +135,7 @@ var MIN_COLUMN_WIDTHS = [
   140, // 38. Smoke Level [ppm]
   175, // 39. Bio-Acoustic Pest Level
   160, // 40. Pheromone Pest Count
-  140, // 41. Frost Margin [°C]
+  140, // 41. Frost Margin [C]
   155, // 42. Equipment Vibration
   110, // 43. Pump State
   110, // 44. Fan State
@@ -149,15 +149,15 @@ var MIN_COLUMN_WIDTHS = [
 
 /**
  * Automatically creates an AgriSense menu directly inside your Google Sheet toolbar!
- * Whenever you reload your Google Sheet in the browser, look for "🌾 AgriSense Controls"
+ * Whenever you reload your Google Sheet in the browser, look for "AgriSense Controls"
  * at the top next to Help!
  */
 function onOpen() {
   try {
     var ui = SpreadsheetApp.getUi();
-    ui.createMenu("🌾 AgriSense Controls")
-      .addItem("🎨 Fix Spacing & Apply Light Theme", "reformatExistingSheet")
-      .addItem("⚡ Initialize Clean 39-Sensor Sheet", "setupSystematicSheet")
+    ui.createMenu("AgriSense Controls")
+      .addItem("Fix Spacing and Light Theme", "reformatExistingSheet")
+      .addItem("Initialize Clean 39-Sensor Sheet", "setupSystematicSheet")
       .addToUi();
   } catch(e) {}
 }
@@ -232,7 +232,7 @@ function reformatExistingSheet() {
   }
 
   setupControlsSheet(ss);
-  return "✨ Your Google Sheet spacing and theme have been successfully upgraded! All text now has generous breathing room.";
+  return "Success: Google Sheet spacing and theme have been successfully updated!";
 }
 
 function setupSystematicSheet() {
@@ -284,7 +284,7 @@ function setupSystematicSheet() {
   }
 
   setupControlsSheet(ss);
-  return "✅ Systematic 39-Sensor Sheet initialized with generous spacing and clean light aesthetic!";
+  return "Success: Systematic 39-Sensor Sheet initialized!";
 }
 
 function setupControlsSheet(ss) {
