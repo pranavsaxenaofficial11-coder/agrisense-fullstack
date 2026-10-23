@@ -476,10 +476,10 @@ void updateOled() {
   display.printf("Tank:%.0f%% Rain:%.0f%%", s_waterTank, s_rain);
 
   display.setCursor(0, 56);
-  display.printf("PUMP:%s FAN:%s [%s]",
-    pumpState ? "ON " : "OFF",
-    fanState ? "ON " : "OFF",
-    autoMode ? "AUTO" : "MANU"
+  display.printf("P:%s F:%s [%s]",
+    pumpState ? "ON" : "OFF",
+    fanState ? "ON" : "OFF",
+    autoMode ? "AUTO" : "MAN"
   );
 
   display.display();

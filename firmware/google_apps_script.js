@@ -20,7 +20,7 @@ var CONFIG = {
   MAX_DATA_ROWS: 5000 // Automatically trims oldest rows to maintain high sheet speed
 };
 
-// -------------------- 2. CLEAN LIGHT PALETTE (NO DARK COLORS) --------------------
+// -------------------- 2. CLEAN LIGHT PALETTE & GENEROUS SPACING --------------------
 var SENSOR_CATEGORIES = [
   { name: "METADATA", bg: "#f1f5f9", text: "#334155", cols: 3 },
   { name: "SOIL DYNAMICS & ROOT-ZONE (9)", bg: "#dcfce7", text: "#166534", cols: 9 },
@@ -96,11 +96,60 @@ var SYSTEMATIC_COLUMNS = [
   "FastAPI Sync Relay"
 ];
 
+// Generous column widths specifically dimensioned to eliminate any text clipping or ugly wrapping
+var MIN_COLUMN_WIDTHS = [
+  170, // 1. Timestamp (IST)
+  185, // 2. Ingestion Route
+  120, // 3. Target Zone
+  135, 135, 135, 135, // 4-7. Soil Moisture 1-4
+  160, // 8. Root Average Moisture [%]
+  145, // 9. Root Soil Temp [°C]
+  100, // 10. Soil pH
+  130, // 11. Soil EC [dS/m]
+  165, // 12. Sub-surface Soil O2 [%]
+  175, // 13. Soil Nitrogen (N) [mg/kg]
+  180, // 14. Soil Phosphorus (P) [mg/kg]
+  175, // 15. Soil Potassium (K) [mg/kg]
+  145, // 16. Air Temperature [°C]
+  155, // 17. Relative Humidity [%]
+  175, // 18. Barometric Pressure [hPa]
+  140, // 19. Solar Sunlight [%]
+  170, // 20. PAR Flux [µmol/m²/s]
+  125, // 21. UV Index [0-12]
+  150, // 22. Rainfall Intensity [%]
+  145, // 23. Wind Velocity [km/h]
+  135, // 24. Wind Direction [°]
+  135, // 25. Dew Point [°C]
+  150, // 26. Water Reservoir [%]
+  135, // 27. Water Temp [°C]
+  140, // 28. Salinity TDS [ppm]
+  100, // 29. Water pH
+  160, // 30. Drip Flow Rate [L/min]
+  145, // 31. Delivered Water [L]
+  140, // 32. Leaf Wetness [%]
+  150, // 33. NDVI Canopy Vigour
+  145, // 34. Sap Flux Rate [g/h]
+  145, // 35. Stem Diameter [mm]
+  135, // 36. Air Quality AQI
+  180, // 37. Carbon Dioxide CO2 [ppm]
+  140, // 38. Smoke Level [ppm]
+  175, // 39. Bio-Acoustic Pest Level
+  160, // 40. Pheromone Pest Count
+  140, // 41. Frost Margin [°C]
+  155, // 42. Equipment Vibration
+  110, // 43. Pump State
+  110, // 44. Fan State
+  100, // 45. Valve A
+  100, // 46. Valve B
+  120, // 47. Control Mode
+  175  // 48. FastAPI Sync Relay
+];
+
 // -------------------- 3. INITIALIZATION & REFORMATTING --------------------
 
 /**
  * Run this function in Apps Script to instantly reformat your EXISTING sheet
- * into the clean, light, professional pastel aesthetic without deleting any data!
+ * with generous cell spacing, perfect column widths, and the clean light theme!
  */
 function reformatExistingSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -109,11 +158,18 @@ function reformatExistingSheet() {
     return setupSystematicSheet();
   }
 
-  // Row 1: Merged Light Category Banners
+  // Safely break any previous conflicting cell merges in the header area
+  try {
+    sheet.getRange(1, 1, 2, Math.max(sheet.getMaxColumns(), SYSTEMATIC_COLUMNS.length)).breakApart();
+  } catch(e) {}
+
+  // Row 1: Merged Light Category Banners with generous 40px vertical breathing room
   var colIndex = 1;
   for (var c = 0; c < SENSOR_CATEGORIES.length; c++) {
     var cat = SENSOR_CATEGORIES[c];
     var range = sheet.getRange(1, colIndex, 1, cat.cols);
+    range.merge();
+    range.setValue(cat.name);
     range.setBackground(cat.bg);
     range.setFontColor(cat.text);
     range.setFontWeight("bold");
@@ -122,9 +178,9 @@ function reformatExistingSheet() {
     range.setVerticalAlignment("middle");
     colIndex += cat.cols;
   }
-  sheet.setRowHeight(1, 34);
+  sheet.setRowHeight(1, 40);
 
-  // Row 2: Crisp Light Header Bar (Charcoal text on soft light gray)
+  // Row 2: Crisp Light Header Bar with generous 52px height (no text clipping)
   var headerRange = sheet.getRange(2, 1, 1, SYSTEMATIC_COLUMNS.length);
   headerRange.setValues([SYSTEMATIC_COLUMNS]);
   headerRange.setBackground("#f8fafc");
@@ -133,14 +189,15 @@ function reformatExistingSheet() {
   headerRange.setFontSize(10);
   headerRange.setHorizontalAlignment("center");
   headerRange.setVerticalAlignment("middle");
-  headerRange.setWrap(true);
-  sheet.setRowHeight(2, 36);
+  headerRange.setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+  sheet.setRowHeight(2, 52);
   sheet.setFrozenRows(2);
 
-  // Re-format all existing data rows with soft zebra striping
+  // Re-format all existing data rows with generous 26px height and zebra striping
   var lastRow = sheet.getLastRow();
   if (lastRow > 2) {
     for (var r = 3; r <= lastRow; r++) {
+      sheet.setRowHeight(r, 26);
       var rRange = sheet.getRange(r, 1, 1, SYSTEMATIC_COLUMNS.length);
       rRange.setFontSize(10);
       rRange.setFontColor("#1e293b");
@@ -150,20 +207,17 @@ function reformatExistingSheet() {
     }
   }
 
-  // Apply delicate light gray grid borders
+  // Apply delicate light gray grid borders across all populated cells
   sheet.getRange(1, 1, Math.max(lastRow, 2), SYSTEMATIC_COLUMNS.length)
     .setBorder(true, true, true, true, true, true, "#e2e8f0", SpreadsheetApp.BorderStyle.SOLID);
 
-  // Set proportional column widths
-  sheet.setColumnWidth(1, 150); // Timestamp
-  sheet.setColumnWidth(2, 130); // Route
-  sheet.setColumnWidth(3, 110); // Zone
-  for (var i = 4; i <= SYSTEMATIC_COLUMNS.length; i++) {
-    sheet.setColumnWidth(i, 115);
+  // Set generous, tailored column widths
+  for (var i = 0; i < MIN_COLUMN_WIDTHS.length; i++) {
+    sheet.setColumnWidth(i + 1, MIN_COLUMN_WIDTHS[i]);
   }
 
   setupControlsSheet(ss);
-  return "✨ Your existing Google Sheet has been successfully upgraded to the clean light theme!";
+  return "✨ Your Google Sheet spacing and theme have been successfully upgraded! All text now has generous breathing room.";
 }
 
 function setupSystematicSheet() {
@@ -173,6 +227,10 @@ function setupSystematicSheet() {
     sheet = ss.insertSheet(CONFIG.SHEET_NAME, 0);
   }
 
+  // Safely break any prior merges before clearing
+  try {
+    sheet.getRange(1, 1, 2, Math.max(sheet.getMaxColumns(), SYSTEMATIC_COLUMNS.length)).breakApart();
+  } catch(e) {}
   sheet.getRange(1, 1, 2, SYSTEMATIC_COLUMNS.length).clear();
 
   // Row 1: Merged Light Category Banners
@@ -190,9 +248,9 @@ function setupSystematicSheet() {
     range.setVerticalAlignment("middle");
     colIndex += cat.cols;
   }
-  sheet.setRowHeight(1, 34);
+  sheet.setRowHeight(1, 40);
 
-  // Row 2: Light Column Headers
+  // Row 2: Light Column Headers with 52px height
   var headerRange = sheet.getRange(2, 1, 1, SYSTEMATIC_COLUMNS.length);
   headerRange.setValues([SYSTEMATIC_COLUMNS]);
   headerRange.setBackground("#f8fafc");
@@ -201,20 +259,17 @@ function setupSystematicSheet() {
   headerRange.setFontSize(10);
   headerRange.setHorizontalAlignment("center");
   headerRange.setVerticalAlignment("middle");
-  headerRange.setWrap(true);
-  sheet.setRowHeight(2, 36);
+  headerRange.setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+  sheet.setRowHeight(2, 52);
   sheet.setFrozenRows(2);
 
-  // Column widths
-  sheet.setColumnWidth(1, 150);
-  sheet.setColumnWidth(2, 130);
-  sheet.setColumnWidth(3, 110);
-  for (var i = 4; i <= SYSTEMATIC_COLUMNS.length; i++) {
-    sheet.setColumnWidth(i, 115);
+  // Apply generous, tailored column widths
+  for (var i = 0; i < MIN_COLUMN_WIDTHS.length; i++) {
+    sheet.setColumnWidth(i + 1, MIN_COLUMN_WIDTHS[i]);
   }
 
   setupControlsSheet(ss);
-  return "✅ Systematic 39-Sensor Sheet initialized with clean light aesthetic!";
+  return "✅ Systematic 39-Sensor Sheet initialized with generous spacing and clean light aesthetic!";
 }
 
 function setupControlsSheet(ss) {
@@ -232,12 +287,18 @@ function setupControlsSheet(ss) {
     ["EMERGENCY STOP", "NO", "Type YES to immediately kill all relays"]
   ];
 
+  ctrlSheet.setRowHeight(1, 38);
   ctrlSheet.getRange(1, 1, 1, 3).setValues(headers)
     .setBackground("#e0e7ff")
     .setFontColor("#1e1b4b")
     .setFontWeight("bold")
     .setFontSize(11)
-    .setHorizontalAlignment("center");
+    .setHorizontalAlignment("center")
+    .setVerticalAlignment("middle");
+
+  for (var r = 2; r <= data.length + 1; r++) {
+    ctrlSheet.setRowHeight(r, 28);
+  }
 
   ctrlSheet.getRange(2, 1, data.length, 3).setValues(data)
     .setFontSize(10)
@@ -408,6 +469,7 @@ function handleIncomingTelemetry(params) {
 
     // Apply formatting with soft pastel badges & alternating row background
     var lastRow = sheet.getLastRow();
+    sheet.setRowHeight(lastRow, 26);
     var rowRange = sheet.getRange(lastRow, 1, 1, row.length);
     rowRange.setFontSize(10).setFontColor("#1e293b").setVerticalAlignment("middle").setHorizontalAlignment("center");
     
