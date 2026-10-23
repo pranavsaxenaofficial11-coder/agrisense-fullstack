@@ -148,6 +148,21 @@ var MIN_COLUMN_WIDTHS = [
 // -------------------- 3. INITIALIZATION & REFORMATTING --------------------
 
 /**
+ * Automatically creates an AgriSense menu directly inside your Google Sheet toolbar!
+ * Whenever you reload your Google Sheet in the browser, look for "🌾 AgriSense Controls"
+ * at the top next to Help!
+ */
+function onOpen() {
+  try {
+    var ui = SpreadsheetApp.getUi();
+    ui.createMenu("🌾 AgriSense Controls")
+      .addItem("🎨 Fix Spacing & Apply Light Theme", "reformatExistingSheet")
+      .addItem("⚡ Initialize Clean 39-Sensor Sheet", "setupSystematicSheet")
+      .addToUi();
+  } catch(e) {}
+}
+
+/**
  * Run this function in Apps Script to instantly reformat your EXISTING sheet
  * with generous cell spacing, perfect column widths, and the clean light theme!
  */
