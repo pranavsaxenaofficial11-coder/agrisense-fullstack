@@ -374,26 +374,46 @@ bool sendGoogleSheets() {
   if (WiFi.status() != WL_CONNECTED) return false;
 
   WiFiClientSecure client;
-  client.setInsecure();
+  client.setInsecure(); // Required for Google Apps Script HTTPS redirects
   HTTPClient http;
 
-  http.begin(client, WEB_APP_URL);
-  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-  http.addHeader("Content-Type", "application/json");
-  http.setTimeout(4500);
+  // Google Apps Script requires GET with query parameters so 302 redirects retain telemetry payload
+  String url = String(WEB_APP_URL) + "?sts=write&source=wokwi";
+  url += "&zone=Zone%20A";
+  url += "&soilA=" + String(s_soilA, 1);
+  url += "&soilB=" + String(s_soilB, 1);
+  url += "&soilAvg=" + String(s_soilAvg, 1);
+  url += "&airTemp=" + String(s_airTemp, 1);
+  url += "&airHumidity=" + String(s_airHumidity, 1);
+  url += "&light=" + String(s_light, 1);
+  url += "&rain=" + String(s_rain, 1);
+  url += "&waterTank=" + String(s_waterTank, 1);
+  url += "&soilPH=" + String(s_soilPH, 2);
+  url += "&nitrogen=" + String(s_nitrogen, 1);
+  url += "&phosphorus=" + String(s_phosphorus, 1);
+  url += "&potassium=" + String(s_potassium, 1);
+  url += "&co2=" + String(s_co2, 1);
+  url += "&ndvi=" + String(s_ndvi, 2);
+  url += "&waterFlow=" + String(s_waterFlow, 1);
+  url += "&flow=" + String(s_flow, 1);
+  url += "&pump=" + String(pumpState ? "true" : "false");
+  url += "&fan=" + String(fanState ? "true" : "false");
+  url += "&mode=" + String(manualOverride ? "manual" : "auto");
 
-  String payload = buildJson("google_sheets_primary");
-  int code = http.POST(payload);
+  http.begin(client, url);
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+  http.setTimeout(10000);
+
+  int code = http.GET();
   bool ok = false;
 
-  // Handles 200, 201, 301, 302 redirects cleanly
-  if (code == 200 || code == 201 || code == 301 || code == 302) {
+  if (code > 0) {
     String resp = http.getString();
-    Serial.printf("[SHEETS OK] HTTP %d\n", code);
+    Serial.printf("📊 [SHEETS OK] Telemetry logged to Google Sheet (HTTP %d)\n", code);
     parseCommands(resp);
     ok = true;
   } else {
-    Serial.printf("[SHEETS ERR] HTTP %d\n", code);
+    Serial.printf("⚠️ [SHEETS ERR] HTTP %d: %s\n", code, http.errorToString(code).c_str());
   }
 
   http.end();
@@ -517,25 +537,37 @@ void setup() {
     display.display();
   }
 
-  // Connect to 'saxena' or Wokwi virtual Wi-Fi
-  wifiMulti.addAP(WIFI_SSID_SAXENA, WIFI_PASS_SAXENA);
-  wifiMulti.addAP("saxena", "");
-  wifiMulti.addAP("saxena", "12345678");
-  wifiMulti.addAP("Wokwi-GUEST", "");
+  // 1. Instant connect for Wokwi Simulator (Wokwi does not support Wi-Fi scanning)
+  WiFi.mode(WIFI_STA);
+  Serial.print(F("🌐 Connecting to Wi-Fi (Wokwi-GUEST)..."));
+  WiFi.begin("Wokwi-GUEST", "", 6);
 
-  Serial.print("Connecting to Wi-Fi...");
   int tries = 0;
-  while (wifiMulti.run() != WL_CONNECTED && tries < 15) {
-    delay(400);
+  while (WiFi.status() != WL_CONNECTED && tries < 20) {
+    delay(200);
     Serial.print(".");
     tries++;
   }
 
+  // 2. Hardware fallback if running on physical device
+  if (WiFi.status() != WL_CONNECTED) {
+    wifiMulti.addAP("Wokwi-GUEST", "");
+    wifiMulti.addAP(WIFI_SSID_SAXENA, WIFI_PASS_SAXENA);
+    wifiMulti.addAP("saxena", "");
+    wifiMulti.addAP("saxena", "12345678");
+    int mAtt = 0;
+    while (wifiMulti.run() != WL_CONNECTED && mAtt < 15) {
+      delay(300);
+      Serial.print(".");
+      mAtt++;
+    }
+  }
+
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.printf("\n[NET] IP: %s\n",
+    Serial.printf("\n✓ [NET] Connected! Node IP: %s\n",
       WiFi.localIP().toString().c_str());
   } else {
-    Serial.println("\n[NET] Running in offline mode.");
+    Serial.println(F("\n⚠️ [NET] Running in offline mode."));
   }
 
   sampleAll39Sensors();
