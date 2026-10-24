@@ -816,7 +816,7 @@ export const LandingPage: React.FC = () => {
                   <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Follow for field updates, innovation reels, and announcements.</p>
                 </div>
                 <a
-                  href="https://www.instagram.com/agrisense.official?cplk=MWU0dnc0b3hpcGdxNg=="
+                  href="https://www.instagram.com/agrisense.official/"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -1025,7 +1025,7 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '13.5px' }}>
-            <a href="https://www.instagram.com/agrisense.official?cplk=MWU0dnc0b3hpcGdxNg==" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ink-soft)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <a href="https://www.instagram.com/agrisense.official/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ink-soft)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span>📸</span> Instagram
             </a>
             <a href="https://youtube.com/@agrisenseofficialhelppage?si=vFm9k_KGVtVNuFtj" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ink-soft)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
