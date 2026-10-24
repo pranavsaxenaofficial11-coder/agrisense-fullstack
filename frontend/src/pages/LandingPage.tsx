@@ -213,6 +213,7 @@ export const LandingPage: React.FC = () => {
             <a href="#prototype" onClick={() => setMenuOpen(false)}>Prototype</a>
             <a href="#pricing" onClick={() => setMenuOpen(false)}>Plans</a>
             <a href="#team" onClick={() => setMenuOpen(false)}>Team</a>
+            <a href="#contact" onClick={() => setMenuOpen(false)}>Contact</a>
             <a
               href="/app.html"
               style={{
@@ -699,32 +700,244 @@ export const LandingPage: React.FC = () => {
             <h2 style={{ fontSize: 'clamp(22px,3vw,30px)' }}>Built by</h2>
             <div className="team">
               <span className="member">Pranav Saxena · Lead Dev & IoT Architect</span>
-              <span className="member">Hiyasha Deviyal · Product Research & UI/UX</span>
+              <span className="member">Inaya Sharma · Product Research & UI/UX</span>
+              <span className="member">Pranavi Joshi · Frontend & Localization</span>
+              <span className="member">Vidhi Sangwan Singh Chhirang · Data Analytics & Agronomy</span>
               <span className="member">Chaitanya Vashisht · Hardware & Testing</span>
-              <span className="member">Kairavi Patel · Frontend & Localization</span>
-              <span className="member">Eekansh Patni · Data Analytics & Agronomy</span>
               <span className="member" style={{ borderColor: 'var(--green, #22c55e)' }}>Mentor: Ms. Deepika Dutt</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Contact Section & Modal */}
+      {/* Contact Section & Social Channels */}
       <section id="contact">
         <div className="wrap">
           <div className="cta-box">
+            <div className="eyebrow" style={{ color: 'var(--green, #22c55e)', marginBottom: '8px' }}>Get In Touch</div>
             <h2>Let's grow the future of agriculture together.</h2>
-            <p>AgriUpdate empowers farmers with smart, sustainable solutions. Reach out to see the prototype in action.</p>
-            <a className="btn" href="mailto:agrisense000@gmail.com?subject=AgriUpdate%20enquiry">Contact the team</a>
-            <button
-              className="btn"
-              id="knowMoreBtn"
-              type="button"
-              style={{ marginLeft: '10px' }}
-              onClick={() => setKnowMoreOpen(!knowMoreOpen)}
-            >
-              ✨ Know more
-            </button>
+            <p style={{ maxWidth: '620px', margin: '0 auto 28px' }}>
+              Have questions, need smart irrigation hardware support, or want to collaborate with AgriSense? Contact our team directly through any of our channels below.
+            </p>
+
+            {/* Contact Cards Grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+              gap: '16px',
+              maxWidth: '960px',
+              margin: '0 auto 30px',
+              textAlign: 'left'
+            }}>
+              {/* Phone / Call & WhatsApp */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '16px',
+                padding: '18px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '24px' }}>📞</span>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '15px', color: '#fff', fontWeight: 700 }}>Direct Helpline</h4>
+                      <span style={{ fontSize: '12px', color: '#94a3b8' }}>Call / WhatsApp</span>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '15.5px', fontWeight: 700, color: '#38bdf8', margin: '6px 0 4px', letterSpacing: '0.5px' }}>
+                    +91 83830 49373
+                  </div>
+                  <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Instant response for queries and farmer assistance.</p>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                  <a
+                    href="tel:+918383049373"
+                    style={{
+                      flex: 1,
+                      padding: '7px 10px',
+                      background: 'rgba(56, 189, 248, 0.15)',
+                      border: '1px solid rgba(56, 189, 248, 0.4)',
+                      borderRadius: '8px',
+                      color: '#38bdf8',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      textAlign: 'center',
+                      textDecoration: 'none'
+                    }}
+                  >
+                    Call
+                  </a>
+                  <a
+                    href="https://wa.me/918383049373?text=Hi%20AgriSense%20Team%2C%20I%20have%20an%20inquiry%20about%20AgriSense"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      flex: 1,
+                      padding: '7px 10px',
+                      background: 'rgba(34, 197, 94, 0.15)',
+                      border: '1px solid rgba(34, 197, 94, 0.4)',
+                      borderRadius: '8px',
+                      color: '#4ade80',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      textAlign: 'center',
+                      textDecoration: 'none'
+                    }}
+                  >
+                    WhatsApp
+                  </a>
+                </div>
+              </div>
+
+              {/* Instagram Card */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '16px',
+                padding: '18px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '24px' }}>📸</span>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '15px', color: '#fff', fontWeight: 700 }}>Instagram</h4>
+                      <span style={{ fontSize: '12px', color: '#94a3b8' }}>Official Community</span>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#f472b6', margin: '6px 0 4px' }}>
+                    @agrisense.official
+                  </div>
+                  <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Follow for field updates, innovation reels, and announcements.</p>
+                </div>
+                <a
+                  href="https://www.instagram.com/agrisense.official?cplk=MWU0dnc0b3hpcGdxNg=="
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    marginTop: '12px',
+                    padding: '7px 10px',
+                    background: 'linear-gradient(135deg, rgba(236,72,153,0.2) 0%, rgba(244,63,94,0.2) 100%)',
+                    border: '1px solid rgba(244, 114, 182, 0.4)',
+                    borderRadius: '8px',
+                    color: '#f472b6',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    textAlign: 'center',
+                    textDecoration: 'none',
+                    display: 'block'
+                  }}
+                >
+                  Visit Instagram ↗
+                </a>
+              </div>
+
+              {/* YouTube Card */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '16px',
+                padding: '18px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '24px' }}>📺</span>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '15px', color: '#fff', fontWeight: 700 }}>YouTube</h4>
+                      <span style={{ fontSize: '12px', color: '#94a3b8' }}>Video Help & Guides</span>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#f87171', margin: '6px 0 4px' }}>
+                    @agrisenseofficialhelppage
+                  </div>
+                  <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Step-by-step video guides for hardware, sensors & the app.</p>
+                </div>
+                <a
+                  href="https://youtube.com/@agrisenseofficialhelppage?si=vFm9k_KGVtVNuFtj"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    marginTop: '12px',
+                    padding: '7px 10px',
+                    background: 'rgba(239, 68, 68, 0.2)',
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                    borderRadius: '8px',
+                    color: '#f87171',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    textAlign: 'center',
+                    textDecoration: 'none',
+                    display: 'block'
+                  }}
+                >
+                  Watch on YouTube ↗
+                </a>
+              </div>
+
+              {/* Email Card */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '16px',
+                padding: '18px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '24px' }}>✉️</span>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '15px', color: '#fff', fontWeight: 700 }}>Email Team</h4>
+                      <span style={{ fontSize: '12px', color: '#94a3b8' }}>Official Desk</span>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#a7f3d0', margin: '6px 0 4px', wordBreak: 'break-all' }}>
+                    agrisense000@gmail.com
+                  </div>
+                  <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Send project inquiries, partnership proposals, or feedback.</p>
+                </div>
+                <a
+                  href="mailto:agrisense000@gmail.com?subject=AgriSense%20Inquiry"
+                  style={{
+                    marginTop: '12px',
+                    padding: '7px 10px',
+                    background: 'rgba(16, 185, 129, 0.2)',
+                    border: '1px solid rgba(16, 185, 129, 0.4)',
+                    borderRadius: '8px',
+                    color: '#34d399',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    textAlign: 'center',
+                    textDecoration: 'none',
+                    display: 'block'
+                  }}
+                >
+                  Send Email ↗
+                </a>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <a className="btn" href="mailto:agrisense000@gmail.com?subject=AgriSense%20Inquiry">Contact the team</a>
+              <button
+                className="btn"
+                id="knowMoreBtn"
+                type="button"
+                style={{ marginLeft: '10px' }}
+                onClick={() => setKnowMoreOpen(!knowMoreOpen)}
+              >
+                ✨ Know more
+              </button>
+            </div>
 
             {knowMoreOpen && (
               <div
@@ -793,7 +1006,7 @@ export const LandingPage: React.FC = () => {
                   className="km-link"
                 >
                   <span style={{ fontSize: '22px' }}>📱</span>
-                  <span>Open Full Web App<br /><small style={{ fontWeight: 400, color: '#B9CDAA' }}>Interactive AgriUpdate Dashboard</small></span>
+                  <span>Open Full Web App<br /><small style={{ fontWeight: 400, color: '#B9CDAA' }}>Interactive AgriSense Dashboard</small></span>
                 </a>
               </div>
             )}
@@ -803,9 +1016,26 @@ export const LandingPage: React.FC = () => {
 
       {/* Footer */}
       <footer>
-        <div className="wrap foot">
-          <div><strong>AgriUpdate</strong> — transforming agriculture with AI, IoT, and smart automation.</div>
-          <div>© 2026 AgriUpdate</div>
+        <div className="wrap foot" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <strong>AgriSense</strong> — transforming agriculture with AI, IoT, and smart automation.
+            <div style={{ fontSize: '13px', color: 'var(--ink-mute)', marginTop: '6px', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+              <span>📞 <a href="tel:+918383049373" style={{ color: 'inherit', textDecoration: 'underline' }}>+91 83830 49373</a></span>
+              <span>✉️ <a href="mailto:agrisense000@gmail.com" style={{ color: 'inherit', textDecoration: 'underline' }}>agrisense000@gmail.com</a></span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '13.5px' }}>
+            <a href="https://www.instagram.com/agrisense.official?cplk=MWU0dnc0b3hpcGdxNg==" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ink-soft)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span>📸</span> Instagram
+            </a>
+            <a href="https://youtube.com/@agrisenseofficialhelppage?si=vFm9k_KGVtVNuFtj" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ink-soft)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span>📺</span> YouTube
+            </a>
+            <a href="https://wa.me/918383049373?text=Hi%20AgriSense%20Team" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ink-soft)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span>💬</span> WhatsApp
+            </a>
+            <span style={{ color: 'var(--ink-mute)' }}>© 2026 AgriSense</span>
+          </div>
         </div>
       </footer>
 
