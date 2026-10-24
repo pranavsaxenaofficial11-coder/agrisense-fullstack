@@ -2,7 +2,8 @@ User-agent: *
 Allow: /
 Allow: /app.html
 Allow: /prototype_3d.html
-Allow: /AgriSense_Official_12_Slides.pptx
+Allow: /hackathon_presentation.pptx
+Allow: /idea_submission_template_bbh3_02.pdf
 
 # Crawl-delay for polite crawling
 Crawl-delay: 1

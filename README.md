@@ -12,9 +12,9 @@
 
 ---
 
-## 📽️ Bharat Innovation Challenge 2026 Pitch Deck
+## 📽️ Hackathon Presentation & Idea Submission (BBH 3.0)
 
-* 📊 **PowerPoint Presentation (.pptx)**: [`AgriSense_Bharat_Innovation_Challenge_2026.pptx`](./AgriSense_Bharat_Innovation_Challenge_2026.pptx)
+* 📊 **PowerPoint Presentation (.pptx)**: [`hackathon_presentation.pptx`](./hackathon_presentation.pptx)
 * 🖥️ **Interactive Web Slide Viewer**: Open [`frontend/public/bharat_challenge_deck.html`](./frontend/public/bharat_challenge_deck.html) in any modern browser for full-screen keyboard navigation ($\leftarrow / \rightarrow$).
 
 ---

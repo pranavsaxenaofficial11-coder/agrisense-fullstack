@@ -955,7 +955,7 @@ export const LandingPage: React.FC = () => {
                 }}
               >
                 <a
-                  href="/AgriUpdate_Pitch_Deck.pptx"
+                  href="/hackathon_presentation.pptx"
                   download
                   style={{
                     display: 'flex',
@@ -970,7 +970,27 @@ export const LandingPage: React.FC = () => {
                   className="km-link"
                 >
                   <span style={{ fontSize: '22px' }}>📊</span>
-                  <span>Pitch deck (PPT)<br /><small style={{ fontWeight: 400, color: '#B9CDAA' }}>19 slides — full project story · download</small></span>
+                  <span>Hackathon Presentation (PPT)<br /><small style={{ fontWeight: 400, color: '#B9CDAA' }}>8 slides — AgriSense pitch deck · download</small></span>
+                </a>
+                <a
+                  href="/idea_submission_template_bbh3_02.pdf"
+                  download
+                  target="_blank"
+                  rel="noopener"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    color: '#EAF3E2',
+                    textDecoration: 'none',
+                    fontWeight: 600
+                  }}
+                  className="km-link"
+                >
+                  <span style={{ fontSize: '22px' }}>📄</span>
+                  <span>Idea Submission (BBH 3.0 PDF)<br /><small style={{ fontWeight: 400, color: '#B9CDAA' }}>Bal Bharati Hackathon 3.0 template · download</small></span>
                 </a>
                 <a
                   href="/prototype_3d.html"
