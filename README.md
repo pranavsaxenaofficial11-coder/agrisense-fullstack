@@ -12,9 +12,9 @@
 
 ---
 
-## 📽️ Hackathon Presentation & Idea Submission (BBH 3.0)
+## 📽️ Official Innovation Challenge Presentation (SEVA FIRST 2026)
 
-* 📊 **PowerPoint Presentation (.pptx)**: [`hackathon_presentation.pptx`](./hackathon_presentation.pptx)
+* 📊 **PowerPoint Presentation (.pptx)**: [`AgriSense_SEVA_FIRST_2026_G1.pptx`](./AgriSense_SEVA_FIRST_2026_G1.pptx)
 * 🖥️ **Interactive Web Slide Viewer**: Open [`frontend/public/bharat_challenge_deck.html`](./frontend/public/bharat_challenge_deck.html) in any modern browser for full-screen keyboard navigation ($\leftarrow / \rightarrow$).
 
 ---

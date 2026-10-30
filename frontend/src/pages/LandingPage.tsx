@@ -950,7 +950,7 @@ export const LandingPage: React.FC = () => {
                 }}
               >
                 <a
-                  href="/hackathon_presentation.pptx"
+                  href="/AgriSense_SEVA_FIRST_2026_G1.pptx"
                   download
                   style={{
                     display: 'flex',
@@ -965,7 +965,7 @@ export const LandingPage: React.FC = () => {
                   className="km-link"
                 >
                   <span style={{ fontSize: '22px' }}>📊</span>
-                  <span>Hackathon Presentation (PPT)<br /><small style={{ fontWeight: 400, color: '#B9CDAA' }}>8 slides — AgriSense pitch deck · download</small></span>
+                  <span>SEVA FIRST Presentation (PPTX)<br /><small style={{ fontWeight: 400, color: '#B9CDAA' }}>8 slides — AgriSense pitch deck · download</small></span>
                 </a>
                 <a
                   href="/idea_submission_template_bbh3_02.pdf"
