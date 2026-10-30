@@ -696,15 +696,10 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
           <div id="team">
-            <div className="eyebrow">The team</div>
+            <div className="eyebrow">Innovator</div>
             <h2 style={{ fontSize: 'clamp(22px,3vw,30px)' }}>Built by</h2>
             <div className="team">
-              <span className="member">Pranav Saxena · Lead Dev & IoT Architect</span>
-              <span className="member">Inaya Sharma · Product Research & UI/UX</span>
-              <span className="member">Pranavi Joshi · Frontend & Localization</span>
-              <span className="member">Vidhi Sangwan Singh Chhirang · Data Analytics & Agronomy</span>
-              <span className="member">Chaitanya Vashisht · Hardware & Testing</span>
-              <span className="member" style={{ borderColor: 'var(--green, #22c55e)' }}>Mentor: Ms. Deepika Dutt</span>
+              <span className="member">Pranav Saxena — Sole Creator, Lead Developer &amp; IoT Systems Architect</span>
             </div>
           </div>
         </div>

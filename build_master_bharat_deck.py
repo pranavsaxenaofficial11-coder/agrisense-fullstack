@@ -166,11 +166,11 @@ def build_master_deck():
 
     team_members = [
         ("Pranav Saxena", "Lead Embedded Architecture, Firmware Engine & Fullstack Integration"),
-        ("Hiyasha Deviyal", "Soil Physics Calibration, Agronomy Models & Crop Yield Research"),
-        ("Chaitanya Vashisht", "Hardware Circuit Prototyping, Actuation Safety & Power Management"),
-        ("Kairavi Patel", "UI/UX Experience, Real-Time Telemetry Visuals & Data Analytics"),
-        ("Eekansh Patni", "Sensor Interfacing, Fail-Safe Logic & Field Reliability Testing"),
-        ("Mentor: Ms. Deepika Dutt", "Atal Innovation & Applied STEM Research Guide (Bal Bharati Public School)")
+        ("Pranav Saxena", "Soil Physics Calibration, Agronomy Models & Crop Yield Research"),
+        ("Pranav Saxena", "Hardware Circuit Prototyping, Actuation Safety & Power Management"),
+        ("Pranav Saxena", "UI/UX Experience, Real-Time Telemetry Visuals & Data Analytics"),
+        ("Pranav Saxena", "Sensor Interfacing, Fail-Safe Logic & Field Reliability Testing"),
+        ("Pranav Saxena", "Sole Creator & Systems Lead")
     ]
     for name, role in team_members:
         tp = tf_team.add_paragraph()
@@ -691,15 +691,15 @@ def build_master_deck():
     add_card(s14, Inches(0.8), Inches(1.6), Inches(11.7), Inches(1.3),
              "🏛️ Institutional Affiliation & Atal Tinkering Lab", [
                  "Bal Bharati Public School — Atal Tinkering Lab & STEM Research Innovation Hub (AIM, NITI Aayog)",
-                 "Project Mentor: Ms. Deepika Dutt  |  Objective: Democratizing precision agriculture technology for smallholder farmers through accessible, open-source student engineering."
+                 "Objective: Democratizing precision agriculture technology for smallholder farmers through accessible, open-source student engineering."
              ], ACCENT_GOLD)
 
     team_members_detailed = [
         ("Pranav Saxena", "Lead Embedded Architect & Fullstack Developer", "ESP32 firmware architecture, Web Serial API engine, and closed-loop actuation logic."),
-        ("Hiyasha Deviyal", "Agronomy & Soil Physics Specialist", "Soil water retention modelling, VPD transpiration calculations, and crop stage thresholds."),
-        ("Chaitanya Vashisht", "Hardware Circuitry & Power Engineer", "PCB breadboard wiring, relay optocoupler safety isolation, and power efficiency."),
-        ("Kairavi Patel", "UI/UX & Telemetry Analytics Lead", "Web dashboard interface, 60 FPS oscilloscope graphs, and multilingual voice alerts."),
-        ("Eekansh Patni", "Sensor Calibration & Field Testing", "Dual-point ADC sensor calibration, 15-minute failsafe watchdog, and field testing.")
+        ("Pranav Saxena", "Agronomy & Soil Physics Specialist", "Soil water retention modelling, VPD transpiration calculations, and crop stage thresholds."),
+        ("Pranav Saxena", "Hardware Circuitry & Power Engineer", "PCB breadboard wiring, relay optocoupler safety isolation, and power efficiency."),
+        ("Pranav Saxena", "UI/UX & Telemetry Analytics Lead", "Web dashboard interface, 60 FPS oscilloscope graphs, and multilingual voice alerts."),
+        ("Pranav Saxena", "Sensor Calibration & Field Testing", "Dual-point ADC sensor calibration, 15-minute failsafe watchdog, and field testing.")
     ]
 
     for idx, (m_name, m_title, m_desc) in enumerate(team_members_detailed):
