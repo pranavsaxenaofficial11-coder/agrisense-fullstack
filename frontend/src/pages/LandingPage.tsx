@@ -46,7 +46,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateTo404 }) => 
   const [planModalStep, setPlanModalStep] = useState<'details' | 'payment'>('details');
   const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string; location?: string }>({});
   const [qrMode, setQrMode] = useState<'code' | 'scanner'>('code');
-  const [qrPayloadType, setQrPayloadType] = useState<'404_portal' | 'upi_pay'>('404_portal');
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [isScanningCode, setIsScanningCode] = useState(false);
   const [scanFeedback, setScanFeedback] = useState<string | null>(null);
@@ -60,9 +59,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateTo404 }) => 
       const origin = typeof window !== 'undefined' ? window.location.origin : 'https://agrisense.farm';
       const cleanPrice = selectedPlanModal.price.replace(/[^\d]/g, '') || '499';
 
-      const payload = qrPayloadType === '404_portal'
-        ? `${origin}/404?session=upi_gateway&plan=${encodeURIComponent(selectedPlanModal.id)}&price=${cleanPrice}&farmer=${encodeURIComponent(subscriberName.trim() || 'Kisan')}`
-        : `upi://pay?pa=agrisense.farm@icici&pn=AgriSense%20AI&am=${cleanPrice}&cu=INR&tn=${encodeURIComponent(selectedPlanModal.name)}`;
+      const payload = `${origin}/404?session=upi_gateway&plan=${encodeURIComponent(selectedPlanModal.id)}&price=${cleanPrice}&farmer=${encodeURIComponent(subscriberName.trim() || 'Kisan')}`;
 
       QRCode.toDataURL(payload, {
         width: 300,
@@ -76,7 +73,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateTo404 }) => 
         .then((url: string) => setQrDataUrl(url))
         .catch((err: unknown) => console.error('Failed to generate real QR code', err));
     }
-  }, [selectedPlanModal, subscriberName, qrPayloadType]);
+  }, [selectedPlanModal, subscriberName]);
 
   // Camera stream effect with live jsQR decoding
   useEffect(() => {
@@ -1579,20 +1576,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateTo404 }) => 
                         Scan with GPay · PhonePe · Paytm · BHIM
                       </div>
 
-                      {/* Real Standards-Compliant Scannable QR Code */}
+                      {/* Standards-Compliant Scannable QR Code */}
                       <div style={{
                         background: '#FFFFFF',
                         padding: '14px',
                         borderRadius: '16px',
                         display: 'inline-block',
                         boxShadow: '0 6px 20px rgba(0,0,0,0.08)',
-                        border: '1.5px solid #E2E8F0',
-                        position: 'relative'
+                        border: '1.5px solid #E2E8F0'
                       }}>
                         {qrDataUrl ? (
                           <img
                             src={qrDataUrl}
-                            alt="Real Scannable QR Code"
+                            alt="Payment QR Code"
                             style={{
                               width: '180px',
                               height: '180px',
@@ -1602,68 +1598,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateTo404 }) => 
                           />
                         ) : (
                           <div style={{ width: '180px', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', fontSize: '13px' }}>
-                            Generating Real QR...
+                            Loading Payment QR...
                           </div>
                         )}
-                        <div style={{
-                          position: 'absolute',
-                          bottom: '-8px',
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          background: '#10B981',
-                          color: '#FFFFFF',
-                          padding: '2px 10px',
-                          borderRadius: '999px',
-                          fontSize: '10px',
-                          fontWeight: 800,
-                          letterSpacing: '0.04em',
-                          whiteSpace: 'nowrap',
-                          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.4)'
-                        }}>
-                          ✓ 100% REAL SCANNABLE QR
-                        </div>
                       </div>
 
-                      {/* Payload Selector: 404 Gateway vs UPI */}
-                      <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center', gap: '6px' }}>
-                        <button
-                          type="button"
-                          onClick={() => setQrPayloadType('404_portal')}
-                          style={{
-                            background: qrPayloadType === '404_portal' ? '#E0F2FE' : '#F1F5F9',
-                            color: qrPayloadType === '404_portal' ? '#0369A1' : '#64748B',
-                            border: qrPayloadType === '404_portal' ? '1px solid #7DD3FC' : '1px solid #E2E8F0',
-                            borderRadius: '6px',
-                            padding: '4px 10px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          🌐 404 Portal QR
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setQrPayloadType('upi_pay')}
-                          style={{
-                            background: qrPayloadType === 'upi_pay' ? '#DCFCE7' : '#F1F5F9',
-                            color: qrPayloadType === 'upi_pay' ? '#15803D' : '#64748B',
-                            border: qrPayloadType === 'upi_pay' ? '1px solid #86EFAC' : '1px solid #E2E8F0',
-                            borderRadius: '6px',
-                            padding: '4px 10px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          💰 Direct UPI QR
-                        </button>
-                      </div>
-
-                      <p style={{ fontSize: '11.5px', color: '#64748B', margin: '8px 0 10px 0' }}>
-                        {qrPayloadType === '404_portal'
-                          ? 'Scan with your phone camera to open the custom 404 error page directly.'
-                          : 'Scan with GPay, PhonePe, Paytm, or BHIM to initiate UPI transfer.'}
+                      <p style={{ fontSize: '12px', color: '#64748B', margin: '12px 0 10px 0' }}>
+                        Scan with GPay, PhonePe, Paytm, BHIM, or any camera to complete payment.
                       </p>
 
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
