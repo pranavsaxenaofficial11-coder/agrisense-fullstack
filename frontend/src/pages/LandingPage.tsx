@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import QRCode from 'qrcode';
+import jsQR from 'jsqr';
 import './landing.css';
 
 interface LandingPageProps {
@@ -44,15 +46,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateTo404 }) => 
   const [planModalStep, setPlanModalStep] = useState<'details' | 'payment'>('details');
   const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string; location?: string }>({});
   const [qrMode, setQrMode] = useState<'code' | 'scanner'>('code');
+  const [qrPayloadType, setQrPayloadType] = useState<'404_portal' | 'upi_pay'>('404_portal');
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [isScanningCode, setIsScanningCode] = useState(false);
   const [scanFeedback, setScanFeedback] = useState<string | null>(null);
   const [copiedUpi, setCopiedUpi] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
 
-  // Camera stream effect for QR scanner
+  // Generate Real Mathematically Valid QR Code Data URL
+  useEffect(() => {
+    if (selectedPlanModal) {
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://agrisense.farm';
+      const cleanPrice = selectedPlanModal.price.replace(/[^\d]/g, '') || '499';
+
+      const payload = qrPayloadType === '404_portal'
+        ? `${origin}/404?session=upi_gateway&plan=${encodeURIComponent(selectedPlanModal.id)}&price=${cleanPrice}&farmer=${encodeURIComponent(subscriberName.trim() || 'Kisan')}`
+        : `upi://pay?pa=agrisense.farm@icici&pn=AgriSense%20AI&am=${cleanPrice}&cu=INR&tn=${encodeURIComponent(selectedPlanModal.name)}`;
+
+      QRCode.toDataURL(payload, {
+        width: 300,
+        margin: 2,
+        errorCorrectionLevel: 'H',
+        color: {
+          dark: '#0B130E',
+          light: '#FFFFFF'
+        }
+      })
+        .then((url: string) => setQrDataUrl(url))
+        .catch((err: unknown) => console.error('Failed to generate real QR code', err));
+    }
+  }, [selectedPlanModal, subscriberName, qrPayloadType]);
+
+  // Camera stream effect with live jsQR decoding
   useEffect(() => {
     let stream: MediaStream | null = null;
+    let animId: number;
+
     if (selectedPlanModal && planModalStep === 'payment' && qrMode === 'scanner') {
       if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
@@ -61,7 +91,41 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateTo404 }) => 
             setCameraActive(true);
             if (videoRef.current) {
               videoRef.current.srcObject = s;
+              videoRef.current.setAttribute('playsinline', 'true');
               videoRef.current.play().catch(() => {});
+
+              // Off-screen canvas for real-time QR decoding
+              const scanCanvas = document.createElement('canvas');
+              const ctx = scanCanvas.getContext('2d', { willReadFrequently: true });
+
+              const scanLoop = () => {
+                if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && ctx) {
+                  scanCanvas.width = videoRef.current.videoWidth;
+                  scanCanvas.height = videoRef.current.videoHeight;
+                  ctx.drawImage(videoRef.current, 0, 0, scanCanvas.width, scanCanvas.height);
+                  const imgData = ctx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+                  const qrResult = jsQR(imgData.data, imgData.width, imgData.height, {
+                    inversionAttempts: 'dontInvert'
+                  });
+
+                  if (qrResult && qrResult.data) {
+                    setIsScanningCode(true);
+                    setScanFeedback(`✓ Real QR Detected! Connecting gateway...`);
+                    setTimeout(() => {
+                      setSelectedPlanModal(null);
+                      if (onNavigateTo404) {
+                        onNavigateTo404();
+                      } else {
+                        window.location.href = '/404';
+                      }
+                    }, 800);
+                    return; // Stop animation loop
+                  }
+                }
+                animId = requestAnimationFrame(scanLoop);
+              };
+
+              animId = requestAnimationFrame(scanLoop);
             }
           })
           .catch(() => {
@@ -69,9 +133,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateTo404 }) => 
           });
       }
     }
+
     return () => {
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
+      }
+      if (animId) {
+        cancelAnimationFrame(animId);
       }
       setCameraActive(false);
     };
@@ -1511,64 +1579,95 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateTo404 }) => 
                         Scan with GPay · PhonePe · Paytm · BHIM
                       </div>
 
-                      {/* Crisp Clean SVG QR Code */}
+                      {/* Real Standards-Compliant Scannable QR Code */}
                       <div style={{
                         background: '#FFFFFF',
-                        padding: '12px',
-                        borderRadius: '14px',
+                        padding: '14px',
+                        borderRadius: '16px',
                         display: 'inline-block',
-                        boxShadow: '0 4px 15px rgba(0,0,0,0.06)',
-                        border: '1px solid #E2E8F0'
+                        boxShadow: '0 6px 20px rgba(0,0,0,0.08)',
+                        border: '1.5px solid #E2E8F0',
+                        position: 'relative'
                       }}>
-                        <svg viewBox="0 0 160 160" width="160" height="160" style={{ display: 'block' }}>
-                          <rect width="160" height="160" fill="#FFFFFF" rx="8" />
-                          {/* Finder Top-Left */}
-                          <rect x="12" y="12" width="40" height="40" fill="#0F172A" rx="4" />
-                          <rect x="18" y="18" width="28" height="28" fill="#FFFFFF" rx="2" />
-                          <rect x="24" y="24" width="16" height="16" fill="#10B981" rx="2" />
-                          {/* Finder Top-Right */}
-                          <rect x="108" y="12" width="40" height="40" fill="#0F172A" rx="4" />
-                          <rect x="114" y="18" width="28" height="28" fill="#FFFFFF" rx="2" />
-                          <rect x="120" y="24" width="16" height="16" fill="#10B981" rx="2" />
-                          {/* Finder Bottom-Left */}
-                          <rect x="12" y="108" width="40" height="40" fill="#0F172A" rx="4" />
-                          <rect x="18" y="114" width="28" height="28" fill="#FFFFFF" rx="2" />
-                          <rect x="24" y="120" width="16" height="16" fill="#10B981" rx="2" />
-                          {/* Alignment Pattern */}
-                          <rect x="112" y="112" width="24" height="24" fill="#0F172A" rx="2" />
-                          <rect x="116" y="116" width="16" height="16" fill="#FFFFFF" rx="1" />
-                          <rect x="120" y="120" width="8" height="8" fill="#10B981" rx="1" />
-                          {/* Timing Patterns */}
-                          <rect x="58" y="26" width="6" height="6" fill="#0F172A" />
-                          <rect x="70" y="26" width="6" height="6" fill="#0F172A" />
-                          <rect x="82" y="26" width="6" height="6" fill="#0F172A" />
-                          <rect x="94" y="26" width="6" height="6" fill="#0F172A" />
-                          <rect x="26" y="58" width="6" height="6" fill="#0F172A" />
-                          <rect x="26" y="70" width="6" height="6" fill="#0F172A" />
-                          <rect x="26" y="82" width="6" height="6" fill="#0F172A" />
-                          <rect x="26" y="94" width="6" height="6" fill="#0F172A" />
-                          {/* Data Blocks */}
-                          <rect x="58" y="58" width="14" height="14" fill="#0F172A" />
-                          <rect x="78" y="58" width="10" height="10" fill="#0F172A" />
-                          <rect x="94" y="58" width="14" height="14" fill="#10B981" />
-                          <rect x="58" y="78" width="8" height="8" fill="#10B981" />
-                          <rect x="72" y="72" width="16" height="16" fill="#047857" rx="3" />
-                          <text x="80" y="84" fill="#FFFFFF" fontSize="10" fontWeight="900" textAnchor="middle" dominantBaseline="middle">🌱</text>
-                          <rect x="94" y="78" width="12" height="12" fill="#0F172A" />
-                          <rect x="58" y="94" width="16" height="16" fill="#0F172A" />
-                          <rect x="80" y="94" width="8" height="8" fill="#0F172A" />
-                          <rect x="94" y="94" width="10" height="10" fill="#10B981" />
-                          <rect x="62" y="116" width="12" height="12" fill="#0F172A" />
-                          <rect x="80" y="116" width="14" height="14" fill="#0F172A" />
-                          <rect x="62" y="134" width="10" height="10" fill="#10B981" />
-                          <rect x="80" y="136" width="16" height="10" fill="#0F172A" />
-                          <rect x="102" y="136" width="12" height="10" fill="#0F172A" />
-                          <rect x="120" y="140" width="14" height="8" fill="#0F172A" />
-                        </svg>
+                        {qrDataUrl ? (
+                          <img
+                            src={qrDataUrl}
+                            alt="Real Scannable QR Code"
+                            style={{
+                              width: '180px',
+                              height: '180px',
+                              display: 'block',
+                              borderRadius: '8px'
+                            }}
+                          />
+                        ) : (
+                          <div style={{ width: '180px', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', fontSize: '13px' }}>
+                            Generating Real QR...
+                          </div>
+                        )}
+                        <div style={{
+                          position: 'absolute',
+                          bottom: '-8px',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          background: '#10B981',
+                          color: '#FFFFFF',
+                          padding: '2px 10px',
+                          borderRadius: '999px',
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          letterSpacing: '0.04em',
+                          whiteSpace: 'nowrap',
+                          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.4)'
+                        }}>
+                          ✓ 100% REAL SCANNABLE QR
+                        </div>
                       </div>
 
-                      <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '13px', fontFamily: 'monospace', fontWeight: 700, color: '#334155', background: '#E2E8F0', padding: '4px 10px', borderRadius: '6px' }}>
+                      {/* Payload Selector: 404 Gateway vs UPI */}
+                      <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                        <button
+                          type="button"
+                          onClick={() => setQrPayloadType('404_portal')}
+                          style={{
+                            background: qrPayloadType === '404_portal' ? '#E0F2FE' : '#F1F5F9',
+                            color: qrPayloadType === '404_portal' ? '#0369A1' : '#64748B',
+                            border: qrPayloadType === '404_portal' ? '1px solid #7DD3FC' : '1px solid #E2E8F0',
+                            borderRadius: '6px',
+                            padding: '4px 10px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          🌐 404 Portal QR
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQrPayloadType('upi_pay')}
+                          style={{
+                            background: qrPayloadType === 'upi_pay' ? '#DCFCE7' : '#F1F5F9',
+                            color: qrPayloadType === 'upi_pay' ? '#15803D' : '#64748B',
+                            border: qrPayloadType === 'upi_pay' ? '1px solid #86EFAC' : '1px solid #E2E8F0',
+                            borderRadius: '6px',
+                            padding: '4px 10px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          💰 Direct UPI QR
+                        </button>
+                      </div>
+
+                      <p style={{ fontSize: '11.5px', color: '#64748B', margin: '8px 0 10px 0' }}>
+                        {qrPayloadType === '404_portal'
+                          ? 'Scan with your phone camera to open the custom 404 error page directly.'
+                          : 'Scan with GPay, PhonePe, Paytm, or BHIM to initiate UPI transfer.'}
+                      </p>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '12px', fontFamily: 'monospace', fontWeight: 700, color: '#334155', background: '#E2E8F0', padding: '4px 10px', borderRadius: '6px' }}>
                           agrisense.farm@icici
                         </span>
                         <button
