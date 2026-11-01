@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './landing.css';
 
-export const LandingPage: React.FC = () => {
+interface LandingPageProps {
+  onNavigateTo404?: () => void;
+}
+
+export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateTo404 }) => {
   // 1. Mobile menu toggle
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -37,7 +41,114 @@ export const LandingPage: React.FC = () => {
   const [subscriberName, setSubscriberName] = useState('');
   const [subscriberPhone, setSubscriberPhone] = useState('');
   const [subscriberLocation, setSubscriberLocation] = useState('');
-  const [subscriptionSuccess, setSubscriptionSuccess] = useState(false);
+  const [planModalStep, setPlanModalStep] = useState<'details' | 'payment'>('details');
+  const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string; location?: string }>({});
+  const [qrMode, setQrMode] = useState<'code' | 'scanner'>('code');
+  const [isScanningCode, setIsScanningCode] = useState(false);
+  const [scanFeedback, setScanFeedback] = useState<string | null>(null);
+  const [copiedUpi, setCopiedUpi] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [cameraActive, setCameraActive] = useState(false);
+
+  // Camera stream effect for QR scanner
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    if (selectedPlanModal && planModalStep === 'payment' && qrMode === 'scanner') {
+      if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+          .then((s) => {
+            stream = s;
+            setCameraActive(true);
+            if (videoRef.current) {
+              videoRef.current.srcObject = s;
+              videoRef.current.play().catch(() => {});
+            }
+          })
+          .catch(() => {
+            setCameraActive(false);
+          });
+      }
+    }
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+      setCameraActive(false);
+    };
+  }, [selectedPlanModal, planModalStep, qrMode]);
+
+  const validateField = (field: 'name' | 'phone' | 'location', val: string) => {
+    const trimmed = val.trim();
+    let err = '';
+    if (field === 'name') {
+      if (!trimmed) {
+        err = 'Farmer or farm name is required.';
+      } else if (trimmed.length < 3) {
+        err = 'Name must be at least 3 characters.';
+      } else if (!/^[a-zA-Z\s.-]+$/.test(trimmed)) {
+        err = 'Name can only contain alphabetic letters and spaces.';
+      }
+    } else if (field === 'phone') {
+      const cleanPhone = trimmed.replace(/[\s-]/g, '');
+      if (!cleanPhone) {
+        err = 'Mobile number is required.';
+      } else if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+        err = 'Enter a valid 10-digit mobile number (starting with 6, 7, 8, or 9).';
+      }
+    } else if (field === 'location') {
+      if (!trimmed) {
+        err = 'District and state are required.';
+      } else if (trimmed.length < 3) {
+        err = 'Please enter your district and state (e.g. Bareilly, UP).';
+      } else if (!/^[a-zA-Z0-9\s,.-]+$/.test(trimmed)) {
+        err = 'Location must only contain letters, numbers, spaces, or commas.';
+      }
+    }
+    setFormErrors((prev) => ({ ...prev, [field]: err }));
+    return !err;
+  };
+
+  const validateAll = () => {
+    const isNameValid = validateField('name', subscriberName);
+    const isPhoneValid = validateField('phone', subscriberPhone);
+    const isLocValid = validateField('location', subscriberLocation);
+    return isNameValid && isPhoneValid && isLocValid;
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateAll()) return;
+
+    try {
+      localStorage.setItem('agrisense_subscription', JSON.stringify({
+        plan: selectedPlanModal?.name,
+        price: selectedPlanModal?.price,
+        period: selectedPlanModal?.period,
+        subscriberName: subscriberName.trim(),
+        subscriberPhone: subscriberPhone.trim(),
+        subscriberLocation: subscriberLocation.trim(),
+        initiatedAt: new Date().toISOString()
+      }));
+    } catch {}
+
+    setPlanModalStep('payment');
+  };
+
+  const handleScanAndRedirect = () => {
+    setIsScanningCode(true);
+    setScanFeedback('🔍 Scanning UPI QR Code payload...');
+    setTimeout(() => {
+      setScanFeedback('⚡ Verified payload: upi://pay?pa=agrisense.farm@icici. Connecting gateway...');
+      setTimeout(() => {
+        setSelectedPlanModal(null);
+        if (onNavigateTo404) {
+          onNavigateTo404();
+        } else {
+          window.location.href = '/404';
+        }
+      }, 800);
+    }, 1000);
+  };
 
   // 5. Interactive Live Demo
   const rows = ['A', 'B', 'C', 'D'];
@@ -598,7 +709,12 @@ export const LandingPage: React.FC = () => {
                       'Priority Support & WhatsApp Alerts'
                     ]
                   });
-                  setSubscriptionSuccess(false);
+                  setPlanModalStep('details');
+                  setFormErrors({});
+                  setQrMode('code');
+                  setIsScanningCode(false);
+                  setScanFeedback(null);
+                  setCopiedUpi(false);
                 }}
               >
                 Choose Pro Plan →
@@ -661,7 +777,12 @@ export const LandingPage: React.FC = () => {
                       'Full REST API & ICAR Audit Compliance'
                     ]
                   });
-                  setSubscriptionSuccess(false);
+                  setPlanModalStep('details');
+                  setFormErrors({});
+                  setQrMode('code');
+                  setIsScanningCode(false);
+                  setScanFeedback(null);
+                  setCopiedUpi(false);
                 }}
               >
                 Enroll Enterprise →
@@ -1060,7 +1181,7 @@ export const LandingPage: React.FC = () => {
         <div style={{
           position: 'fixed',
           inset: 0,
-          backgroundColor: 'rgba(0,0,0,0.75)',
+          backgroundColor: 'rgba(0,0,0,0.8)',
           backdropFilter: 'blur(8px)',
           display: 'flex',
           alignItems: 'center',
@@ -1069,12 +1190,14 @@ export const LandingPage: React.FC = () => {
           padding: '20px'
         }}>
           <div style={{
-            maxWidth: '500px',
+            maxWidth: '520px',
             width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             background: '#FFFFFF',
             borderRadius: '24px',
-            padding: '32px 28px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            padding: '30px 26px',
+            boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.4)',
             position: 'relative'
           }}>
             <button
@@ -1082,53 +1205,27 @@ export const LandingPage: React.FC = () => {
               onClick={() => setSelectedPlanModal(null)}
               style={{
                 position: 'absolute',
-                top: '20px',
-                right: '20px',
+                top: '18px',
+                right: '18px',
                 background: '#F1F5F9',
                 border: 'none',
-                width: '32px',
-                height: '32px',
+                width: '34px',
+                height: '34px',
                 borderRadius: '50%',
                 cursor: 'pointer',
                 fontWeight: 700,
                 fontSize: '16px',
-                color: '#64748B'
+                color: '#64748B',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10
               }}
             >
               ✕
             </button>
 
-            {subscriptionSuccess ? (
-              <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                <div style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '50%',
-                  background: '#DCFCE7',
-                  color: '#15803D',
-                  fontSize: '32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 16px auto'
-                }}>
-                  ✓
-                </div>
-                <h3 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--ink)', marginBottom: '8px' }}>
-                  Subscription Activated!
-                </h3>
-                <p style={{ color: 'var(--ink-soft)', fontSize: '14px', marginBottom: '20px' }}>
-                  Welcome to <strong>{selectedPlanModal.name}</strong> ({selectedPlanModal.period}). Your IoT telemetry credentials and AI agronomy suite are now ready.
-                </p>
-                <a
-                  href="/app.html"
-                  className="btn"
-                  style={{ width: '100%', display: 'block', textAlign: 'center', textDecoration: 'none' }}
-                >
-                  Open Farm Dashboard Now →
-                </a>
-              </div>
-            ) : (
+            {planModalStep === 'details' ? (
               <div>
                 <div style={{ display: 'inline-block', background: '#E8F5E9', color: '#166534', padding: '4px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
                   {selectedPlanModal.period} Plan
@@ -1136,16 +1233,16 @@ export const LandingPage: React.FC = () => {
                 <h3 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--ink)', marginBottom: '4px' }}>
                   {selectedPlanModal.name}
                 </h3>
-                <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--green-deep)', marginBottom: '16px' }}>
+                <div style={{ fontSize: '26px', fontWeight: 900, color: 'var(--green-deep)', marginBottom: '16px' }}>
                   {selectedPlanModal.price}
                 </div>
 
-                <div style={{ background: '#F8FAFC', borderRadius: '14px', padding: '14px 16px', marginBottom: '20px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B', marginBottom: '8px' }}>
+                <div style={{ background: '#F8FAFC', borderRadius: '14px', padding: '12px 14px', marginBottom: '20px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748B', marginBottom: '6px' }}>
                     Included in this plan:
                   </div>
-                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px', color: '#334155', padding: 0 }}>
-                    {selectedPlanModal.features.map((feat, idx) => (
+                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '12.5px', color: '#334155', padding: 0, margin: 0 }}>
+                    {selectedPlanModal.features.slice(0, 4).map((feat, idx) => (
                       <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ color: '#16A34A', fontWeight: 800 }}>✓</span> {feat}
                       </li>
@@ -1153,61 +1250,136 @@ export const LandingPage: React.FC = () => {
                   </ul>
                 </div>
 
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  try {
-                    localStorage.setItem('agrisense_subscription', JSON.stringify({
-                      plan: selectedPlanModal.name,
-                      price: selectedPlanModal.price,
-                      period: selectedPlanModal.period,
-                      subscriberName,
-                      subscriberPhone,
-                      subscriberLocation,
-                      activatedAt: new Date().toISOString()
-                    }));
-                  } catch (err) {}
-                  setSubscriptionSuccess(true);
-                }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+                <form onSubmit={handleFormSubmit} noValidate>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
+                    {/* Farmer / Farm Name */}
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                        Farmer / Farm Name
-                      </label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                          Farmer / Farm Name <span style={{ color: '#EF4444' }}>*</span>
+                        </label>
+                        {subscriberName && !formErrors.name && (
+                          <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 700 }}>✓ Valid</span>
+                        )}
+                      </div>
                       <input
                         type="text"
-                        required
                         placeholder="e.g. Ramesh Patel"
                         value={subscriberName}
-                        onChange={(e) => setSubscriberName(e.target.value)}
-                        style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '14px', boxSizing: 'border-box' }}
+                        onChange={(e) => {
+                          setSubscriberName(e.target.value);
+                          if (formErrors.name) validateField('name', e.target.value);
+                        }}
+                        onBlur={() => validateField('name', subscriberName)}
+                        style={{
+                          width: '100%',
+                          padding: '11px 14px',
+                          borderRadius: '10px',
+                          border: formErrors.name ? '1.5px solid #EF4444' : subscriberName && !formErrors.name ? '1.5px solid #10B981' : '1px solid #CBD5E1',
+                          background: formErrors.name ? '#FEF2F2' : '#FFFFFF',
+                          fontSize: '14px',
+                          boxSizing: 'border-box',
+                          outline: 'none',
+                          transition: 'border-color 0.15s ease'
+                        }}
                       />
+                      {formErrors.name && (
+                        <div style={{ color: '#DC2626', fontSize: '11.5px', fontWeight: 600, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span>⚠</span> {formErrors.name}
+                        </div>
+                      )}
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+
+                    {/* Mobile Number & Location Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      {/* Mobile Number */}
                       <div>
-                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                          Mobile Number
-                        </label>
-                        <input
-                          type="tel"
-                          required
-                          placeholder="e.g. 9876543210"
-                          value={subscriberPhone}
-                          onChange={(e) => setSubscriberPhone(e.target.value)}
-                          style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '14px', boxSizing: 'border-box' }}
-                        />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                            Mobile Number <span style={{ color: '#EF4444' }}>*</span>
+                          </label>
+                          {subscriberPhone.length === 10 && !formErrors.phone && (
+                            <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 700 }}>✓ 10-digit</span>
+                          )}
+                        </div>
+                        <div style={{ position: 'relative' }}>
+                          <span style={{
+                            position: 'absolute',
+                            left: '12px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            color: '#64748B'
+                          }}>
+                            +91
+                          </span>
+                          <input
+                            type="tel"
+                            maxLength={10}
+                            placeholder="9876543210"
+                            value={subscriberPhone}
+                            onChange={(e) => {
+                              const v = e.target.value.replace(/\D/g, '');
+                              setSubscriberPhone(v);
+                              if (formErrors.phone) validateField('phone', v);
+                            }}
+                            onBlur={() => validateField('phone', subscriberPhone)}
+                            style={{
+                              width: '100%',
+                              padding: '11px 14px 11px 44px',
+                              borderRadius: '10px',
+                              border: formErrors.phone ? '1.5px solid #EF4444' : subscriberPhone.length === 10 && !formErrors.phone ? '1.5px solid #10B981' : '1px solid #CBD5E1',
+                              background: formErrors.phone ? '#FEF2F2' : '#FFFFFF',
+                              fontSize: '14px',
+                              boxSizing: 'border-box',
+                              outline: 'none',
+                              letterSpacing: '0.04em'
+                            }}
+                          />
+                        </div>
+                        {formErrors.phone && (
+                          <div style={{ color: '#DC2626', fontSize: '11.5px', fontWeight: 600, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span>⚠</span> {formErrors.phone}
+                          </div>
+                        )}
                       </div>
+
+                      {/* District / State */}
                       <div>
-                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                          District / State
-                        </label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                            District / State <span style={{ color: '#EF4444' }}>*</span>
+                          </label>
+                          {subscriberLocation && !formErrors.location && (
+                            <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 700 }}>✓</span>
+                          )}
+                        </div>
                         <input
                           type="text"
-                          required
-                          placeholder="e.g. Bareilly, UP"
+                          placeholder="Bareilly, UP"
                           value={subscriberLocation}
-                          onChange={(e) => setSubscriberLocation(e.target.value)}
-                          style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '14px', boxSizing: 'border-box' }}
+                          onChange={(e) => {
+                            setSubscriberLocation(e.target.value);
+                            if (formErrors.location) validateField('location', e.target.value);
+                          }}
+                          onBlur={() => validateField('location', subscriberLocation)}
+                          style={{
+                            width: '100%',
+                            padding: '11px 14px',
+                            borderRadius: '10px',
+                            border: formErrors.location ? '1.5px solid #EF4444' : subscriberLocation && !formErrors.location ? '1.5px solid #10B981' : '1px solid #CBD5E1',
+                            background: formErrors.location ? '#FEF2F2' : '#FFFFFF',
+                            fontSize: '14px',
+                            boxSizing: 'border-box',
+                            outline: 'none'
+                          }}
                         />
+                        {formErrors.location && (
+                          <div style={{ color: '#DC2626', fontSize: '11.5px', fontWeight: 600, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span>⚠</span> {formErrors.location}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1215,14 +1387,404 @@ export const LandingPage: React.FC = () => {
                   <button
                     type="submit"
                     className="btn"
-                    style={{ width: '100%', background: 'var(--green)', border: 'none', cursor: 'pointer', padding: '14px', fontSize: '16px' }}
+                    style={{
+                      width: '100%',
+                      background: 'var(--green)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '14px',
+                      fontSize: '15px',
+                      fontWeight: 800,
+                      borderRadius: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 15px rgba(16, 185, 129, 0.35)'
+                    }}
                   >
-                    Confirm & Start Subscription →
+                    Proceed to Payment & QR Scanner →
                   </button>
-                  <p style={{ textAlign: 'center', fontSize: '12px', color: '#94A3B8', marginTop: '10px' }}>
-                    Instant activation · 14-day risk-free trial · No credit card required upfront
+                  <p style={{ textAlign: 'center', fontSize: '11.5px', color: '#94A3B8', marginTop: '10px' }}>
+                    🔒 Strict validation active · Real-time farmer credentials verification
                   </p>
                 </form>
+              </div>
+            ) : (
+              /* Step 2: Payment Plan QR Code & Live QR Scanner */
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPlanModalStep('details');
+                      setIsScanningCode(false);
+                      setScanFeedback(null);
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--green-deep)',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      padding: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    ← Edit Details
+                  </button>
+                  <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#16A34A', background: '#DCFCE7', padding: '3px 10px', borderRadius: '999px' }}>
+                    Step 2 of 2 · UPI Payment
+                  </span>
+                </div>
+
+                <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--ink)', marginBottom: '4px' }}>
+                    Complete Your Subscription
+                  </h3>
+                  <div style={{ fontSize: '13px', color: '#64748B' }}>
+                    <strong>{selectedPlanModal.name}</strong> · <span style={{ color: 'var(--green-deep)', fontWeight: 800 }}>{selectedPlanModal.price}</span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>
+                    Subscriber: {subscriberName} (+91 {subscriberPhone})
+                  </div>
+                </div>
+
+                {/* Tab Switcher: QR Code vs Live Scanner */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#F1F5F9', borderRadius: '12px', padding: '4px', marginBottom: '18px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setQrMode('code')}
+                    style={{
+                      background: qrMode === 'code' ? '#FFFFFF' : 'transparent',
+                      color: qrMode === 'code' ? 'var(--ink)' : '#64748B',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: qrMode === 'code' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    📱 Payment QR Code
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQrMode('scanner')}
+                    style={{
+                      background: qrMode === 'scanner' ? '#FFFFFF' : 'transparent',
+                      color: qrMode === 'scanner' ? 'var(--green-deep)' : '#64748B',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: qrMode === 'scanner' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    📷 QR Code Scanner
+                  </button>
+                </div>
+
+                {qrMode === 'code' ? (
+                  /* Option A: Payment QR Display */
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{
+                      background: '#F8FAFC',
+                      border: '1.5px dashed #CBD5E1',
+                      borderRadius: '18px',
+                      padding: '18px',
+                      marginBottom: '16px',
+                      display: 'inline-block',
+                      width: '100%',
+                      boxSizing: 'border-box'
+                    }}>
+                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '10px' }}>
+                        Scan with GPay · PhonePe · Paytm · BHIM
+                      </div>
+
+                      {/* Crisp Clean SVG QR Code */}
+                      <div style={{
+                        background: '#FFFFFF',
+                        padding: '12px',
+                        borderRadius: '14px',
+                        display: 'inline-block',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.06)',
+                        border: '1px solid #E2E8F0'
+                      }}>
+                        <svg viewBox="0 0 160 160" width="160" height="160" style={{ display: 'block' }}>
+                          <rect width="160" height="160" fill="#FFFFFF" rx="8" />
+                          {/* Finder Top-Left */}
+                          <rect x="12" y="12" width="40" height="40" fill="#0F172A" rx="4" />
+                          <rect x="18" y="18" width="28" height="28" fill="#FFFFFF" rx="2" />
+                          <rect x="24" y="24" width="16" height="16" fill="#10B981" rx="2" />
+                          {/* Finder Top-Right */}
+                          <rect x="108" y="12" width="40" height="40" fill="#0F172A" rx="4" />
+                          <rect x="114" y="18" width="28" height="28" fill="#FFFFFF" rx="2" />
+                          <rect x="120" y="24" width="16" height="16" fill="#10B981" rx="2" />
+                          {/* Finder Bottom-Left */}
+                          <rect x="12" y="108" width="40" height="40" fill="#0F172A" rx="4" />
+                          <rect x="18" y="114" width="28" height="28" fill="#FFFFFF" rx="2" />
+                          <rect x="24" y="120" width="16" height="16" fill="#10B981" rx="2" />
+                          {/* Alignment Pattern */}
+                          <rect x="112" y="112" width="24" height="24" fill="#0F172A" rx="2" />
+                          <rect x="116" y="116" width="16" height="16" fill="#FFFFFF" rx="1" />
+                          <rect x="120" y="120" width="8" height="8" fill="#10B981" rx="1" />
+                          {/* Timing Patterns */}
+                          <rect x="58" y="26" width="6" height="6" fill="#0F172A" />
+                          <rect x="70" y="26" width="6" height="6" fill="#0F172A" />
+                          <rect x="82" y="26" width="6" height="6" fill="#0F172A" />
+                          <rect x="94" y="26" width="6" height="6" fill="#0F172A" />
+                          <rect x="26" y="58" width="6" height="6" fill="#0F172A" />
+                          <rect x="26" y="70" width="6" height="6" fill="#0F172A" />
+                          <rect x="26" y="82" width="6" height="6" fill="#0F172A" />
+                          <rect x="26" y="94" width="6" height="6" fill="#0F172A" />
+                          {/* Data Blocks */}
+                          <rect x="58" y="58" width="14" height="14" fill="#0F172A" />
+                          <rect x="78" y="58" width="10" height="10" fill="#0F172A" />
+                          <rect x="94" y="58" width="14" height="14" fill="#10B981" />
+                          <rect x="58" y="78" width="8" height="8" fill="#10B981" />
+                          <rect x="72" y="72" width="16" height="16" fill="#047857" rx="3" />
+                          <text x="80" y="84" fill="#FFFFFF" fontSize="10" fontWeight="900" textAnchor="middle" dominantBaseline="middle">🌱</text>
+                          <rect x="94" y="78" width="12" height="12" fill="#0F172A" />
+                          <rect x="58" y="94" width="16" height="16" fill="#0F172A" />
+                          <rect x="80" y="94" width="8" height="8" fill="#0F172A" />
+                          <rect x="94" y="94" width="10" height="10" fill="#10B981" />
+                          <rect x="62" y="116" width="12" height="12" fill="#0F172A" />
+                          <rect x="80" y="116" width="14" height="14" fill="#0F172A" />
+                          <rect x="62" y="134" width="10" height="10" fill="#10B981" />
+                          <rect x="80" y="136" width="16" height="10" fill="#0F172A" />
+                          <rect x="102" y="136" width="12" height="10" fill="#0F172A" />
+                          <rect x="120" y="140" width="14" height="8" fill="#0F172A" />
+                        </svg>
+                      </div>
+
+                      <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '13px', fontFamily: 'monospace', fontWeight: 700, color: '#334155', background: '#E2E8F0', padding: '4px 10px', borderRadius: '6px' }}>
+                          agrisense.farm@icici
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (navigator.clipboard) {
+                              navigator.clipboard.writeText('agrisense.farm@icici');
+                              setCopiedUpi(true);
+                              setTimeout(() => setCopiedUpi(false), 2000);
+                            }
+                          }}
+                          style={{
+                            background: '#F1F5F9',
+                            border: '1px solid #CBD5E1',
+                            borderRadius: '6px',
+                            padding: '4px 8px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            color: '#475569'
+                          }}
+                        >
+                          {copiedUpi ? '✓ Copied' : 'Copy'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setQrMode('scanner')}
+                        style={{
+                          width: '100%',
+                          background: '#F0FDF4',
+                          color: '#15803D',
+                          border: '1.5px solid #86EFAC',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          fontSize: '14px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        📷 Open Camera QR Code Scanner →
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleScanAndRedirect}
+                        disabled={isScanningCode}
+                        style={{
+                          width: '100%',
+                          background: 'var(--green)',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          borderRadius: '12px',
+                          padding: '13px',
+                          fontSize: '14px',
+                          fontWeight: 800,
+                          cursor: isScanningCode ? 'wait' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)'
+                        }}
+                      >
+                        {isScanningCode ? (
+                          <span>{scanFeedback || 'Connecting Gateway...'}</span>
+                        ) : (
+                          <span>I Have Scanned & Completed Payment →</span>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Option B: Live QR Code Scanner Viewfinder */
+                  <div>
+                    <div style={{
+                      position: 'relative',
+                      width: '260px',
+                      height: '260px',
+                      margin: '0 auto 16px auto',
+                      borderRadius: '18px',
+                      overflow: 'hidden',
+                      background: '#070D09',
+                      boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+                      border: '2px solid rgba(16, 185, 129, 0.4)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      {/* Video Camera element */}
+                      {cameraActive ? (
+                        <video
+                          ref={videoRef}
+                          playsInline
+                          autoPlay
+                          muted
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                        />
+                      ) : (
+                        <div style={{
+                          textAlign: 'center',
+                          padding: '20px',
+                          color: '#6EE7B7',
+                          position: 'relative',
+                          zIndex: 1
+                        }}>
+                          <div style={{
+                            width: '70px',
+                            height: '70px',
+                            borderRadius: '50%',
+                            border: '2px dashed #10B981',
+                            margin: '0 auto 10px auto',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '28px',
+                            animation: 'scannerRadarPulse 3s ease-in-out infinite'
+                          }}>
+                            📸
+                          </div>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#ECFDF5', marginBottom: '4px' }}>
+                            Viewfinder Active
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#94A3B8' }}>
+                            Align QR code within optical brackets
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Moving Laser Beam */}
+                      <div className="qr-laser-line" />
+
+                      {/* 4 Optical Corner Reticles */}
+                      <div style={{ position: 'absolute', top: '12px', left: '12px', width: '22px', height: '22px', borderTop: '3px solid #10B981', borderLeft: '3px solid #10B981', borderRadius: '4px 0 0 0', zIndex: 11 }} />
+                      <div style={{ position: 'absolute', top: '12px', right: '12px', width: '22px', height: '22px', borderTop: '3px solid #10B981', borderRight: '3px solid #10B981', borderRadius: '0 4px 0 0', zIndex: 11 }} />
+                      <div style={{ position: 'absolute', bottom: '12px', left: '12px', width: '22px', height: '22px', borderBottom: '3px solid #10B981', borderLeft: '3px solid #10B981', borderRadius: '0 0 0 4px', zIndex: 11 }} />
+                      <div style={{ position: 'absolute', bottom: '12px', right: '12px', width: '22px', height: '22px', borderBottom: '3px solid #10B981', borderRight: '3px solid #10B981', borderRadius: '0 0 4px 0', zIndex: 11 }} />
+                    </div>
+
+                    {/* Scanner Status readout */}
+                    <div style={{
+                      textAlign: 'center',
+                      background: isScanningCode ? '#ECFDF5' : '#F8FAFC',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '10px',
+                      padding: '10px',
+                      marginBottom: '16px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: isScanningCode ? '#059669' : '#475569'
+                    }}>
+                      {isScanningCode ? (
+                        <span>{scanFeedback || 'Connecting gateway endpoint...'}</span>
+                      ) : (
+                        <span>🎯 Position payment QR code in camera view</span>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleScanAndRedirect}
+                      disabled={isScanningCode}
+                      style={{
+                        width: '100%',
+                        background: isScanningCode ? '#059669' : '#10B981',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '14px',
+                        fontSize: '15px',
+                        fontWeight: 800,
+                        cursor: isScanningCode ? 'wait' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)',
+                        marginBottom: '10px'
+                      }}
+                    >
+                      {isScanningCode ? (
+                        <span>{scanFeedback || 'Processing Scan...'}</span>
+                      ) : (
+                        <span>📸 Capture & Scan QR Code →</span>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setQrMode('code')}
+                      style={{
+                        width: '100%',
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#64748B',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: '6px'
+                      }}
+                    >
+                      ← Back to UPI QR Code display
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -526,3 +526,30 @@
   font-size: 13px;
   color: var(--ink-soft);
 }
+
+/* QR Code & Scanner Keyframes */
+@keyframes qrLaserBeam {
+  0% { top: 6%; opacity: 0.8; }
+  50% { top: 92%; opacity: 1; }
+  100% { top: 6%; opacity: 0.8; }
+}
+
+@keyframes scannerRadarPulse {
+  0% { transform: scale(0.95); opacity: 0.4; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(0.95); opacity: 0.4; }
+}
+
+.qr-laser-line {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  height: 3px;
+  background: #10B981;
+  box-shadow: 0 0 15px 3px rgba(16, 185, 129, 0.9);
+  border-radius: 999px;
+  animation: qrLaserBeam 2.2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+

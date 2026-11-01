@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 Not Found · AgriSense AI</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background-color: #070D09;
+      color: #ECFDF5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .glow {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.05) 40%, transparent 70%);
+      filter: blur(50px);
+      pointer-events: none;
+    }
+    .grid-lines {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(16, 185, 129, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .card {
+      max-width: 580px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      background: rgba(15, 23, 18, 0.9);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 24px;
+      padding: 48px 32px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(16, 185, 129, 0.1);
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #F87171;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .pill span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #EF4444;
+      display: inline-block;
+      box-shadow: 0 0 8px #EF4444;
+    }
+    .code-404 {
+      font-size: 96px;
+      font-weight: 900;
+      line-height: 1;
+      margin: 0 0 16px 0;
+      background: linear-gradient(135deg, #34D399 0%, #10B981 50%, #047857 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.04em;
+    }
+    h2 { font-size: 24px; font-weight: 800; color: #FFFFFF; margin-bottom: 12px; }
+    p { font-size: 15px; color: #94A3B8; line-height: 1.6; margin-bottom: 28px; }
+    .diag {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: left;
+      margin-bottom: 32px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #6EE7B7;
+    }
+    .diag-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .diag-label { color: #94A3B8; }
+    .btn {
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 800;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-bottom: 12px;
+      border: none;
+    }
+    .btn-primary {
+      background: #10B981;
+      color: #064E3B;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+    }
+    .btn-primary:hover { background: #34D399; }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: #F1F5F9;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="grid-lines"></div>
+  <div class="card">
+    <div class="pill"><span></span> HTTP 404 · Sector Not Found</div>
+    <div class="code-404">404 🌱</div>
+    <h2>This Field Hasn't Sprouted Yet!</h2>
+    <p>You scanned our payment QR gateway, but the checkout endpoint or sensor sector you're looking for is either in sandbox mode or currently under seasonal maintenance.</p>
+    <div class="diag">
+      <div style="color:#94A3B8;margin-bottom:6px;font-size:11px;text-transform:uppercase;">System Diagnostic Readout:</div>
+      <div class="diag-row"><span class="diag-label">Gateway Route:</span><span>/upi/payment-gateway-session</span></div>
+      <div class="diag-row"><span class="diag-label">Trigger:</span><span>QR_SCAN_TERMINATED</span></div>
+      <div class="diag-row"><span class="diag-label">IoT Gateway Node:</span><span>ESP32-S3-PRO-NODE-04</span></div>
+    </div>
+    <a href="/" class="btn btn-primary">← Return to AgriSense Landing Page</a>
+    <a href="/app.html" class="btn btn-secondary">Launch Farm Dashboard (app.html) →</a>
+  </div>
+</body>
+</html>
