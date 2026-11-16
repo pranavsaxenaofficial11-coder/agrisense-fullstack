@@ -9187,10 +9187,12 @@ if (_stKey && _stKey.includes("2c281b2c")) {
   _stKey = "";
 }
 
-// Multi-Key Failover Pool: Seamlessly rotates when token quota or rate limit is reached
+// Multi-Key Failover Pool: Seamlessly rotates across 4 keys when token quota or rate limit is reached
 const OPENROUTER_KEYS = [
-  atob("c2stb3ItdjEtMjQ0YWI0YTViZWRmMTk2NTE0Zjc5MDg1OTFmNDQ5NjAzMmZkMjM2NGQxMzk0NmZjYzdkN2NmNWFlYjliZTcwNg=="), // Primary Key
-  atob("c2stb3ItdjEtZTU5MmVlNTk3NTExNGJhNGU2ZjRlZWIzZTkyYWY4ZGU2MzFiOTczMWZkYjYwYzBkOWFjNTQ2YjE5ODZlZDQzNQ==") // Failover Key 2
+  atob("c2stb3ItdjEtMjQ0YWI0YTViZWRmMTk2NTE0Zjc5MDg1OTFmNDQ5NjAzMmZkMjM2NGQxMzk0NmZjYzdkN2NmNWFlYjliZTcwNg=="), // Key 1
+  atob("c2stb3ItdjEtZTU5MmVlNTk3NTExNGJhNGU2ZjRlZWIzZTkyYWY4ZGU2MzFiOTczMWZkYjYwYzBkOWFjNTQ2YjE5ODZlZDQzNQ=="), // Key 2
+  atob("c2stb3ItdjEtZWYyZjk3OTE0NGJkZmUxYzM5NjRkMzNjZTIzOTBmODdiOTcxMjgwNGY5YTQ1ZjU2NmZlMTkzZDQ3MmZmNzk2NA=="), // Key 3
+  atob("c2stb3ItdjEtMDRlM2Y0YWI2Y2VhMjRhZWJmMWZjOTMxYThmZjFiOWVmNDZkODYwZmQxOTYxNTI3NGIxMDkzMDlkMWRiYTU3ZQ==")  // Key 4
 ];
 
 let _activeKeyIndex = 0;
@@ -19787,18 +19789,29 @@ async function loadAgriNews(force){
 
   }
 
-  box.innerHTML = '<div style="padding:30px;text-align:center;color:var(--ink-mute);font-family:var(--mono);font-size:12px">🌐 Fetching live daily agricultural news wire…</div>';
+  box.innerHTML = '<div style="padding:30px;text-align:center;color:var(--ink-mute);font-family:var(--mono);font-size:12px">Fetching live daily agricultural news wire…</div>';
 
   let fetched = [];
 
+  // 1. Query direct backend live news service (unrestricted RSS parser with zero CORS/rate limits)
+  try {
+    const apiBase = (typeof getApiBase === 'function') ? getApiBase() : 'https://agrisense-backend-kb22.onrender.com';
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 4000);
+    const bRes = await fetch(apiBase + '/api/news', { signal: controller.signal });
+    clearTimeout(tid);
+    if (bRes.ok){
+      const bData = await bRes.json();
+      if (bData && bData.items && bData.items.length){
+        fetched.push(...bData.items);
+      }
+    }
+  } catch(_){}
+
   const rssUrls = [
-
     'https://news.google.com/rss/search?q=agriculture+farmers+india&hl=en-IN&gl=IN&ceid=IN:en',
-
     'https://krishijagran.com/feeds/rss/',
-
     'https://www.thehindu.com/business/agri-business/feeder/default.rss'
-
   ];
 
   for (const u of rssUrls){

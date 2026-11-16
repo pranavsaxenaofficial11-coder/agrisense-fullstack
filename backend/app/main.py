@@ -113,6 +113,41 @@ app.post("/api/v1/local-advisory", tags=["Local Edge AI Engine"])(generate_local
 from app.routes.sensors import ingest_hardware_reading
 app.post("/api/telemetry/ingest", tags=["Sensors"])(ingest_hardware_reading)
 
+@app.get("/api/news", tags=["News"])
+async def get_live_agri_news():
+    import urllib.request
+    import xml.etree.ElementTree as ET
+    import re
+    urls = [
+        ("https://news.google.com/rss/search?q=agriculture+farmers+india&hl=en-IN&gl=IN&ceid=IN:en", "National Agri Wire"),
+        ("https://krishijagran.com/feeds/rss/", "Krishi Jagran")
+    ]
+    news_items = []
+    for url, default_source in urls:
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+            with urllib.request.urlopen(req, timeout=4) as response:
+                xml_data = response.read()
+            root = ET.fromstring(xml_data)
+            for it in root.findall(".//item")[:8]:
+                title = it.find("title").text if it.find("title") is not None else ""
+                link = it.find("link").text if it.find("link") is not None else ""
+                pubDate = it.find("pubDate").text if it.find("pubDate") is not None else ""
+                desc = it.find("description").text if it.find("description") is not None else ""
+                desc_clean = re.sub(r"<[^>]+>", "", desc)[:180] if desc else ""
+                if title:
+                    news_items.append({
+                        "title": title,
+                        "link": link,
+                        "date": pubDate,
+                        "desc": desc_clean,
+                        "source": default_source,
+                        "img": ""
+                    })
+        except Exception:
+            continue
+    return {"status": "ok", "items": news_items}
+
 @app.on_event("startup")
 async def on_startup():
     # 1. Seed SQLite (Local DB)
