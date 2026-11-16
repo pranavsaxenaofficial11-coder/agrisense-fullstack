@@ -27,14 +27,4 @@ class FarmReportResponse(BaseModel):
     irrigation_efficiency: str
     estimated_water_saved_liters: int
 
-class CropScanRequest(BaseModel):
-    image_base64: Optional[str] = None
-    image_data: Optional[str] = None
-    crop: Optional[str] = "Tomato"
 
-class CropScanResponse(BaseModel):
-    diagnosis: str
-    severity: str # Healthy, Mild, Moderate, Severe
-    confidence: float
-    recommended_action: str
-    preventive_measures: List[str]

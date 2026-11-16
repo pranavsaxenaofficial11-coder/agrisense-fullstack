@@ -113,9 +113,6 @@ app.post("/api/v1/local-advisory", tags=["Local Edge AI Engine"])(generate_local
 from app.routes.sensors import ingest_hardware_reading
 app.post("/api/telemetry/ingest", tags=["Sensors"])(ingest_hardware_reading)
 
-from app.routes.ai import scan_crop
-app.post("/api/scan", tags=["AI Intelligence"])(scan_crop)
-
 @app.on_event("startup")
 async def on_startup():
     # 1. Seed SQLite (Local DB)

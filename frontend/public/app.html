@@ -4650,7 +4650,7 @@ function googleTranslateElementInit() {
           </div>
         </div>
 
-        <div id="scanMode" style="text-align:center;font-size:11.5px;color:var(--ink-mute);margin-bottom:8px">Tri-Model Consensus Ready (OpenRouter Cloud + Deep Learning + Local Edge)</div>
+        <div id="scanMode" style="text-align:center;font-size:11.5px;color:var(--ink-mute);margin-bottom:8px">Dual Consensus Ready (Cloud AI Vision + Local Edge Node)</div>
 
         <div id="scanPrevWrap" style="display:none;margin-top:14px;text-align:center">
 
@@ -4662,13 +4662,11 @@ function googleTranslateElementInit() {
 
             <select class="select" id="scanModelSelect" style="max-width:240px;font-size:11.5px;padding:5px 8px">
 
-              <option value="tri_consensus" selected>Tri-Model Consensus</option>
+              <option value="dual_consensus" selected>Dual Consensus (Cloud AI + Local Edge)</option>
 
-              <option value="local_ai">Local Edge AI Model</option>
+              <option value="openrouter">Cloud AI (OpenRouter Vision)</option>
 
-              <option value="deep_learning">Deep Learning Server</option>
-
-              <option value="openrouter">Cloud AI (OpenRouter)</option>
+              <option value="local_ai">Local Edge AI (Live Camera)</option>
 
             </select>
 
@@ -11158,7 +11156,7 @@ The Real-Time Decision Pipeline:
 
 • Contextual Cloud Normalization: Simultaneously, Open-Meteo 7-day atmospheric forecasts and ET0 vapor pressure deficit matrices are queried to determine whether to sustain or hold the irrigation burst.
 
-• Tri-Model AI Verification: Deep learning vision, local edge heuristics, and OpenRouter cloud models corroborate to verify that root zone distress is moisture-related rather than fungal blight.
+• Dual-Model AI Consensus: Local edge node and OpenRouter cloud vision models corroborate to verify that root zone distress is moisture-related rather than fungal blight.
 
 • Transparent Farmer Audit: The user receives a plain-language summary detailing the exact agronomic reason: "Watering Zone C4 for 12 min — moisture at 27% and zero rain forecast for 48 hours."`,
 
@@ -23762,13 +23760,11 @@ function openCameraLabSheet(){
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
 
-          <button class="btn sm ghost" id="testLocalBtn">📱 Test Local AI Only</button>
+          <button class="btn sm ghost" id="testLocalBtn">Test Local Edge AI</button>
 
-          <button class="btn sm ghost" id="testDlBtn">🖥️ Test Deep Learning Only</button>
+          <button class="btn sm ghost" id="testCloudBtn">Test Cloud AI</button>
 
-          <button class="btn sm ghost" id="testCloudBtn">☁️ Test OpenRouter Cloud</button>
-
-          <button class="btn sm green" id="testTriBtn">✨ Test Tri-Consensus</button>
+          <button class="btn sm green" id="testTriBtn" style="grid-column:span 2">Test Dual Consensus</button>
 
         </div>
 
@@ -23900,11 +23896,9 @@ function openCameraLabSheet(){
 
   $('#testLocalBtn').addEventListener('click', () => runLabTest('local_ai'));
 
-  $('#testDlBtn').addEventListener('click', () => runLabTest('deep_learning'));
-
   $('#testCloudBtn').addEventListener('click', () => runLabTest('openrouter'));
 
-  $('#testTriBtn').addEventListener('click', () => runLabTest('tri_consensus'));
+  $('#testTriBtn').addEventListener('click', () => runLabTest('dual_consensus'));
 
 }
 
@@ -24122,55 +24116,6 @@ async function classifyCropLocal(b64){
   };
 }
 
-// Deep Learning Server Inference (Connects to live Render server or local FastAPI backend)
-async function classifyCropDeepLearning(b64){
-  const t0 = Date.now();
-  const apiBase = (typeof getApiBase === 'function') ? getApiBase() : 'https://agrisense-backend-kb22.onrender.com';
-  const crop = (state.farms[state.activeFarm] && state.farms[state.activeFarm].crop) || 'Tomato';
-
-  // 1. Try remote FastAPI PyTorch server (/api/ai/scan or /api/scan)
-  for (const path of ['/api/ai/scan', '/api/scan']){
-    try {
-      const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 4000);
-      const res = await fetch(apiBase + path, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_base64: b64, image_data: b64, crop }),
-        signal: ctrl.signal
-      });
-      clearTimeout(tid);
-      if (res.ok){
-        const data = await res.json();
-        const rawConf = data.confidence;
-        const confNum = (rawConf != null) ? (rawConf <= 1 ? Math.round(rawConf * 100) : Math.round(rawConf)) : 94;
-        return {
-          model: 'Deep Learning PyTorch Server (ResNet-50)',
-          disease: data.diagnosis || data.disease || 'Early Blight (Alternaria solani)',
-          severity: data.severity || 'Moderate',
-          confidence: confNum,
-          treatment: data.recommended_action || data.treatment || 'Apply systemic fungicide (Azoxystrobin @ 1ml/L) or copper oxychloride.',
-          recovery: data.recovery_days ? `${data.recovery_days} days` : '5-7 days',
-          latencyMs: Date.now() - t0,
-          isOnline: true
-        };
-      }
-    } catch(e){}
-  }
-
-  // 2. High-Accuracy Neural Engine (Ensures PyTorch Server is Always Active)
-  return {
-    model: 'Deep Learning PyTorch Server (ResNet-50)',
-    disease: 'Early Blight (Alternaria solani)',
-    severity: 'Moderate',
-    confidence: 93,
-    treatment: 'Apply azoxystrobin (1ml/L) or copper hydroxide. Ensure drip lines do not splash soil.',
-    recovery: '5-7 days',
-    latencyMs: Math.max(340, Date.now() - t0),
-    isOnline: true
-  };
-}
-
 // OpenRouter Cloud AI Vision
 async function classifyCropOpenRouter(b64, mime){
   const t0 = Date.now();
@@ -24224,8 +24169,8 @@ async function classifyCropOpenRouter(b64, mime){
         disease: 'Token Credits Exhausted (Cloud Quota Exceeded)',
         severity: 'None',
         confidence: 0,
-        treatment: 'OpenRouter cloud vision API credits are exhausted. Switch execution mode to Deep Learning Server or update your API key in Settings.',
-        notice: 'Cloud AI token quota reached: OpenRouter API credits have been used up. Please switch to Deep Learning Server or add OpenRouter tokens in Settings.',
+        treatment: 'OpenRouter cloud vision API credits are exhausted. Switch execution mode to Local Edge AI or update your API key in Settings.',
+        notice: 'Cloud AI token quota reached: OpenRouter API credits have been used up. Please update your API key in Settings or use Local Edge AI with live camera.',
         recovery: 'N/A',
         latencyMs: Date.now() - t0,
         isOffline: true,
@@ -24236,16 +24181,11 @@ async function classifyCropOpenRouter(b64, mime){
   }
 }
 
-// Tri-Model Simultaneous Consensus Voting Engine with Graceful Failover
+// Dual-Model Simultaneous Consensus Voting Engine (Cloud AI + Local Edge Node)
 async function executeMultiModelDiagnosis(b64, mime, mode){
   if (mode === 'local_ai'){
     const loc = await classifyCropLocal(b64);
     return { primary: loc, badge: 'Local Edge AI Execution', models: [loc], type: 'single' };
-  }
-
-  if (mode === 'deep_learning'){
-    const dl = await classifyCropDeepLearning(b64);
-    return { primary: dl, badge: 'Deep Learning Server Execution', models: [dl], type: 'single' };
   }
 
   if (mode === 'openrouter'){
@@ -24253,41 +24193,43 @@ async function executeMultiModelDiagnosis(b64, mime, mode){
     return { primary: cloud, badge: 'OpenRouter Cloud AI Vision', models: [cloud], type: 'single' };
   }
 
-  // mode === 'tri_consensus' -> Run all 3 simultaneously!
+  // Dual Consensus: Run Cloud AI and Local Edge AI simultaneously!
   const results = await Promise.allSettled([
     classifyCropOpenRouter(b64, mime),
-    classifyCropDeepLearning(b64),
     classifyCropLocal(b64)
   ]);
 
   const allModels = [];
   let cloudModel = null;
+  let localModel = null;
 
   results.forEach((r) => {
     if (r.status === 'fulfilled' && r.value) {
       allModels.push(r.value);
       if (r.value.model && r.value.model.includes('OpenRouter')) {
         cloudModel = r.value;
+      } else {
+        localModel = r.value;
       }
     }
   });
 
-  const activeOnline = allModels.filter(m => !m.isOffline);
+  const activeOnline = allModels.filter(m => !m.isOffline && !m.isTokenExhausted);
 
-  // If Cloud AI vision succeeded, its multimodal image inspection is the primary visual diagnosis
-  const primary = cloudModel || activeOnline[0] || allModels[0];
+  // If Cloud AI succeeded without token exhaustion, it is primary; otherwise local edge node
+  const primary = (cloudModel && !cloudModel.isTokenExhausted) ? cloudModel : (localModel || allModels[0]);
 
-  let badge = '3/3 Unanimous Tri-Model Consensus';
-  let type = 'unanimous';
+  let badge = 'Dual Consensus Corroborated';
+  let type = 'dual';
 
-  if (activeOnline.length >= 3){
-    badge = '3/3 Unanimous Tri-Model Consensus';
+  if (activeOnline.length >= 2){
+    badge = 'Dual Consensus Corroborated';
     type = 'unanimous';
-  } else if (activeOnline.length === 2){
-    badge = '2-Model Active Consensus Agreement';
-    type = 'majority';
-  } else {
+  } else if (cloudModel && !cloudModel.isTokenExhausted){
     badge = 'Cloud AI Vision Verified';
+    type = 'single';
+  } else {
+    badge = 'Local Edge AI Verified';
     type = 'single';
   }
 
@@ -24300,7 +24242,7 @@ async function runScan(){
 
   const btn = $('#scanGo');
   const imgSrc = $('#scanPrev').src;
-  const selectedMode = ($('#scanModelSelect') && $('#scanModelSelect').value) || 'tri_consensus';
+  const selectedMode = ($('#scanModelSelect') && $('#scanModelSelect').value) || 'dual_consensus';
 
   // 1. Verify Camera requirement for Local Edge AI
   const isS3Streaming = $('#s3StreamBox') && $('#s3StreamBox').style.display !== 'none';
@@ -24315,7 +24257,7 @@ async function runScan(){
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn green sm" onclick="document.getElementById('scanFileCamera').click()">Open Device Camera</button>
           <button class="btn ghost sm" onclick="document.getElementById('s3ToggleStreamBtn').click()">Start S3 Viewfinder</button>
-          <button class="btn ghost sm" onclick="document.getElementById('scanModelSelect').value='deep_learning';runScan()">Use Deep Learning Server Instead</button>
+          <button class="btn ghost sm" onclick="document.getElementById('scanModelSelect').value='openrouter';runScan()">Use Cloud AI Instead</button>
         </div>
       </div>
     `;
@@ -24366,7 +24308,7 @@ async function runScan(){
 
     'Ingesting optical leaf spectrum…',
 
-    selectedMode === 'tri_consensus' ? 'Querying OpenRouter, Deep Learning & Local AI simultaneously…' : 'Running neural inference…',
+    selectedMode === 'dual_consensus' ? 'Querying OpenRouter Cloud & Local Edge AI simultaneously…' : 'Running neural inference…',
 
     'Analyzing chlorophyll density & lesion geometry…',
 
@@ -24400,10 +24342,10 @@ async function runScan(){
           <span class="pill" style="background:rgba(245,158,11,0.2);color:#d97706;font-weight:700;font-size:11px">Cloud AI Quota Exceeded</span>
           <h3 style="font-size:19px;font-weight:800;color:var(--ink);margin:10px 0 6px">Cloud AI Token Credits Exhausted</h3>
           <p style="font-size:13px;color:var(--ink-soft);line-height:1.5;margin-bottom:12px">
-            The OpenRouter Cloud AI API has exhausted its token credits. AgriSense does not fabricate synthetic cloud diagnoses. Please switch to the <b>Deep Learning Server</b> for leaf pathology analysis or update your OpenRouter API key in Settings.
+            The OpenRouter Cloud AI API has exhausted its token credits. AgriSense does not fabricate synthetic cloud diagnoses. Please switch to <b>Local Edge AI</b> with active camera or update your OpenRouter API key in Settings.
           </p>
           <div style="display:flex;gap:8px;justify-content:flex-end">
-            <button class="btn sm green" onclick="document.getElementById('scanModelSelect').value='deep_learning';runScan()">Switch to Deep Learning Server</button>
+            <button class="btn sm green" onclick="document.getElementById('scanModelSelect').value='local_ai';runScan()">Switch to Local Edge AI (Live Camera)</button>
           </div>
         </div>
       `;
