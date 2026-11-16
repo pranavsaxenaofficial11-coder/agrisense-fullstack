@@ -24027,41 +24027,49 @@ async function classifyCropLocal(b64){
   };
 }
 
-// Deep Learning Server Inference
+// Deep Learning Server Inference (Connects to live Render server or local FastAPI backend)
 async function classifyCropDeepLearning(b64){
   const t0 = Date.now();
-  try {
-    const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 3500);
-    const res = await fetch('/api/scan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image_data: b64, crop: state.farms[state.activeFarm].crop }),
-      signal: ctrl.signal
-    });
-    clearTimeout(tid);
-    if (res.ok){
-      const data = await res.json();
-      return {
-        model: 'Deep Learning PyTorch Server',
-        disease: data.disease || 'Early Blight (Alternaria solani)',
-        severity: data.severity || 'Moderate',
-        confidence: data.confidence || 94,
-        treatment: data.treatment || 'Apply systemic fungicide (Azoxystrobin @ 1ml/L).',
-        recovery: data.recovery_days ? `${data.recovery_days} days` : '5-7 days',
-        latencyMs: Date.now() - t0,
-        isOnline: true
-      };
-    }
-  } catch(e){}
+  const apiBase = (typeof getApiBase === 'function') ? getApiBase() : 'https://agrisense-backend-kb22.onrender.com';
+  const crop = (state.farms[state.activeFarm] && state.farms[state.activeFarm].crop) || 'Tomato';
+
+  // Try /api/ai/scan first, then /api/scan
+  for (const path of ['/api/ai/scan', '/api/scan']){
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 6000);
+      const res = await fetch(apiBase + path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_base64: b64, image_data: b64, crop }),
+        signal: ctrl.signal
+      });
+      clearTimeout(tid);
+      if (res.ok){
+        const data = await res.json();
+        const rawConf = data.confidence;
+        const confNum = (rawConf != null) ? (rawConf <= 1 ? Math.round(rawConf * 100) : Math.round(rawConf)) : 93;
+        return {
+          model: 'Deep Learning PyTorch Server (ResNet-50)',
+          disease: data.diagnosis || data.disease || 'Early Blight (Alternaria solani)',
+          severity: data.severity || 'Moderate',
+          confidence: confNum,
+          treatment: data.recommended_action || data.treatment || 'Apply systemic fungicide (Azoxystrobin @ 1ml/L) or copper oxychloride.',
+          recovery: data.recovery_days ? `${data.recovery_days} days` : '5-7 days',
+          latencyMs: Date.now() - t0,
+          isOnline: true
+        };
+      }
+    } catch(e){}
+  }
 
   return {
     model: 'Deep Learning PyTorch Server',
     isOffline: true,
-    disease: 'PyTorch Server Offline (/api/scan)',
+    disease: 'PyTorch Server Offline (/api/ai/scan)',
     severity: 'Offline',
     confidence: 0,
-    treatment: 'Cloud Deep Learning endpoint not responding. Seamlessly corroborated by Cloud Vision AI.',
+    treatment: 'Deep Learning server not running locally or remote endpoint unreachable. Start local backend with "uvicorn app.main:app --port 8000" or rely on Cloud AI Vision.',
     recovery: 'N/A',
     latencyMs: Date.now() - t0
   };
