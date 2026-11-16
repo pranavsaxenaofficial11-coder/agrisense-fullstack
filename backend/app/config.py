@@ -17,6 +17,9 @@ class Settings(BaseModel):
     MONGODB_DB_NAME: str = os.getenv("MONGODB_DB_NAME", "agrisense")
     SECRET_KEY: str = os.getenv("SECRET_KEY", "agrisense_secret_key_2026")
     OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
+    OPENROUTER_API_KEYS: list[str] = [
+        k.strip() for k in os.getenv("OPENROUTER_API_KEYS", os.getenv("OPENROUTER_API_KEY", "")).split(",") if k.strip()
+    ]
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     GMAPS_KEY: str = os.getenv("GMAPS_KEY", "")
     DATA_GOV_IN_API_KEY: str = os.getenv("DATA_GOV_IN_API_KEY", "")

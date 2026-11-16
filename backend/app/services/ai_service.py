@@ -14,15 +14,9 @@ def strip_reasoning(text: str) -> str:
     return clean.strip()
 
 async def call_openrouter(messages: list, max_tokens: int = 1200) -> str:
-    if not settings.OPENROUTER_API_KEY:
+    keys = getattr(settings, "OPENROUTER_API_KEYS", []) or ([settings.OPENROUTER_API_KEY] if settings.OPENROUTER_API_KEY else [])
+    if not keys:
         return ""
-
-    headers = {
-        "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://agrisense.io",
-        "X-Title": "AgriSense Dashboard"
-    }
 
     models_to_try = [
         "openrouter/free",
@@ -31,24 +25,38 @@ async def call_openrouter(messages: list, max_tokens: int = 1200) -> str:
         "nvidia/nemotron-3.5-lightning:free"
     ]
 
-    for model_name in models_to_try:
-        payload = {
-            "model": model_name,
-            "messages": messages,
-            "max_tokens": max_tokens,
-            "reasoning": {"exclude": True}
+    for key in keys:
+        if not key:
+            continue
+        headers = {
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://agrisense.io",
+            "X-Title": "AgriSense Dashboard"
         }
-        try:
-            async with httpx.AsyncClient(timeout=20.0) as client:
-                response = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
-                if response.status_code == 200:
-                    data = response.json()
-                    content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                    clean = strip_reasoning(content)
-                    if clean:
-                        return clean
-        except Exception as e:
-            print(f"OpenRouter attempt with {model_name} failed: {e}")
+
+        for model_name in models_to_try:
+            payload = {
+                "model": model_name,
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "reasoning": {"exclude": True}
+            }
+            try:
+                async with httpx.AsyncClient(timeout=20.0) as client:
+                    response = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
+                    if response.status_code == 200:
+                        data = response.json()
+                        content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                        clean = strip_reasoning(content)
+                        if clean:
+                            return clean
+                    elif response.status_code in (401, 402, 429):
+                        # Token limit reached or key quota exhausted -> rotate to next key in pool
+                        print(f"OpenRouter key quota limit hit (HTTP {response.status_code}). Rotating to next key in pool.")
+                        break
+            except Exception as e:
+                print(f"OpenRouter attempt with {model_name} failed: {e}")
 
     return ""
 
