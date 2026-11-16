@@ -2390,9 +2390,50 @@
 
   /* ============ AI CHAT ============ */
 
-  .chat-wrap{display:grid;grid-template-columns:1fr;height:calc(100vh - 200px);min-height:520px}
+  .screen[data-screen="ai"].active {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+    min-height: 520px;
+  }
 
-  .chat-box{background:var(--card);border:1px solid var(--line);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;height:100%}
+  .screen[data-screen="ai"] .h1 {
+    margin-bottom: 2px;
+    font-size: 22px;
+  }
+
+  .screen[data-screen="ai"] .sub {
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+
+  .content:has(.screen[data-screen="ai"].active),
+  :root[data-active-screen="ai"] .content {
+    padding-bottom: 12px !important;
+    height: calc(100vh - 75px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chat-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .chat-box {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100%;
+    flex: 1;
+    min-height: 0;
+  }
 
   .chat-head{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-shrink:0}
 
@@ -8044,6 +8085,7 @@ function goScreen(go){
   if (go === '__more'){ openMoreMenu(); return; }
 
   state.current = go;
+  try { document.documentElement.setAttribute('data-active-screen', go); } catch(e){}
 
   $$('#nav button[data-go]').forEach(t => t.classList.toggle('active', t.dataset.go === go));
 
