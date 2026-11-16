@@ -1,67 +1,28 @@
 /**
  * AGRISENSE PRECISION AGRICULTURE -- ALL 39 SENSORS
- * Google Apps Script (Pure ASCII, Short Lines)
+ * Google Apps Script Web App (Master Telemetry & Edge Controls Bridge)
  */
 
 var CONFIG = {
   SHEET_NAME: "Live_Telemetry",
   CONTROLS_SHEET_NAME: "Edge_Controls",
   FASTAPI_BACKEND_URL:
-    "https://agrisense-backend-kb22.onrender.com" +
-    "/api/sensors/ingest",
+    "https://agrisense-backend-kb22.onrender.com/api/sensors/ingest",
+  FASTAPI_CONTROLS_URL:
+    "https://agrisense-backend-kb22.onrender.com/api/controls",
   BACKEND_TIMEOUT_MS: 5000,
   MAX_DATA_ROWS: 5000
 };
 
 var SENSOR_CATEGORIES = [
-  {
-    name: "METADATA",
-    bg: "#f1f5f9",
-    text: "#334155",
-    cols: 3
-  },
-  {
-    name: "SOIL DYNAMICS & ROOT-ZONE (9)",
-    bg: "#dcfce7",
-    text: "#166534",
-    cols: 9
-  },
-  {
-    name: "NPK MACRONUTRIENTS (3)",
-    bg: "#f3e8ff",
-    text: "#6b21a8",
-    cols: 3
-  },
-  {
-    name: "MICRO-CLIMATE & METEOROLOGY (10)",
-    bg: "#e0f2fe",
-    text: "#0369a1",
-    cols: 10
-  },
-  {
-    name: "HYDRAULICS & WATER INFRASTRUCTURE (6)",
-    bg: "#e0f7fa",
-    text: "#006064",
-    cols: 6
-  },
-  {
-    name: "CANOPY BIOMETRICS & PLANT HEALTH (4)",
-    bg: "#ecfdf5",
-    text: "#065f46",
-    cols: 4
-  },
-  {
-    name: "ENVIRONMENT & PEST SURVEILLANCE (7)",
-    bg: "#fef3c7",
-    text: "#92400e",
-    cols: 7
-  },
-  {
-    name: "ACTUATORS & EDGE CONTROL (6)",
-    bg: "#e0e7ff",
-    text: "#3730a3",
-    cols: 6
-  }
+  { name: "METADATA", bg: "#f1f5f9", text: "#334155", cols: 3 },
+  { name: "SOIL DYNAMICS & ROOT-ZONE (9)", bg: "#dcfce7", text: "#166534", cols: 9 },
+  { name: "NPK MACRONUTRIENTS (3)", bg: "#f3e8ff", text: "#6b21a8", cols: 3 },
+  { name: "MICRO-CLIMATE & METEOROLOGY (10)", bg: "#e0f2fe", text: "#0369a1", cols: 10 },
+  { name: "HYDRAULICS & WATER INFRASTRUCTURE (6)", bg: "#e0f7fa", text: "#006064", cols: 6 },
+  { name: "CANOPY BIOMETRICS & PLANT HEALTH (4)", bg: "#ecfdf5", text: "#065f46", cols: 4 },
+  { name: "ENVIRONMENT & PEST SURVEILLANCE (7)", bg: "#fef3c7", text: "#92400e", cols: 7 },
+  { name: "ACTUATORS & EDGE CONTROL (6)", bg: "#e0e7ff", text: "#3730a3", cols: 6 }
 ];
 
 var SYSTEMATIC_COLUMNS = [
@@ -131,29 +92,19 @@ function onOpen() {
   try {
     var ui = SpreadsheetApp.getUi();
     ui.createMenu("AgriSense Controls")
-      .addItem(
-        "Fix Spacing",
-        "reformatExistingSheet"
-      )
-      .addItem(
-        "Init 39 Sensors",
-        "setupSystematicSheet"
-      )
+      .addItem("Fix Spacing & Timezone", "reformatExistingSheet")
+      .addItem("Init 39 Sensors", "setupSystematicSheet")
       .addToUi();
   } catch(e) {}
 }
 
 function reformatExistingSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getActiveSheet() ||
-              ss.getSheetByName(CONFIG.SHEET_NAME) ||
-              ss.getSheets()[0];
+  try { ss.setSpreadsheetTimeZone("Asia/Kolkata"); } catch(e) {}
+  var sheet = ss.getSheetByName(CONFIG.SHEET_NAME) || ss.getSheets()[0];
 
   try {
-    sheet.getRange(
-      1, 1, 2,
-      Math.max(sheet.getMaxColumns(), SYSTEMATIC_COLUMNS.length)
-    ).breakApart();
+    sheet.getRange(1, 1, 2, Math.max(sheet.getMaxColumns(), SYSTEMATIC_COLUMNS.length)).breakApart();
   } catch(e) {}
 
   var colIndex = 1;
@@ -185,45 +136,21 @@ function reformatExistingSheet() {
   sheet.setRowHeight(2, 52);
   sheet.setFrozenRows(2);
 
-  var lastRow = sheet.getLastRow();
-  if (lastRow > 2) {
-    for (var r = 3; r <= lastRow; r++) {
-      sheet.setRowHeight(r, 26);
-      var rRange = sheet.getRange(r, 1, 1, colCount);
-      rRange.setFontSize(10);
-      rRange.setFontColor("#1e293b");
-      rRange.setVerticalAlignment("middle");
-      rRange.setHorizontalAlignment("center");
-      rRange.setBackground(r % 2 === 0 ? "#ffffff" : "#f8fafc");
-    }
-  }
-
-  sheet.getRange(1, 1, Math.max(lastRow, 2), colCount)
-    .setBorder(
-      true, true, true, true, true, true,
-      "#e2e8f0",
-      SpreadsheetApp.BorderStyle.SOLID
-    );
-
   for (var i = 0; i < MIN_COLUMN_WIDTHS.length; i++) {
     sheet.setColumnWidth(i + 1, MIN_COLUMN_WIDTHS[i]);
   }
 
   setupControlsSheet(ss);
-  return "Success: Sheet spacing and theme updated!";
+  return "Success: Sheet spacing and timezone updated!";
 }
 
 function setupSystematicSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getActiveSheet() ||
-              ss.getSheetByName(CONFIG.SHEET_NAME) ||
-              ss.getSheets()[0];
+  try { ss.setSpreadsheetTimeZone("Asia/Kolkata"); } catch(e) {}
+  var sheet = ss.getSheetByName(CONFIG.SHEET_NAME) || ss.getSheets()[0];
 
   try {
-    sheet.getRange(
-      1, 1, 2,
-      Math.max(sheet.getMaxColumns(), SYSTEMATIC_COLUMNS.length)
-    ).breakApart();
+    sheet.getRange(1, 1, 2, Math.max(sheet.getMaxColumns(), SYSTEMATIC_COLUMNS.length)).breakApart();
   } catch(e) {}
   sheet.getRange(1, 1, 2, SYSTEMATIC_COLUMNS.length).clear();
 
@@ -269,55 +196,52 @@ function setupControlsSheet(ss) {
   if (!ctrlSheet) {
     ctrlSheet = ss.insertSheet(CONFIG.CONTROLS_SHEET_NAME);
   }
-  ctrlSheet.clear();
 
-  var headers = [
-    ["Control Parameter", "Configured Value", "Instructions"]
-  ];
-  var data = [
-    ["PUMP OVERRIDE", "AUTO", "AUTO, ON, or OFF for pump"],
-    ["FAN OVERRIDE", "AUTO", "AUTO, ON, or OFF for fan"],
-    ["AUTOMATION MODE", "AUTO", "Type AUTO or MANUAL"],
-    ["EMERGENCY STOP", "NO", "Type YES to kill all relays"]
-  ];
+  if (ctrlSheet.getLastRow() < 2) {
+    ctrlSheet.clear();
+    var headers = [["Control Parameter", "Configured Value", "Instructions"]];
+    var data = [
+      ["PUMP OVERRIDE", "AUTO", "Type AUTO, ON, or OFF to manually control the pump"],
+      ["FAN OVERRIDE", "AUTO", "Type AUTO, ON, or OFF for cooling fan"],
+      ["AUTOMATION MODE", "AUTO", "Type AUTO or MANUAL"],
+      ["EMERGENCY STOP", "NO", "Type YES to kill all relays"]
+    ];
 
-  ctrlSheet.setRowHeight(1, 38);
-  ctrlSheet.getRange(1, 1, 1, 3).setValues(headers)
-    .setBackground("#e0e7ff")
-    .setFontColor("#1e1b4b")
-    .setFontWeight("bold")
-    .setFontSize(11)
-    .setHorizontalAlignment("center")
-    .setVerticalAlignment("middle");
+    ctrlSheet.setRowHeight(1, 38);
+    ctrlSheet.getRange(1, 1, 1, 3).setValues(headers)
+      .setBackground("#e0e7ff")
+      .setFontColor("#1e1b4b")
+      .setFontWeight("bold")
+      .setFontSize(11)
+      .setHorizontalAlignment("center")
+      .setVerticalAlignment("middle");
 
-  for (var r = 2; r <= data.length + 1; r++) {
-    ctrlSheet.setRowHeight(r, 28);
+    for (var r = 2; r <= data.length + 1; r++) {
+      ctrlSheet.setRowHeight(r, 28);
+    }
+
+    ctrlSheet.getRange(2, 1, data.length, 3).setValues(data)
+      .setFontSize(10)
+      .setFontColor("#1e293b")
+      .setVerticalAlignment("middle");
+
+    ctrlSheet.getRange(2, 2, data.length, 1)
+      .setHorizontalAlignment("center")
+      .setFontWeight("bold")
+      .setBackground("#f8fafc");
+
+    ctrlSheet.getRange(1, 1, data.length + 1, 3)
+      .setBorder(true, true, true, true, true, true, "#cbd5e1", SpreadsheetApp.BorderStyle.SOLID);
+
+    ctrlSheet.setColumnWidth(1, 180);
+    ctrlSheet.setColumnWidth(2, 150);
+    ctrlSheet.setColumnWidth(3, 380);
   }
-
-  ctrlSheet.getRange(2, 1, data.length, 3).setValues(data)
-    .setFontSize(10)
-    .setFontColor("#1e293b")
-    .setVerticalAlignment("middle");
-
-  ctrlSheet.getRange(2, 2, data.length, 1)
-    .setHorizontalAlignment("center")
-    .setFontWeight("bold")
-    .setBackground("#f8fafc");
-
-  ctrlSheet.getRange(1, 1, data.length + 1, 3)
-    .setBorder(
-      true, true, true, true, true, true,
-      "#cbd5e1",
-      SpreadsheetApp.BorderStyle.SOLID
-    );
-
-  ctrlSheet.setColumnWidth(1, 180);
-  ctrlSheet.setColumnWidth(2, 150);
-  ctrlSheet.setColumnWidth(3, 380);
 }
 
 function doGet(e) {
-  return handleIncomingTelemetry(e ? e.parameter : {});
+  var params = e ? (e.parameter || {}) : {};
+  return routeRequest(params);
 }
 
 function doPost(e) {
@@ -331,25 +255,157 @@ function doPost(e) {
   } else if (e && e.parameter) {
     params = e.parameter;
   }
-  return handleIncomingTelemetry(params);
+  return routeRequest(params);
 }
 
-function handleIncomingTelemetry(params) {
+function routeRequest(params) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName(CONFIG.SHEET_NAME) ||
-                ss.getSheets()[0];
+    if (ss.getSpreadsheetTimeZone() !== "Asia/Kolkata") {
+      ss.setSpreadsheetTimeZone("Asia/Kolkata");
+    }
+  } catch(e) {}
+
+  // 1. READ REQUEST (Called by Website app.html or Dashboard)
+  if (params.sts === "read" || params.action === "read" || params.read === "true") {
+    return handleReadTelemetry(ss);
+  }
+
+  // 2. REMOTE CONTROL OVERRIDE WRITE (Called by Website app.html Pump ON/OFF button)
+  if (params.manual_override !== undefined && params.air_temp === undefined && params.soil_moisture_1 === undefined) {
+    return handleControlWrite(ss, params);
+  }
+
+  // 3. SENSOR TELEMETRY WRITE (Called by ESP32 DevKit V1)
+  return handleIncomingTelemetry(ss, params);
+}
+
+// -------------------- READ TELEMETRY (For Website app.html) --------------------
+function handleReadTelemetry(ss) {
+  try {
+    var sheet = ss.getSheetByName(CONFIG.SHEET_NAME) || ss.getSheets()[0];
+    var ctrlOverrides = readControlsSheet(ss);
+    var lastRow = sheet.getLastRow();
+
+    var result = {
+      status: "success",
+      source: "google_sheets_live",
+      timestamp: Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd HH:mm:ss"),
+      manual_override: (ctrlOverrides.pumpOverride !== null || ctrlOverrides.fanOverride !== null),
+      pump_command: (ctrlOverrides.pumpOverride !== null ? ctrlOverrides.pumpOverride : false),
+      pump: (ctrlOverrides.pumpOverride !== null ? ctrlOverrides.pumpOverride : false),
+      pump_state: (ctrlOverrides.pumpOverride !== null ? ctrlOverrides.pumpOverride : false),
+      fan_command: (ctrlOverrides.fanOverride !== null ? ctrlOverrides.fanOverride : false),
+      fan_state: (ctrlOverrides.fanOverride !== null ? ctrlOverrides.fanOverride : false),
+      fan: (ctrlOverrides.fanOverride !== null ? ctrlOverrides.fanOverride : false),
+      mode: (ctrlOverrides.modeOverride || "auto"),
+      emergency_stop: ctrlOverrides.emergencyStop,
+
+      // Default sensor values
+      air_temp: 28.5,
+      air_humidity: 64.0,
+      soil_moisture_1: 45,
+      soil_moisture_2: 48,
+      soil_average: 46,
+      light_pct: 55,
+      rain_pct: 0,
+      tankPct: 80.0,
+      waterTank: 80.0
+    };
+
+    if (lastRow >= 3) {
+      // Read the most recent row of logged telemetry
+      var row = sheet.getRange(lastRow, 1, 1, Math.min(sheet.getLastColumn(), 50)).getValues()[0];
+      result.timestamp = String(row[0] || result.timestamp);
+      result.soil_moisture_1 = parseFloat(row[3]) || result.soil_moisture_1;
+      result.soil_moisture_2 = parseFloat(row[4]) || result.soil_moisture_2;
+      result.soil_average    = parseFloat(row[7]) || result.soil_average;
+      result.air_temp        = parseFloat(row[15]) || result.air_temp;
+      result.air_humidity    = parseFloat(row[16]) || result.air_humidity;
+      result.light_pct       = parseFloat(row[18]) || result.light_pct;
+      result.rain_pct        = parseFloat(row[21]) || result.rain_pct;
+      result.waterTank       = parseFloat(row[25]) || result.waterTank;
+      result.tankPct         = result.waterTank;
+
+      var loggedPump = (String(row[42]).toUpperCase() === "ON");
+      var loggedFan  = (String(row[43]).toUpperCase() === "ON");
+
+      // If no active manual override in Edge_Controls, use the ESP32 logged state
+      if (ctrlOverrides.pumpOverride === null) {
+        result.pump_state = loggedPump;
+        result.pump = loggedPump;
+        result.pump_command = loggedPump;
+      }
+      if (ctrlOverrides.fanOverride === null) {
+        result.fan_state = loggedFan;
+        result.fan = loggedFan;
+        result.fan_command = loggedFan;
+      }
+    }
+
+    return ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// -------------------- WRITE CONTROL OVERRIDE (From Website app.html) --------------------
+function handleControlWrite(ss, params) {
+  try {
+    setupControlsSheet(ss);
+    var ctrlSheet = ss.getSheetByName(CONFIG.CONTROLS_SHEET_NAME);
+
+    var isOverride = (params.manual_override === "true" || params.manual_override === true);
+    var pumpCmd = params.pump_command;
+    var fanCmd  = params.fan_command;
+
+    if (ctrlSheet) {
+      if (pumpCmd !== undefined) {
+        var val = (pumpCmd === "true" || pumpCmd === true || pumpCmd === "on" || pumpCmd === "ON") ? "ON" :
+                  ((pumpCmd === "false" || pumpCmd === false || pumpCmd === "off" || pumpCmd === "OFF") ? "OFF" : "AUTO");
+        ctrlSheet.getRange(2, 2).setValue(val);
+      }
+      if (fanCmd !== undefined) {
+        var fval = (fanCmd === "true" || fanCmd === true || fanCmd === "on" || fanCmd === "ON") ? "ON" :
+                   ((fanCmd === "false" || fanCmd === false || fanCmd === "off" || fanCmd === "OFF") ? "OFF" : "AUTO");
+        ctrlSheet.getRange(3, 2).setValue(fval);
+      }
+      if (isOverride) {
+        ctrlSheet.getRange(4, 2).setValue("MANUAL");
+      } else if (pumpCmd === "auto" || pumpCmd === "AUTO") {
+        ctrlSheet.getRange(2, 2).setValue("AUTO");
+        ctrlSheet.getRange(4, 2).setValue("AUTO");
+      }
+    }
+
+    var ctrlOverrides = readControlsSheet(ss);
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      message: "Edge Controls updated successfully!",
+      manual_override: (ctrlOverrides.pumpOverride !== null),
+      pump_command: ctrlOverrides.pumpOverride,
+      pump: ctrlOverrides.pumpOverride
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// -------------------- INCOMING SENSOR TELEMETRY (From ESP32 DevKit V1) --------------------
+function handleIncomingTelemetry(ss, params) {
+  try {
+    var sheet = ss.getSheetByName(CONFIG.SHEET_NAME) || ss.getSheets()[0];
 
     if (!sheet || sheet.getLastRow() < 2) {
       setupSystematicSheet();
-      sheet = ss.getSheetByName(CONFIG.SHEET_NAME) ||
-              ss.getSheets()[0];
+      sheet = ss.getSheetByName(CONFIG.SHEET_NAME) || ss.getSheets()[0];
     }
 
     var t = new Date();
-    var timeStr = Utilities.formatDate(
-      t, "Asia/Kolkata", "yyyy-MM-dd HH:mm:ss"
-    );
+    var timeStr = Utilities.formatDate(t, "Asia/Kolkata", "yyyy-MM-dd HH:mm:ss");
     var route = "Google Sheets (Relayed)";
     var zone = params.zone || "Zone A";
 
@@ -359,14 +415,13 @@ function handleIncomingTelemetry(params) {
     var soilB = parseFloat(pS2);
     var soilC = parseFloat(params.soilC || (soilA * 0.92 + 2));
     var soilD = parseFloat(params.soilD || (soilB * 1.05 - 1));
-    var pSAvg = params.soilAvg || params.soil_average ||
-      ((soilA + soilB) / 2.0);
+    var pSAvg = params.soilAvg || params.soil_average || ((soilA + soilB) / 2.0);
     var soilAvg = parseFloat(pSAvg);
     var soilTemp = parseFloat(params.soilTemp || 24.5);
     var pPH = params.soilPH || params.soil_ph || 6.5;
     var soilPH = parseFloat(pPH);
-    var soilEC   = parseFloat(params.soilEC || 1.15);
-    var soilO2   = parseFloat(params.soilO2 || 19.2);
+    var soilEC = parseFloat(params.soilEC || 1.15);
+    var soilO2 = parseFloat(params.soilO2 || 19.2);
 
     var nitrogen   = parseFloat(params.nitrogen || 175.0);
     var phosphorus = parseFloat(params.phosphorus || 22.0);
@@ -376,50 +431,46 @@ function handleIncomingTelemetry(params) {
     var airTemp = parseFloat(pAT);
     var pAH = params.airHumidity || params.air_humidity || 60;
     var airHumidity = parseFloat(pAH);
-    var pressure    = parseFloat(params.pressure || 1012.0);
+    var pressure = parseFloat(params.pressure || 1012.0);
     var pL = params.light || params.light_pct || 65.0;
     var light = parseFloat(pL);
-    var par         = parseFloat(params.par || 850.0);
-    var uv          = parseFloat(params.uv || 5.5);
+    var par = parseFloat(params.par || 850.0);
+    var uv = parseFloat(params.uv || 5.5);
     var pR = params.rain || params.rain_pct || 0.0;
     var rain = parseFloat(pR);
-    var wind        = parseFloat(params.wind || 8.5);
-    var windDir     = parseFloat(params.windDir || 180.0);
-    var dewPoint    = parseFloat(params.dewPoint || 19.5);
+    var wind = parseFloat(params.wind || 8.5);
+    var windDir = parseFloat(params.windDir || 180.0);
+    var dewPoint = parseFloat(params.dewPoint || 19.5);
 
     var pWT = params.waterTank || params.tankPct || 75.0;
     var waterTank = parseFloat(pWT);
     var waterTemp = parseFloat(params.waterTemp || 23.0);
-    var tds       = parseFloat(params.tds || 340.0);
-    var waterPH   = parseFloat(params.waterPH || 7.0);
+    var tds = parseFloat(params.tds || 340.0);
+    var waterPH = parseFloat(params.waterPH || 7.0);
     var pWF = params.waterFlow || (params.pump ? 4.2 : 0.0);
     var waterFlow = parseFloat(pWF);
-    var flow      = parseFloat(params.flow || 18.5);
+    var flow = parseFloat(params.flow || 18.5);
 
     var leafWet = parseFloat(params.leafWet || 28.0);
-    var ndvi    = parseFloat(params.ndvi || 0.76);
+    var ndvi = parseFloat(params.ndvi || 0.76);
     var sapFlow = parseFloat(params.sapFlow || 45.0);
     var stemDia = parseFloat(params.stemDia || 12.6);
 
     var airQuality = parseFloat(params.airQuality || 28.0);
-    var co2        = parseFloat(params.co2 || 430.0);
-    var smoke      = parseFloat(params.smoke || 14.0);
-    var pestMic    = parseFloat(params.pestMic || 12.0);
-    var pestCount  = parseFloat(params.pestCount || 2.0);
-    var frost      = parseFloat(params.frost || 8.5);
-    var vibration  = parseFloat(params.vibration || 1.0);
+    var co2 = parseFloat(params.co2 || 430.0);
+    var smoke = parseFloat(params.smoke || 14.0);
+    var pestMic = parseFloat(params.pestMic || 12.0);
+    var pestCount = parseFloat(params.pestCount || 2.0);
+    var frost = parseFloat(params.frost || 8.5);
+    var vibration = parseFloat(params.vibration || 1.0);
 
-    var isPumpOn = (params.pump === true ||
-      params.pump === "true");
-    var isFanOn = (params.fan === true ||
-      params.fan === "true");
-    var isValveAOn = (params.valveA === true ||
-      params.valveA === "true");
-    var isValveBOn = (params.valveB === true ||
-      params.valveB === "true");
-    var edgeMode = params.mode ||
-      (params.auto_mode ? "auto" : "manual");
+    var isPumpOn = (params.pump === true || params.pump === "true" || params.pump_state === "true" || params.pump_state === true);
+    var isFanOn = (params.fan === true || params.fan === "true" || params.fan_state === "true" || params.fan_state === true);
+    var isValveAOn = (params.valveA === true || params.valveA === "true");
+    var isValveBOn = (params.valveB === true || params.valveB === "true");
+    var edgeMode = params.mode || (params.auto_mode ? "auto" : "manual");
 
+    // READ OVERRIDES FROM Edge_Controls SHEET TAB
     var controlOverrides = readControlsSheet(ss);
     if (controlOverrides.pumpOverride !== null) {
       isPumpOn = controlOverrides.pumpOverride;
@@ -439,44 +490,19 @@ function handleIncomingTelemetry(params) {
       soilA: soilA, soilB: soilB, soilC: soilC, soilD: soilD,
       soilAvg: soilAvg, soilTemp: soilTemp, soilPH: soilPH,
       soilEC: soilEC, soilO2: soilO2,
-      nitrogen: nitrogen,
-      phosphorus: phosphorus,
-      potassium: potassium,
-      airTemp: airTemp,
-      airHumidity: airHumidity,
-      pressure: pressure,
+      nitrogen: nitrogen, phosphorus: phosphorus, potassium: potassium,
+      airTemp: airTemp, airHumidity: airHumidity, pressure: pressure,
       light: light, par: par, uv: uv, rain: rain, wind: wind,
       windDir: windDir, dewPoint: dewPoint,
       waterTank: waterTank, waterTemp: waterTemp, tds: tds,
       waterPH: waterPH, waterFlow: waterFlow, flow: flow,
-      leafWet: leafWet,
-      ndvi: ndvi,
-      sapFlow: sapFlow,
-      stemDia: stemDia,
-      airQuality: airQuality,
-      co2: co2,
-      smoke: smoke,
-      pestMic: pestMic,
-      pestCount: pestCount, frost: frost, vibration: vibration,
-      pump: isPumpOn, fan: isFanOn, valveA: isValveAOn,
-      valveB: isValveBOn, mode: edgeMode
+      leafWet: leafWet, ndvi: ndvi, sapFlow: sapFlow, stemDia: stemDia,
+      airQuality: airQuality, co2: co2, smoke: smoke,
+      pestMic: pestMic, pestCount: pestCount, frost: frost, vibration: vibration,
+      pump: isPumpOn, fan: isFanOn, valveA: isValveAOn, valveB: isValveBOn, mode: edgeMode
     });
 
-    if (backendSyncResult &&
-        backendSyncResult.pump_command !== undefined) {
-      isPumpOn = backendSyncResult.pump_command;
-    }
-    if (backendSyncResult &&
-        backendSyncResult.fan_command !== undefined) {
-      isFanOn = backendSyncResult.fan_command;
-    }
-    if (backendSyncResult &&
-        backendSyncResult.auto_mode !== undefined) {
-      edgeMode = backendSyncResult.auto_mode ? "auto" : "manual";
-    }
-
-    var relayStatus = (backendSyncResult &&
-      backendSyncResult.status === "success")
+    var relayStatus = (backendSyncResult && backendSyncResult.status === "success")
       ? "Relayed (HTTP 200)"
       : "Buffered in Sheet";
 
@@ -519,14 +545,10 @@ function handleIncomingTelemetry(params) {
 
     sheet.getRange(lastRow, 44, 1, 1)
       .setBackground(isFanOn ? "#e0f2fe" : "#f1f5f9")
-      .setFontColor(isFanOn ? "#0284c7" : "#64748b")
+      .setFontColor(isFanOn ? "#0369a1" : "#64748b")
       .setFontWeight("bold");
 
-    rowRange.setBorder(
-      true, true, true, true, true, true,
-      "#e2e8f0",
-      SpreadsheetApp.BorderStyle.SOLID
-    );
+    rowRange.setBorder(true, true, true, true, true, true, "#e2e8f0", SpreadsheetApp.BorderStyle.SOLID);
 
     if (lastRow > CONFIG.MAX_DATA_ROWS) {
       sheet.deleteRows(3, 50);
@@ -534,29 +556,26 @@ function handleIncomingTelemetry(params) {
 
     var responseObj = {
       status: "success",
+      manual_override: (controlOverrides.pumpOverride !== null || controlOverrides.fanOverride !== null),
+      pump_command: isPumpOn,
+      pump: isPumpOn,
+      fan_command: isFanOn,
+      fan: isFanOn,
+      mode: edgeMode,
+      auto_mode: (edgeMode === "auto"),
       timestamp: timeStr,
       source: "google_sheets_primary",
       logged_row: lastRow,
-      backend_relayed: (backendSyncResult &&
-        backendSyncResult.status === "success"),
-      pump: isPumpOn,
-      fan: isFanOn,
-      valveA: isValveAOn,
-      valveB: isValveBOn,
-      auto_mode: (edgeMode === "auto"),
+      backend_relayed: (backendSyncResult && backendSyncResult.status === "success"),
       emergency_stop: controlOverrides.emergencyStop
     };
 
-    return ContentService.createTextOutput(
-      JSON.stringify(responseObj)
-    )
+    return ContentService.createTextOutput(JSON.stringify(responseObj))
       .setMimeType(ContentService.MimeType.JSON);
 
   } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "error",
-      error: err.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -568,9 +587,7 @@ function forwardToFastApi(payload) {
       payload: JSON.stringify(payload),
       muteHttpExceptions: true
     };
-    var response = UrlFetchApp.fetch(
-      CONFIG.FASTAPI_BACKEND_URL, options
-    );
+    var response = UrlFetchApp.fetch(CONFIG.FASTAPI_BACKEND_URL, options);
     var code = response.getResponseCode();
     if (code === 200 || code === 201) {
       return JSON.parse(response.getContentText());
@@ -596,16 +613,18 @@ function readControlsSheet(ss) {
       var val = String(data[i][1]).toUpperCase().trim();
 
       if (param.indexOf("PUMP") !== -1) {
-        if (val === "ON") res.pumpOverride = true;
-        else if (val === "OFF") res.pumpOverride = false;
+        if (val === "ON" || val === "TRUE" || val === "1") res.pumpOverride = true;
+        else if (val === "OFF" || val === "FALSE" || val === "0") res.pumpOverride = false;
+        else if (val === "AUTO") res.pumpOverride = null;
       } else if (param.indexOf("FAN") !== -1) {
-        if (val === "ON") res.fanOverride = true;
-        else if (val === "OFF") res.fanOverride = false;
+        if (val === "ON" || val === "TRUE" || val === "1") res.fanOverride = true;
+        else if (val === "OFF" || val === "FALSE" || val === "0") res.fanOverride = false;
+        else if (val === "AUTO") res.fanOverride = null;
       } else if (param.indexOf("MODE") !== -1) {
         if (val === "MANUAL") res.modeOverride = "manual";
         else if (val === "AUTO") res.modeOverride = "auto";
       } else if (param.indexOf("EMERGENCY") !== -1) {
-        res.emergencyStop = (val === "YES" || val === "TRUE");
+        res.emergencyStop = (val === "YES" || val === "TRUE" || val === "1");
       }
     }
   } catch(e) {}

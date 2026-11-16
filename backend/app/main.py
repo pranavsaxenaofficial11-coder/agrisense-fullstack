@@ -32,7 +32,8 @@ from app.routes import (
     analytics,
     control_plane,
     iot,
-    api_keys
+    api_keys,
+    local_ai
 )
 from app.middleware import RateLimiterMiddleware
 from app.mongodb import connect_to_mongodb, close_mongodb_connection, get_mongodb
@@ -103,6 +104,11 @@ app.include_router(mongodb.router)
 app.include_router(control_plane.router)
 app.include_router(iot.router)
 app.include_router(api_keys.router)
+app.include_router(local_ai.router)
+
+# Direct alias for Google Doc specification: /api/v1/local-advisory
+from app.routes.local_ai import generate_local_advisory
+app.post("/api/v1/local-advisory", tags=["Local Edge AI Engine"])(generate_local_advisory)
 
 from app.routes.sensors import ingest_hardware_reading
 app.post("/api/telemetry/ingest", tags=["Sensors"])(ingest_hardware_reading)
