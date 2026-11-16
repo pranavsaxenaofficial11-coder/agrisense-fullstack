@@ -9123,7 +9123,12 @@ async function geminiGenerate(payload){
 
 // ---- OpenRouter (primary AI provider) ----
 
-const OPENROUTER_API_KEY = (typeof window !== "undefined" && window.localStorage && window.localStorage.getItem("openrouter_key")) || atob("c2stb3ItdjEtMmMyODFiMmNlODQ1NGNhMGU0YzI4NDljMmQyYmFiMDFiNTMyMDkxOWVhNGY1MDRjN2JkOTFlOGEzMTRlNjEzMw==");
+let _stKey = (typeof window !== "undefined" && window.localStorage && window.localStorage.getItem("openrouter_key")) || "";
+if (_stKey && _stKey.includes("2c281b2c")) {
+  try { window.localStorage.removeItem("openrouter_key"); } catch(e){}
+  _stKey = "";
+}
+const OPENROUTER_API_KEY = _stKey || atob("c2stb3ItdjEtMjQ0YWI0YTViZWRmMTk2NTE0Zjc5MDg1OTFmNDQ5NjAzMmZkMjM2NGQxMzk0NmZjYzdkN2NmNWFlYjliZTcwNg==");
 
 const OPENROUTER_READY = !!OPENROUTER_API_KEY && !OPENROUTER_API_KEY.startsWith("PASTE");
 
