@@ -934,11 +934,12 @@
 
   .scan-drop .s6{font-family:var(--mono);font-size:11.5px;color:var(--ink-mute);margin-top:4px}
 
-  .scan-prev{max-width:100%;max-height:300px;border-radius:14px;border:1px solid var(--line);display:block;margin:0 auto}
+  .scan-prev{max-width:100%;max-height:240px;object-fit:cover;border-radius:14px;border:2px solid var(--green);display:block;margin:0 auto;box-shadow:0 4px 14px rgba(0,0,0,0.12)}
 
-  .scan-result{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--green);
+  #scanPrevWrap, #scanResult{scroll-margin-top:90px}
 
-    border-radius:0 14px 14px 0;padding:16px 18px;margin-top:14px;font-size:13.5px;line-height:1.65;white-space:pre-wrap}
+  .scan-result{background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:22px 24px;margin-top:16px;font-size:13.5px;line-height:1.6;white-space:normal;box-shadow:var(--shadow)}
 
   /* scanning animation overlay */
 
@@ -24332,7 +24333,14 @@ async function runScan(){
 
   }
 
-  btn.disabled = false;
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = '🌿 Scan Crop';
+  }
+  setTimeout(() => {
+    const res = $('#scanResult');
+    if (res) res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 80);
 
 }
 
@@ -24360,7 +24368,7 @@ function initScan() {
       const wrap = document.getElementById('scanPrevWrap');
       if (wrap) {
         wrap.style.display = 'block';
-        window.scrollTo({ top: wrap.offsetTop - 20, behavior: 'smooth' });
+        window.scrollTo({ top: Math.max(0, wrap.offsetTop - 95), behavior: 'smooth' });
       }
 
       const scanBtn = document.getElementById('scanGo');
@@ -24438,7 +24446,7 @@ function initScan() {
       const wrap = document.getElementById('scanPrevWrap');
       if (wrap) {
         wrap.style.display = 'block';
-        window.scrollTo({ top: wrap.offsetTop - 20, behavior: 'smooth' });
+        window.scrollTo({ top: Math.max(0, wrap.offsetTop - 95), behavior: 'smooth' });
       }
 
       const scanBtn = document.getElementById('scanGo');
