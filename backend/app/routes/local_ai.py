@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
-# Prioritizes high-capability 14B/9B models suited for Dell Latitude 20GB RAM, falling back to 2B
+# Prioritizes high-capability 14B/9B models, falling back to 2B
 CANDIDATE_MODELS = ["qwen2.5:14b", "gemma2:9b", "gemma2:2b", "qwen2.5:1.5b", "gemma:2b"]
 
 router = APIRouter(prefix="/api/v1/local-ai", tags=["Local Edge AI Engine"])
@@ -179,14 +179,14 @@ async def local_ai_health():
                     "status": "online",
                     "runner": "Ollama Local REST Daemon",
                     "installed_models": models,
-                    "recommended_edge_model": "qwen2.5:14b (Dell Latitude 20GB RAM) or gemma2:2b (fast)"
+                    "recommended_edge_model": "qwen2.5:14b or gemma2:2b (fast)"
                 }
         except Exception as e:
             return {
                 "status": "offline",
                 "runner": "Deterministic Agronomy Rule Engine Active",
                 "detail": f"Local Ollama daemon not detected at localhost:11434: {str(e)}",
-                "recommended_edge_model": "qwen2.5:14b (run 'ollama run qwen2.5:14b') or gemma2:2b"
+                "recommended_edge_model": "qwen2.5:14b or gemma2:2b"
             }
 
 class LocalScanPayload(BaseModel):
@@ -232,7 +232,7 @@ async def local_crop_scan(payload: LocalScanPayload):
 
     return {
         "status": "offline",
-        "model": "Local Edge AI (Dell Latitude)",
+        "model": "Local Edge AI (Edge Node)",
         "detail": "No local vision model (llava/moondream) running on localhost:11434.",
         "latency_ms": round((time.time() - start_time) * 1000, 2)
     }
