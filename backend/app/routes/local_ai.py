@@ -188,3 +188,51 @@ async def local_ai_health():
                 "detail": f"Local Ollama daemon not detected at localhost:11434: {str(e)}",
                 "recommended_edge_model": "qwen2.5:14b (run 'ollama run qwen2.5:14b') or gemma2:2b"
             }
+
+class LocalScanPayload(BaseModel):
+    image_data: str
+    crop: Optional[str] = "Tomato"
+
+@router.post("/scan")
+async def local_crop_scan(payload: LocalScanPayload):
+    """
+    Local Edge Plant Pathology Scan using local Ollama vision model (llava/moondream).
+    Returns accurate diagnosis or explicit offline status.
+    """
+    start_time = time.time()
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        try:
+            tags_resp = await client.get("http://localhost:11434/api/tags")
+            if tags_resp.status_code == 200:
+                models = [m.get("name", "") for m in tags_resp.json().get("models", [])]
+                v_model = next((m for m in models if "llava" in m or "vision" in m or "moondream" in m), None)
+                if v_model:
+                    gen_resp = await client.post(
+                        "http://localhost:11434/api/generate",
+                        json={
+                            "model": v_model,
+                            "prompt": (
+                                f"You are a plant pathologist. Analyze this leaf image of a {payload.crop} plant. "
+                                "Return strictly: Diagnosis: <name> | Severity: <Low/Moderate/High> | Treatment: <spray/dosage>"
+                            ),
+                            "images": [payload.image_data],
+                            "stream": False
+                        }
+                    )
+                    if gen_resp.status_code == 200:
+                        content = gen_resp.json().get("response", "")
+                        return {
+                            "status": "success",
+                            "model": f"Local Edge AI ({v_model})",
+                            "raw": content,
+                            "latency_ms": round((time.time() - start_time) * 1000, 2)
+                        }
+        except Exception:
+            pass
+
+    return {
+        "status": "offline",
+        "model": "Local Edge AI (Dell Latitude)",
+        "detail": "No local vision model (llava/moondream) running on localhost:11434.",
+        "latency_ms": round((time.time() - start_time) * 1000, 2)
+    }
