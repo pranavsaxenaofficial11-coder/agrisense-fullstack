@@ -5,9 +5,9 @@
    
    Role in AgriSense Architecture:
      • Dedicated 100% to Sensor Acquisition & Actuator Control
-     • Transmits live telemetry to Google Sheets every 3.5 seconds
-     • Transmits live telemetry to FastAPI Cloud / Local Backend
-     • Reads remote manual override pump/fan commands from Google Sheets & FastAPI
+     • Transmits live telemetry to Google Sheets every 6 seconds
+     • Transmits live telemetry to FastAPI Cloud Backend every 10 seconds
+     • Reads remote manual override pump/fan commands from Google Sheets Edge_Controls tab
      • Simultaneous USB Serial JSON (115200 baud) for 1-click Web Serial in browser
      • Edge autonomous fail-safe: Automatically halts pump if soil saturation > 85%,
        if rain is active (> 45%), if water tank is low, or continuous run > 15 mins.
@@ -32,23 +32,22 @@
 WiFiMulti wifiMulti;
 
 // -------------------- 1. WI-FI & CLOUD CONFIGURATION --------------------
-const char* WIFI_SSID   = "Redmi Note 10 Pro Max";
-const char* WIFI_PASS_1 = "mear man";
-const char* WIFI_PASS_2 = "mera man";
+const char* WIFI_SSID   = "inaya_hotspot";
+const char* WIFI_PASS_1 = "inaya0707";
+const char* WIFI_PASS_2 = "inaya0707";
 
 // Google Apps Script Web App Endpoint for Google Sheets
 const char* WEB_APP_URL = 
   "https://script.google.com/macros/s/"
-  "AKfycbxEWNrnzavYmBi6JyLME1dnxTW-xqxL17jZrVtTBhRO0rKKEXpTxAGb3yx_3D-IMzDUiw"
+  "AKfycbyZAxjIK1vonWr0GLVNmAjfGh18zScATZFUSVaEVl7jfeKrSzMFmDVAX4TqjOhuwNikNA"
   "/exec";
 
-// FastAPI Endpoints (Primary Laptop IP, Hotspot Gateway, and Cloud Render fallback)
+// FastAPI Cloud Backend (Render Primary & Hotspot Gateway Fallback)
 const char* FASTAPI_URLS[] = {
-  "http://10.3.9.249:8000/api/sensors/ingest",
-  "http://192.168.43.1:8000/api/sensors/ingest",
-  "https://agrisense-backend-kb22.onrender.com/api/sensors/ingest"
+  "https://agrisense-backend-kb22.onrender.com/api/sensors/ingest",
+  "http://192.168.43.1:8000/api/sensors/ingest"
 };
-const int NUM_FASTAPI_ENDPOINTS = 3;
+const int NUM_FASTAPI_ENDPOINTS = 2;
 
 // -------------------- 2. PIN DEFINITIONS --------------------
 #define DHT_PIN       4
@@ -70,7 +69,7 @@ const int NUM_FASTAPI_ENDPOINTS = 3;
 #define RELAY_OFF     HIGH
 
 // -------------------- 3. AGRONOMIC THRESHOLDS --------------------
-#define SOIL_DRY_PCT        32.0f // Auto pump ON when soil average < 32%
+#define SOIL_DRY_PCT        70.0f // Auto pump ON when soil average < 32%
 #define SOIL_SATURATED_PCT  85.0f // Emergency pump OFF if soil > 85%
 #define RAIN_SUPPRESS_PCT   45.0f // Inhibit irrigation if rain > 45%
 #define FAN_ON_TEMP         34.0f // Auto fan ON when air temp > 34°C
@@ -95,10 +94,12 @@ bool fanState             = false;
 bool autoMode             = true;
 bool manualOverrideActive = false;
 
-unsigned long pumpStartTime  = 0;
-unsigned long lastSensorRead = 0;
-unsigned long lastSheetSync  = 0;
+unsigned long pumpStartTime   = 0;
+unsigned long lastSensorRead  = 0;
+unsigned long lastSheetSync   = 0;
 unsigned long lastFastApiSync = 0;
+
+void printVisualDashboard();
 
 // -------------------- 5. ACTUATOR CONTROL --------------------
 void setPump(bool state) {
@@ -149,7 +150,7 @@ void readAllSensors() {
 
   bool tankLow = (curTankCm > 0.0f && curTankCm > TANK_EMPTY_CM);
 
-  // Autonomous Edge Decision Logic (when not manually overridden)
+  // Autonomous Edge Decision Logic (only when NOT manually overridden)
   if (autoMode && !manualOverrideActive) {
     bool shouldIrrigate = (curSoilAvg < SOIL_DRY_PCT) && (curRain < RAIN_SUPPRESS_PCT) && !tankLow;
     if (shouldIrrigate && !pumpState) {
@@ -167,25 +168,35 @@ void readAllSensors() {
     }
   }
 
-  // 15-Minute Continuous Pump Run Cutoff
+  // 15-Minute Continuous Pump Run Cutoff Safety
   if (pumpState && (millis() - pumpStartTime > MAX_PUMP_RUN_MS)) {
     setPump(false);
+    manualOverrideActive = false;
     Serial.println(F("[SAFETY] 15-minute max pump timeout reached. Pump halted."));
   }
 
-  // Single-line JSON Output for Browser Web Serial connection
+  // 1. Instant 1-Line Real-Time Sensor Telemetry (Updated every 1 second)
+  Serial.printf(">>> [LIVE SENSORS] Temp: %.1f°C | Hum: %.1f%% | Soil1: %d%% | Soil2: %d%% (Avg: %d%%) | Light: %d%% | Rain: %d%% | Tank: %.1f cm (%.0f%%) | Pump: %s | Mode: %s\n",
+    curAirTemp, curAirHum, curSoil1, curSoil2, curSoilAvg, curLight, curRain, curTankCm, curTankPct,
+    pumpState ? "ON" : "OFF",
+    manualOverrideActive ? "MANUAL_SHEETS" : (autoMode ? "AUTO" : "MANUAL_SERIAL")
+  );
+
+  // 2. Beautiful Visual HUD Terminal Dashboard
+  printVisualDashboard();
+
+  // 3. Single-line JSON Output for Web Serial Browser integration
   Serial.printf(
     "{\"airTemp\":%.1f,\"airHumidity\":%.1f,\"soilAvg\":%d,\"soil1\":%d,\"soil2\":%d,\"light\":%d,\"rain\":%d,\"tankPct\":%.1f,\"pump\":%s,\"fan\":%s,\"mode\":\"%s\"}\n",
     curAirTemp, curAirHum, curSoilAvg, curSoil1, curSoil2, curLight, curRain, curTankPct,
-    pumpState ? "true" : "false", fanState ? "true" : "false", autoMode ? "auto" : "manual"
+    pumpState ? "true" : "false", fanState ? "true" : "false",
+    manualOverrideActive ? "manual_override" : (autoMode ? "auto" : "manual")
   );
 }
 
-// -------------------- 7. GOOGLE SHEETS CLOUD SYNC --------------------
+// -------------------- 7. GOOGLE SHEETS CLOUD SYNC & EDGE CONTROLS --------------------
 void syncWithGoogleSheets() {
-  if (wifiMulti.run() != WL_CONNECTED) {
-    return;
-  }
+  if (WiFi.status() != WL_CONNECTED) return;
 
   WiFiClientSecure secClient;
   secClient.setInsecure(); // Essential for Google Apps Script HTTPS & redirects
@@ -200,36 +211,58 @@ void syncWithGoogleSheets() {
   url += "&soil_average=" + String(curSoilAvg);
   url += "&light_pct=" + String(curLight);
   url += "&rain_pct=" + String(curRain);
+  url += "&pump=" + String(pumpState ? "true" : "false");
   url += "&pump_state=" + String(pumpState ? "true" : "false");
+  url += "&fan=" + String(fanState ? "true" : "false");
   url += "&fan_state=" + String(fanState ? "true" : "false");
+  url += "&tankPct=" + String(curTankPct, 1);
+  url += "&waterTank=" + String(curTankPct, 1);
 
   http.begin(secClient, url);
   http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-  http.setTimeout(10000);
+  http.setTimeout(4500);
 
   int httpCode = http.GET();
   if (httpCode > 0) {
     String response = http.getString();
-    Serial.printf("📊 [GOOGLE SHEETS] Sync OK (HTTP %d) -> Logged row!\n", httpCode);
+    Serial.printf("📊 [GOOGLE SHEETS] Sync OK (HTTP %d) -> Logged row to Live_Telemetry!\n", httpCode);
 
-    // Read remote commands sent from the Google Sheet
+    // Read remote Edge_Controls commands from Google Sheet
     bool hasOverride = (response.indexOf("\"manual_override\":true") >= 0) ||
                        (response.indexOf("\"manual_override\": true") >= 0);
-    bool cmdPumpOn   = (response.indexOf("\"pump_command\":true") >= 0) ||
-                       (response.indexOf("\"pump_command\": true") >= 0);
-    bool cmdPumpOff  = (response.indexOf("\"pump_command\":false") >= 0) ||
-                       (response.indexOf("\"pump_command\": false") >= 0);
 
-    if (hasOverride) {
+    bool cmdPumpOn   = (response.indexOf("\"pump_command\":true") >= 0) ||
+                       (response.indexOf("\"pump_command\": true") >= 0) ||
+                       (response.indexOf("\"pump\":true") >= 0) ||
+                       (response.indexOf("\"pump\": true") >= 0);
+
+    bool cmdPumpOff  = (response.indexOf("\"pump_command\":false") >= 0) ||
+                       (response.indexOf("\"pump_command\": false") >= 0) ||
+                       (response.indexOf("\"pump\":false") >= 0) ||
+                       (response.indexOf("\"pump\": false") >= 0);
+
+    bool cmdEmergency = (response.indexOf("\"emergency_stop\":true") >= 0) ||
+                        (response.indexOf("\"emergency_stop\": true") >= 0);
+
+    if (cmdEmergency) {
+      setPump(false);
+      setFan(false);
+      manualOverrideActive = true;
+      Serial.println(F("🚨 [SHEET EMERGENCY STOP] All actuators halted from Google Sheet!"));
+    } else if (hasOverride) {
       manualOverrideActive = true;
       if (cmdPumpOn && !pumpState) {
         setPump(true);
-        Serial.println(F("⚡ [SHEET COMMAND] Pump forced ON from Google Sheet"));
+        Serial.println(F("⚡ [SHEET COMMAND] Manual Override: Pump set to ON from Edge_Controls tab"));
       } else if (cmdPumpOff && pumpState) {
         setPump(false);
-        Serial.println(F("🛑 [SHEET COMMAND] Pump forced OFF from Google Sheet"));
+        Serial.println(F("🛑 [SHEET COMMAND] Manual Override: Pump set to OFF from Edge_Controls tab"));
       }
     } else {
+      // Return to autonomous agronomic control when set to AUTO in Edge_Controls
+      if (manualOverrideActive) {
+        Serial.println(F("🌿 [SHEET COMMAND] Edge Controls set to AUTO -> Autonomous loop resumed"));
+      }
       manualOverrideActive = false;
     }
   } else {
@@ -240,12 +273,7 @@ void syncWithGoogleSheets() {
 
 // -------------------- 8. FASTAPI BACKEND SYNC --------------------
 void syncWithFastApi() {
-  if (wifiMulti.run() != WL_CONNECTED) return;
-
-  HTTPClient http;
-  http.begin(FASTAPI_URL);
-  http.addHeader("Content-Type", "application/json");
-  http.setTimeout(2500);
+  if (WiFi.status() != WL_CONNECTED) return;
 
   String payload = String("{") +
     "\"soil_moisture_1\":" + String(curSoil1) + "," +
@@ -257,39 +285,62 @@ void syncWithFastApi() {
     "\"rain_pct\":" + String(curRain) + "," +
     "\"tank_cm\":" + String(curTankCm, 1) + "," +
     "\"tank_level_pct\":" + String(curTankPct, 1) + "," +
+    "\"waterTank\":" + String(curTankPct, 1) + "," +
     "\"pump_state\":" + (pumpState ? "true" : "false") + "," +
-    "\"fan_state\":" + (fanState ? "true" : "false") +
+    "\"pump\":" + (pumpState ? "true" : "false") + "," +
+    "\"fan_state\":" + (fanState ? "true" : "false") + "," +
+    "\"source\":\"esp32_devkit_v1\"," +
+    "\"chip\":\"ESP32-DevKitV1-Hardware\"" +
     "}";
 
-  int code = http.POST(payload);
-  if (code > 0) {
-    String resp = http.getString();
-    // Check for FastAPI Remote Emergency Stop
-    if (resp.indexOf("\"pump_command\":false") != -1 || resp.indexOf("\"pump\":false") != -1 || resp.indexOf("\"emergency_stop\":true") != -1 || resp.indexOf("\"status\":\"halted\"") != -1) {
-      if (pumpState) {
-        setPump(false);
-        manualOverrideActive = true;
-        Serial.println(F("🛑 [FASTAPI STOP] Pump halted by Cloud Command"));
-      }
-    } else if ((resp.indexOf("\"pump_command\":true") != -1 || resp.indexOf("\"pump\":true") != -1)) {
-      if (!pumpState && curTankCm <= TANK_EMPTY_CM) {
-        setPump(true);
-        manualOverrideActive = true;
-        Serial.println(F("⚡ [FASTAPI START] Pump started by Cloud Command"));
-      }
+  for (int i = 0; i < NUM_FASTAPI_ENDPOINTS; i++) {
+    HTTPClient http;
+    bool isHttps = (strncmp(FASTAPI_URLS[i], "https://", 8) == 0);
+
+    if (isHttps) {
+      WiFiClientSecure secClient;
+      secClient.setInsecure();
+      http.begin(secClient, FASTAPI_URLS[i]);
+    } else {
+      http.begin(FASTAPI_URLS[i]);
     }
+
+    http.addHeader("Content-Type", "application/json");
+    http.setTimeout(1500);
+
+    int code = http.POST(payload);
+    if (code > 0) {
+      String resp = http.getString();
+      // Only execute emergency stop or cloud halt if explicitly triggered
+      if (resp.indexOf("\"emergency_stop\":true") != -1 || resp.indexOf("\"status\":\"halted\"") != -1) {
+        if (pumpState) {
+          setPump(false);
+          manualOverrideActive = true;
+          Serial.println(F("🛑 [EMERGENCY STOP] Pump halted by Cloud Command"));
+        }
+      }
+      http.end();
+      break; // Successfully delivered live readings to website backend
+    }
+    http.end();
   }
-  http.end();
 }
 
 // -------------------- 9. SETUP & MAIN LOOP --------------------
 void setup() {
   Serial.begin(115200);
-  delay(500);
+  delay(400);
 
-  Serial.println(F("\n========================================================"));
-  Serial.println(F("   AgriSense DevKit V1 — Master Sensor & Sheets Node   "));
-  Serial.println(F("========================================================"));
+  Serial.println(F("\n\n"));
+  Serial.println(F("  █████╗  ██████╗ ██████╗ ██╗███████╗███████╗███╗   ██╗███████╗███████╗"));
+  Serial.println(F(" ██╔══██╗██╔════╝ ██╔══██╗██║██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝"));
+  Serial.println(F(" ███████║██║  ███╗██████╔╝██║███████╗█████╗  ██╔██╗ ██║███████╗█████╗  "));
+  Serial.println(F(" ██╔══██║██║   ██║██╔══██╗██║╚════██║██╔══╝  ██║╚██╗██║╚════██║██╔══╝  "));
+  Serial.println(F(" ██║  ██║╚██████╔╝██║  ██║██║███████║███████╗██║ ╚████║███████║███████╗"));
+  Serial.println(F(" ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚═╝  ╚═══╝╚══════╝╚══════╝"));
+  Serial.println(F("               🌱 PRECISION AGRICULTURE EDGE IoT SYSTEM                "));
+  Serial.println(F("        BAL BHARATI PUBLIC SCHOOL — RESEARCH & INNOVATION CELL         "));
+  Serial.println(F("========================================================================\n"));
 
   // 1. Hardware Pin Configurations
   pinMode(PUMP_RELAY, OUTPUT);
@@ -321,17 +372,18 @@ void setup() {
   wifiMulti.addAP(WIFI_SSID, WIFI_PASS_2);
 
   int attempts = 0;
-  while (wifiMulti.run() != WL_CONNECTED && attempts < 25) {
-    delay(400);
+  while (wifiMulti.run() != WL_CONNECTED && attempts < 20) {
+    delay(300);
     Serial.print(".");
     attempts++;
   }
 
   if (WiFi.status() == WL_CONNECTED) {
     Serial.printf("\n✓ [WIFI] Connected! Node IP: %s\n", WiFi.localIP().toString().c_str());
-    Serial.println(F("✓ [GOOGLE SHEETS] Ready to log sensor rows live every 3.5s"));
+    Serial.println(F("✓ [GOOGLE SHEETS] Ready to log sensor rows live every 6s"));
+    Serial.println(F("✓ [EDGE CONTROLS] Ready to read manual pump overrides from Google Sheet"));
   } else {
-    Serial.println(F("\n⚠️ [WIFI] Hotspot not connected. Operating in autonomous USB Serial mode."));
+    Serial.println(F("\n⚠️ [WIFI] Hotspot not connected. Operating in autonomous 1s USB Serial mode."));
   }
 
   readAllSensors();
@@ -340,20 +392,20 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
-  // 1. Sensor Acquisition (Every 2 seconds)
-  if (now - lastSensorRead >= 2000) {
+  // 1. Instant Sensor Acquisition & Serial Output (Every 1000ms = 1 second fast pace!)
+  if (now - lastSensorRead >= 1000) {
     lastSensorRead = now;
     readAllSensors();
   }
 
-  // 2. Google Sheets Cloud Logging (Every 3.5 seconds)
-  if (now - lastSheetSync >= 3500) {
+  // 2. Google Sheets Cloud Logging & Edge Controls Sync (Every 6 seconds)
+  if (WiFi.status() == WL_CONNECTED && (now - lastSheetSync >= 6000)) {
     lastSheetSync = now;
     syncWithGoogleSheets();
   }
 
-  // 3. FastAPI Local/Cloud Synchronization (Every 5 seconds)
-  if (now - lastFastApiSync >= 5000) {
+  // 3. FastAPI Cloud Synchronization (Every 10 seconds - forwards real readings to Website)
+  if (WiFi.status() == WL_CONNECTED && (now - lastFastApiSync >= 10000)) {
     lastFastApiSync = now;
     syncWithFastApi();
   }
@@ -362,13 +414,69 @@ void loop() {
   if (Serial.available()) {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
-    if (cmd == "PUMP_ON")   { manualOverrideActive = true; setPump(true); }
-    if (cmd == "PUMP_OFF")  { manualOverrideActive = true; setPump(false); }
-    if (cmd == "FAN_ON")    { manualOverrideActive = true; setFan(true); }
-    if (cmd == "FAN_OFF")   { manualOverrideActive = true; setFan(false); }
-    if (cmd == "AUTO_ON")   { manualOverrideActive = false; autoMode = true; }
-    if (cmd == "AUTO_OFF")  { autoMode = false; }
+    if (cmd == "PUMP_ON")   { manualOverrideActive = true; setPump(true);  Serial.println(F("⚡ [USB] Pump forced ON")); }
+    if (cmd == "PUMP_OFF")  { manualOverrideActive = true; setPump(false); Serial.println(F("🛑 [USB] Pump forced OFF")); }
+    if (cmd == "FAN_ON")    { manualOverrideActive = true; setFan(true);   Serial.println(F("⚡ [USB] Fan forced ON")); }
+    if (cmd == "FAN_OFF")   { manualOverrideActive = true; setFan(false);  Serial.println(F("🛑 [USB] Fan forced OFF")); }
+    if (cmd == "AUTO_ON")   { manualOverrideActive = false; autoMode = true; Serial.println(F("🌿 [USB] Auto mode ON")); }
+    if (cmd == "AUTO_OFF")  { autoMode = false; Serial.println(F("⚙️ [USB] Auto mode OFF")); }
   }
 
   delay(20);
+}
+
+// -------------------- 6B. BEAUTIFUL VISUAL HUD DASHBOARD --------------------
+static void printProgressBar(float pct, int width = 8) {
+  int filled = constrain((int)round((pct / 100.0f) * width), 0, width);
+  Serial.print(F("["));
+  for (int i = 0; i < filled; i++) Serial.print(F("="));
+  if (filled < width) Serial.print(F(">"));
+  for (int i = filled + 1; i < width; i++) Serial.print(F(" "));
+  Serial.printf("] %4.0f%%", pct);
+}
+
+void printVisualDashboard() {
+  unsigned long s = millis() / 1000;
+  int hrs = s / 3600;
+  int mins = (s % 3600) / 60;
+  int secs = s % 60;
+
+  Serial.println(F("\n+======================================================================================+"));
+  Serial.println(F("|        🌱  AGRISENSE DEVKIT V1  |  MASTER SENSOR & TELEMETRY HUD                     |"));
+  Serial.println(F("+======================================================================================+"));
+  Serial.printf("| 📶 Wi-Fi: %-14s | ⏱️ Uptime: %02d:%02d:%02d | ⚙️ Mode: %-9s | 📡 Baud: 115200  |\n",
+    WiFi.status() == WL_CONNECTED ? "[ONLINE]" : "[OFFLINE]",
+    hrs, mins, secs,
+    manualOverrideActive ? "MANUAL_OVR" : (autoMode ? "AUTO" : "MANUAL")
+  );
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.printf("| 🌐 Node IP: %-15s | 📊 Sheets: [READY]      | ☁️ FastAPI: [READY]           |\n",
+      WiFi.localIP().toString().c_str()
+    );
+  }
+  Serial.println(F("+--------------------------------------------------------------------------------------+"));
+  Serial.println(F("| [1] 🌡️  MICROCLIMATE & ATMOSPHERE                                                    |"));
+  Serial.printf("|   • Air Temp   : %5.1f °C       • Humidity  : %5.1f %%         • Light Level: %5d %%   |\n",
+    curAirTemp, curAirHum, curLight);
+  Serial.printf("|   • Rain Gauge : %5d %% (%-4s)   • Tank Depth: %5.1f cm        • Run Timer  : %5lu s   |\n",
+    curRain, curRain > 10 ? "WET" : "DRY", curTankCm, pumpState ? (millis() - pumpStartTime)/1000 : 0);
+  Serial.println(F("+--------------------------------------------------------------------------------------+"));
+  Serial.println(F("| [2] 🌱  SOIL MOISTURE ROOT MATRIX                                                    |"));
+  Serial.print(F("|   • Soil 1 (Pin 34): ")); printProgressBar(curSoil1, 8);
+  Serial.print(F("  • Soil 2 (Pin 35): ")); printProgressBar(curSoil2, 8);
+  Serial.println(F(" |"));
+  Serial.print(F("|   • Soil Average   : ")); printProgressBar(curSoilAvg, 8);
+  Serial.printf("  • Soil Status    : %-23s |\n",
+    curSoilAvg < SOIL_DRY_PCT ? "DRY (Irrigation Needed)" : (curSoilAvg > 75 ? "SATURATED (Moist)" : "OPTIMAL"));
+  Serial.println(F("+--------------------------------------------------------------------------------------+"));
+  Serial.println(F("| [3] 💧  ACTUATORS & IRRIGATION SAFETY                                                |"));
+  Serial.print(F("|   • Water Tank     : ")); printProgressBar(curTankPct, 8);
+  Serial.printf("  • Tank Low Cutoff: %-23s |\n", curTankCm > TANK_EMPTY_CM ? "YES (Pump Protected)" : "NO (Reservoir Good)");
+  Serial.printf("|   • Main Water Pump: [%-12s]    • Fan Cooler     : [%-12s]       |\n",
+    pumpState ? "ON (ACTIVE)" : "OFF (STANDBY)",
+    fanState ? "ON (COOLING)" : "OFF (STANDBY)");
+  Serial.printf("|   • Agronomic Status: %-67s |\n",
+    manualOverrideActive ? "Manual override active via Edge Controls tab in Google Sheet." :
+    (curSoilAvg < SOIL_DRY_PCT ? (curRain >= RAIN_SUPPRESS_PCT ? "Rain active: Irrigation suppressed to conserve water." : "Soil dry: Smart pump irrigating crop roots.") : "Soil moisture optimal: Crop in healthy transpiration zone."));
+  Serial.println(F("+======================================================================================+"));
 }
