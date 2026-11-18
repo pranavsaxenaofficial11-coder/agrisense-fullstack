@@ -2270,7 +2270,8 @@
 
   .more-row:hover{border-color:var(--green);background:var(--green-soft)}
 
-  .more-row .mic{font-size:20px;flex:0 0 26px;text-align:center}
+  .more-row .mic{font-size:20px;flex:0 0 26px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink)}
+  .more-row .mic svg{width:20px;height:20px;stroke-width:2;stroke:currentColor;fill:none}
 
   .more-row .marrow{margin-left:auto;color:var(--ink-mute);font-size:18px}
 
@@ -14220,7 +14221,7 @@ function openMoreMenu(){
 
     if (!btn) return '';
 
-    const ic = btn.querySelector('.ic') ? btn.querySelector('.ic').textContent : '•';
+    const ic = btn.querySelector('.ic') ? btn.querySelector('.ic').innerHTML : '•';
 
     const lbl = btn.querySelector('span:not(.ic):not(.cnt)') ? btn.querySelector('span:not(.ic):not(.cnt)').textContent : go;
 
