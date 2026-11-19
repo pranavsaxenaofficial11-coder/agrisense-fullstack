@@ -23,7 +23,14 @@ from app.database import get_db, engine
 from app.config import settings
 from app.mongodb import is_mongo_connected, get_collection
 
-router = APIRouter(prefix="/api/control-plane", tags=["Control Plane & Workload"])
+from fastapi import Request
+from app.services.admin_auth import is_authenticated_admin
+
+def require_admin(request: Request):
+    if not is_authenticated_admin(request):
+        raise HTTPException(status_code=401, detail="Access Denied: Admin session authentication required.")
+
+router = APIRouter(prefix="/api/control-plane", tags=["Control Plane & Workload"], dependencies=[Depends(require_admin)])
 
 class PipelineToggleRequest(BaseModel):
     pipeline_id: str

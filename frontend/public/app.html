@@ -3483,71 +3483,15 @@ function googleTranslateElementInit() {
 
       <div class="field"><label class="label">Email</label><input class="input" id="siEmail" type="email" placeholder="you@gmail.com" autocomplete="email"></div>
 
-      <div class="field"><label class="label">Password</label><div class="pass-wrap"><input class="input" id="siPass" type="password" placeholder="••••••••" value="agrisense"><button type="button" class="pass-eye" data-target="siPass" aria-label="Show password">👁️</button></div></div>
-
-      <div style="text-align:right;margin:-4px 0 12px"><button id="goForgot" style="background:none;border:none;color:var(--green-deep);font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-family:inherit">Forgot password?</button></div>
+      <div class="field"><label class="label">Password</label><div class="pass-wrap"><input class="input" id="siPass" type="password" placeholder="Enter security password" value=""><button type="button" class="pass-eye" data-target="siPass" aria-label="Show password">👁️</button></div></div>
 
       <div class="auth-error" id="siErr">Email and password are required.</div>
 
       <button class="btn green lg block" id="signInBtn">Sign in</button>
 
-      <div class="divider">or</div>
-
-      <button class="gbtn" type="button" id="googleSignInBtn">
-
-        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18A10.97 10.97 0 0 0 1 12c0 1.77.43 3.45 1.18 4.94l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.16-3.16C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-
-        <span>Continue with Google</span>
-
-      </button>
-
-      <div class="switcher">Don't have an account? <button id="goSignUp">Sign up</button></div>
-
-    </div>
-
-    <!-- sign up form -->
-
-    <div class="auth-form" id="signUpForm" style="display:none">
-
-      <div class="crumb">Get started</div>
-
-      <h2>Create your account</h2>
-
-      <p class="sub" data-i18n="sub_signup">Set up your farm in one minute. You can edit everything later.</p>
-
-      <div class="field"><label class="label">Full name</label><input class="input" id="suName" placeholder="Your name"></div>
-
-      <div class="field"><label class="label">Email</label><input class="input" id="suEmail" type="email" placeholder="you@gmail.com"></div>
-
-      <div class="field"><label class="label">Recovery / support email <span style="color:var(--ink-mute);font-weight:400">(optional)</span></label><input class="input" id="suRecovery" type="email" placeholder="a backup email we can reach you at"></div>
-
-      <div class="fields-row">
-
-        <div class="field"><label class="label">Farm name</label><input class="input" id="suFarm" placeholder="Family Farm"></div>
-
-        <div class="field"><label class="label">Location</label><input class="input" id="suLoc" placeholder="City, State"></div>
-
+      <div style="margin-top:14px;padding:8px 12px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:8px;font-size:11.5px;color:#f87171;text-align:center;font-weight:600">
+        🔒 Security Lockdown Active — Administrator Access Only
       </div>
-
-      <div class="field"><label class="label">Password</label><div class="pass-wrap"><input class="input" id="suPass" type="password" placeholder="At least 6 characters"><button type="button" class="pass-eye" data-target="suPass" aria-label="Show password">👁️</button></div></div>
-
-      <div class="auth-error" id="suErr">Please fill all required fields.</div>
-
-      <button class="btn green lg block" id="signUpBtn">Create account</button>
-
-      <div class="divider">or</div>
-
-      <button class="gbtn" type="button" id="googleSignUpBtn">
-
-        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18A10.97 10.97 0 0 0 1 12c0 1.77.43 3.45 1.18 4.94l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.16-3.16C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-
-        <span>Sign up with Google</span>
-
-      </button>
-
-      <p style="font-size:11.5px;color:var(--ink-mute);text-align:center;margin-top:10px;line-height:1.5">By creating an account you agree to our <a href="#" id="termsLink" style="color:var(--green-deep);font-weight:600;text-decoration:none">Terms &amp; Conditions</a>.</p>
-
-      <div class="switcher">Already have an account? <button id="goSignIn">Sign in</button></div>
 
     </div>
 
@@ -5537,17 +5481,12 @@ const state = {
     user: (function(){
 
     try {
-
       const saved = localStorage.getItem('agrisense_current_user');
-
       if (saved) {
-
         const u = JSON.parse(saved);
-
-        if (u && u.name && u.name !== 'Demo Farmer') return u;
-
+        if (u && u.email && u.email.toLowerCase() === 'pranavsaxenaofficial11@gmail.com') return u;
+        localStorage.removeItem('agrisense_current_user');
       }
-
     } catch(e){}
 
     return { name: 'Pranav Saxena', email: 'pranavsaxenaofficial11@gmail.com', farm: 'Saxena Family Farm', loc: 'Ludhiana, Punjab' };
@@ -7577,269 +7516,47 @@ function saveSecureLocalAccount(email, userRecord) {
 }
 
 $('#signInBtn').addEventListener('click', async () => {
+  const email = $('#siEmail').value.trim();
+  const pass = $('#siPass').value.trim();
 
-  const email = $('#siEmail').value.trim(); const pass = $('#siPass').value.trim();
+  if (!email || !pass){
+    $('#siErr').textContent = 'Please enter both email and password.';
+    $('#siErr').classList.add('show');
+    return;
+  }
 
-  if (!email || !pass){ $('#siErr').textContent = 'Please enter both email and password.'; $('#siErr').classList.add('show'); return; }
+  // STRICT AUTHENTICATION LOCKDOWN
+  const validEmail = 'pranavsaxenaofficial11@gmail.com';
+  const validPass = 'PranavSaxena@220011';
+
+  if (email.toLowerCase() !== validEmail || pass !== validPass) {
+    $('#siErr').textContent = 'Access Denied: Invalid administrator credentials. Security lockdown active.';
+    $('#siErr').classList.add('show');
+    return;
+  }
 
   $('#siErr').classList.remove('show');
+  const btn = $('#signInBtn');
+  btn.textContent = 'Authenticating…';
+  btn.disabled = true;
 
-  
-
-  const btn = $('#signInBtn'); const old = btn.textContent; btn.textContent = 'Signing in…'; btn.disabled = true;
-
-  const admitUser = (uEmail) => {
-
-    btn.textContent = old; btn.disabled = false;
-
-    const foundUser = inferUserFromEmail(uEmail);
-
-    state.user = { ...state.user, ...foundUser };
-
-    try { localStorage.setItem('agrisense_current_user', JSON.stringify(state.user)); } catch(e){}
-    const isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(uEmail.toLowerCase());
-
-    state.isAdmin = isAdmin || uEmail.toLowerCase().includes('pranav') || uEmail.toLowerCase().includes('admin');
-
-    recordLoginDemo(state.user.name, uEmail, 'Email');
-    if (typeof syncFirebaseUserToCustomBackend === 'function') syncFirebaseUserToCustomBackend({ email: uEmail, displayName: state.user.name }, { method: 'Email Login', ...foundUser });
-
-    showApp();
-
-    toast(`Welcome back, ${state.user.name.split(' ')[0]}!`);
-
+  state.user = {
+    name: 'Pranav Saxena',
+    email: validEmail,
+    role: 'farmer',
+    farm: 'AgriSense Master Field',
+    state: 'Delhi',
+    district: 'New Delhi',
+    village: 'Rohini'
   };
-
-  if (window.AgriAuth && window.AgriAuth.enabled){
-
-    try {
-
-      const u = await window.AgriAuth.signInEmail(email, pass);
-
-      btn.textContent = old; btn.disabled = false;
-
-      // Update secure local account store with verified credentials for offline access
-
-      const salt = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
-
-      const passHash = await sha256Hex(salt + ':' + pass);
-
-      saveSecureLocalAccount(email, { name: u.displayName || inferUserFromEmail(email).name, email, salt, passHash });
-
-      // Successfully authenticated via Firebase
-
-      if (typeof handleFirebaseLogin === 'function') {
-
-        const isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(email.toLowerCase());
-
-        handleFirebaseLogin({ name: u.displayName || inferUserFromEmail(email).name, email: email }, isAdmin);
-
-      } else {
-
-        admitUser(email);
-
-      }
-
-      return;
-
-    } catch (e){
-
-      btn.textContent = old; btn.disabled = false;
-
-      const code = (e && e.code) || '';
-
-      console.warn('Firebase sign-in error:', code, e.message);
-
-      // SECURITY ENFORCEMENT: Never admit user on wrong password, invalid credential, or missing user!
-
-      if (code.includes('wrong-password') || code.includes('invalid-credential') || code.includes('user-not-found') || code.includes('invalid-email') || code.includes('too-many-requests')) {
-
-        $('#siErr').textContent = friendlyAuthError(e);
-
-        $('#siErr').classList.add('show');
-
-        return;
-
-      }
-
-      // Offline fallback: If network failed completely, verify with stored local cryptographic hash
-
-      if (code.includes('network') || !navigator.onLine) {
-
-        const localAcc = getSecureLocalAccounts()[email.toLowerCase().trim()];
-
-        if (localAcc && localAcc.salt && localAcc.passHash) {
-
-          const checkHash = await sha256Hex(localAcc.salt + ':' + pass);
-
-          if (checkHash === localAcc.passHash) {
-
-            admitUser(email);
-
-            return;
-
-          } else {
-
-            $('#siErr').textContent = 'Incorrect password. Access denied.';
-
-            $('#siErr').classList.add('show');
-
-            return;
-
-          }
-
-        }
-
-      }
-
-      // Reject all other auth failures
-
-      $('#siErr').textContent = friendlyAuthError(e);
-
-      $('#siErr').classList.add('show');
-
-      return;
-
-    }
-
-  }
-
-  // Standalone / Offline mode: Authenticate against salted cryptographic hash
-
-  const localAcc = getSecureLocalAccounts()[email.toLowerCase().trim()];
-
-  if (!localAcc) {
-
-    btn.textContent = old; btn.disabled = false;
-
-    $('#siErr').textContent = 'No account found with this email. Please click Sign Up to create your account.';
-
-    $('#siErr').classList.add('show');
-
-    return;
-
-  }
-
-  const checkHash = await sha256Hex(localAcc.salt + ':' + pass);
-
-  if (checkHash !== localAcc.passHash) {
-
-    btn.textContent = old; btn.disabled = false;
-
-    $('#siErr').textContent = 'Incorrect password. Access denied.';
-
-    $('#siErr').classList.add('show');
-
-    return;
-
-  }
-
-  admitUser(email);
-
-});
-
-$('#signUpBtn').addEventListener('click', async () => {
-
-  const name = $('#suName').value.trim();
-
-  const email = $('#suEmail').value.trim();
-
-  const recovery = $('#suRecovery') ? $('#suRecovery').value.trim() : '';
-
-  const farm = $('#suFarm').value.trim() || 'My Farm';
-
-  const loc = $('#suLoc').value.trim() || 'India';
-
-  const pass = $('#suPass').value.trim();
-
-  if (!name || name.length < 2){ $('#suErr').textContent = 'Please enter your full name (at least 2 letters).'; $('#suErr').classList.add('show'); return; }
-
-  if (!email || !email.includes('@')){ $('#suErr').textContent = 'Please enter a valid email address.'; $('#suErr').classList.add('show'); return; }
-
-  if (!pass || pass.length < 6){ $('#suErr').textContent = 'Password must be at least 6 characters.'; $('#suErr').classList.add('show'); return; }
-
-  $('#suErr').classList.remove('show');
-
-  const btn = $('#signUpBtn'); const old = btn.textContent; btn.textContent = 'Creating account…'; btn.disabled = true;
-
-  // Salt & Hash password for secure local persistence
-
-  const salt = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
-
-  const passHash = await sha256Hex(salt + ':' + pass);
-
-  state.user = { name, email, farm, loc, recoveryEmail: recovery };
-
-  state.onboarded = false;
-
-  if (window.AgriAuth && window.AgriAuth.enabled){
-
-    try {
-
-      await window.AgriAuth.signUpEmail(name, email, pass);
-
-      try { if (window.AgriAuth.saveProfile) await window.AgriAuth.saveProfile({ name, farm, loc, recoveryEmail: recovery }); } catch(e){}
-
-      saveSecureLocalAccount(email, { name, email, farm, loc, salt, passHash, createdAt: new Date().toISOString() });
-
-      btn.textContent = old; btn.disabled = false;
-
-      state.isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(email.toLowerCase());
-
-      try { localStorage.setItem('agrisense_current_user', JSON.stringify(state.user)); } catch(e){}
-
-      recordLoginDemo(name, email, 'Email · new account');
-
-      showApp(); toast(`Account created — welcome, ${name.split(' ')[0]}!`);
-
-      return;
-
-    } catch (e){
-
-      btn.textContent = old; btn.disabled = false;
-
-      console.warn('Firebase signup error:', e && e.code, e && e.message);
-
-      // STRICT SECURITY: Do not bypass signup errors
-
-      $('#suErr').textContent = friendlyAuthError(e);
-
-      $('#suErr').classList.add('show');
-
-      return;
-
-    }
-
-  }
-
-  // Standalone / Offline mode signup
-
-  const accounts = getSecureLocalAccounts();
-
-  if (accounts[email.toLowerCase().trim()]) {
-
-    btn.textContent = old; btn.disabled = false;
-
-    $('#suErr').textContent = 'An account with that email already exists. Please sign in instead.';
-
-    $('#suErr').classList.add('show');
-
-    return;
-
-  }
-
-  saveSecureLocalAccount(email, { name, email, farm, loc, salt, passHash, createdAt: new Date().toISOString() });
-
-  btn.textContent = old; btn.disabled = false;
-
-  state.isAdmin = (typeof ADMIN_EMAILS !== 'undefined' ? ADMIN_EMAILS : []).includes(email.toLowerCase());
+  state.isAdmin = true;
 
   try { localStorage.setItem('agrisense_current_user', JSON.stringify(state.user)); } catch(e){}
 
-  recordLoginDemo(name, email, 'Email · new account');
-
-  showApp(); toast(`Account created — welcome, ${name.split(' ')[0]}!`);
-
+  btn.textContent = 'Sign in';
+  btn.disabled = false;
+  showApp();
+  toast('Welcome back, Pranav!');
 });
 
 function showVerifyNotice(email, isNew){

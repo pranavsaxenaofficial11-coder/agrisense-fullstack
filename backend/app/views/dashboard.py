@@ -551,6 +551,7 @@ def render_dashboard_html(users: list, mongo_status: str = "Connected", sqlite_s
       <a href="/redoc" target="_blank" class="btn"><span class="mono">/redoc</span> Specs</a>
       <a href="/api/health" target="_blank" class="btn"><span class="mono">/api/health</span></a>
       <button class="btn primary" onclick="refreshAllData()">⚡ Sync Live Telemetry</button>
+      <a href="/logout" class="btn" style="background:rgba(239,68,68,0.15);border:1px solid #ef4444;color:#fca5a5"><span class="mono">🔒</span> Log Out</a>
     </div>
   </header>
 

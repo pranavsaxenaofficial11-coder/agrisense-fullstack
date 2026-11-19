@@ -1,3 +1,17 @@
+from app.services.admin_auth import (
+    is_authenticated_admin,
+    render_login_html,
+    check_admin_credentials,
+    create_admin_token,
+    COOKIE_NAME,
+    SESSION_DURATION_SECONDS,
+    is_ip_rate_limited,
+    record_failed_attempt,
+    clear_failed_attempts
+)
+from fastapi import Body, HTTPException
+from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
+from fastapi.openapi.utils import get_openapi
 import time
 import json
 from fastapi import FastAPI, Request, Response, Depends
@@ -46,7 +60,10 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Precision Agriculture IoT & Agronomy AI Backend for AgriSense (Bal Bharati Public School)",
-    version="2.0.0"
+    version="2.0.0",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None
 )
 
 # 1. Performance: GZip Compression Middleware (compresses responses > 1KB)
@@ -172,11 +189,74 @@ async def on_startup():
 async def on_shutdown():
     await close_mongodb_connection()
 
+
+# -------------------- AUTHENTICATION & LOGIN GATEWAY --------------------
+@app.post("/api/auth/admin-login", tags=["Admin Auth"])
+async def admin_login(request: Request, body: dict = Body(...)):
+    client_ip = request.client.host if request.client else "unknown"
+    if is_ip_rate_limited(client_ip):
+        return JSONResponse(
+            status_code=429,
+            content={"status": "error", "detail": "Security lockdown: Too many failed login attempts. Please wait 5 minutes."}
+        )
+
+    email = str(body.get("email", "")).strip()
+    password = str(body.get("password", "")).strip()
+
+    if not check_admin_credentials(email, password):
+        record_failed_attempt(client_ip)
+        return JSONResponse(
+            status_code=401,
+            content={"status": "error", "detail": "Access Denied: Invalid operator credentials."}
+        )
+
+    clear_failed_attempts(client_ip)
+    token = create_admin_token()
+    response = JSONResponse({
+        "status": "ok",
+        "message": "Authentication successful",
+        "token": token
+    })
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=token,
+        max_age=SESSION_DURATION_SECONDS,
+        httponly=True,
+        samesite="lax",
+        secure=False
+    )
+    return response
+
+@app.get("/logout", tags=["Admin Auth"])
+@app.post("/api/auth/admin-logout", tags=["Admin Auth"])
+async def admin_logout(request: Request):
+    response = Response(status_code=303, headers={"Location": "/"})
+    response.delete_cookie(key=COOKIE_NAME)
+    return response
+
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html(request: Request):
+    if not is_authenticated_admin(request):
+        return HTMLResponse(content=render_login_html("Authentication required to access API documentation."), status_code=401)
+    return get_swagger_ui_html(openapi_url="/openapi.json", title=app.title + " - Docs")
+
+@app.get("/redoc", include_in_schema=False)
+async def custom_redoc_html(request: Request):
+    if not is_authenticated_admin(request):
+        return HTMLResponse(content=render_login_html("Authentication required to access API documentation."), status_code=401)
+    return get_redoc_html(openapi_url="/openapi.json", title=app.title + " - ReDoc")
+
+@app.get("/openapi.json", include_in_schema=False)
+async def custom_openapi_json(request: Request):
+    if not is_authenticated_admin(request):
+        return JSONResponse(status_code=401, content={"detail": "Unauthorized: Authentication required."})
+    return JSONResponse(get_openapi(title=app.title, version=app.version, routes=app.routes))
+
 @app.get("/", response_class=HTMLResponse)
 def root_dashboard(request: Request, db: Session = Depends(get_db)):
     """
     Renders the modern Executive Stakeholder & Infrastructure Dashboard.
-    If requested with ?format=json or Accept: application/json, returns API status JSON.
+    Guarded by strict administrative authentication.
     """
     accept = request.headers.get("accept", "")
     if "application/json" in accept or request.query_params.get("format") == "json":
@@ -184,10 +264,12 @@ def root_dashboard(request: Request, db: Session = Depends(get_db)):
             "status": "online",
             "service": "AgriSense API",
             "version": "2.0.0",
-            "institution": "Bal Bharati Public School",
-            "docs": "/docs",
-            "redoc": "/redoc"
+            "security": "Enforced Login Required for Control Plane"
         })
+
+    # Strict Admin Security Check: Present login page if not authenticated
+    if not is_authenticated_admin(request):
+        return HTMLResponse(content=render_login_html(), status_code=200)
 
     # Fetch all users, messages, and community posts from database
     db_users = db.query(models.User).all()
