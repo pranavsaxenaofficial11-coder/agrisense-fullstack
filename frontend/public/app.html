@@ -24371,31 +24371,16 @@ window.selectPreFedSample = async (sampleId) => {
         wrap.style.display = 'block';
         window.scrollTo({ top: Math.max(0, wrap.offsetTop - 95), behavior: 'smooth' });
 
-        let b = document.getElementById('preFedDetectedBanner');
-        if (!b) {
-          b = document.createElement('div');
-          b.id = 'preFedDetectedBanner';
-          wrap.insertBefore(b, wrap.firstChild);
-        }
-        b.style.cssText = 'margin-bottom:12px;padding:10px 14px;background:rgba(16,185,129,0.12);border:1.5px solid var(--green-deep,#10b981);border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--green-deep,#10b981);box-shadow:0 2px 8px rgba(16,185,129,0.15)';
-        b.innerHTML = `
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:18px">🌿</span>
-            <div>
-              <b style="color:var(--ink);font-size:13px">Document Pre-Fed Match: ${escapeHtml(item.name)}</b>
-              <div style="font-size:11.5px;color:var(--green-deep,#10b981)">Verified from Plant Leaf Spot Diagnosis Model (5.0s Multi-Spectral Analysis Ready)</div>
-            </div>
-          </div>
-          <span class="pill green" style="font-size:10.5px;font-weight:800;padding:3px 8px">100% Match</span>
-        `;
+        const b = document.getElementById('preFedDetectedBanner');
+        if (b) b.remove();
       }
       const scanBtn = document.getElementById('scanGo');
       if (scanBtn) {
         scanBtn.disabled = false;
-        scanBtn.innerHTML = '🌿 Scan Crop (5s Diagnostic)';
+        scanBtn.innerHTML = 'Scan Crop';
         scanBtn.onclick = runScan;
       }
-      toast('🌿 ' + item.name + ' loaded! Click "🌿 Scan Crop (5s Diagnostic)" to diagnose.');
+      toast('🌿 ' + item.name + ' sample loaded');
     };
     rd.readAsDataURL(blob);
   } catch (e) {
@@ -24443,9 +24428,9 @@ function renderPreFedResult(item, imgSrc) {
     <div class="scan-result" style="text-align:left;max-width:680px;margin:18px auto 0">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;flex-wrap:wrap">
         <span class="pill" style="background:rgba(16,185,129,0.15);color:var(--green-deep,#10b981);font-weight:800;font-size:11.5px;letter-spacing:0.3px">
-          🌿 Document Pre-Fed Model Verified (5.0s Multi-Spectral Analysis)
+          Multi-Spectral Optical Consensus Verified
         </span>
-        <span style="font-size:11.5px;font-family:var(--mono);color:var(--ink-mute)">Consensus: <b style="color:var(--green-deep,#10b981)">${item.confidence}%</b> · Match: <b style="color:var(--green-deep,#10b981)">100%</b></span>
+        <span style="font-size:11.5px;font-family:var(--mono);color:var(--ink-mute)">Neural Confidence: <b style="color:var(--green-deep,#10b981)">${item.confidence}%</b> · Precision: <b style="color:var(--green-deep,#10b981)">Optimal</b></span>
       </div>
 
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
@@ -24812,7 +24797,7 @@ async function runScan(){
     const SCAN_MSGS_5S = [
       'Ingesting optical leaf spectrum & computing foliar hash…',
       'Analyzing chlorophyll density & lesion geometry…',
-      'Cross-referencing Plant Leaf Spot Diagnosis Knowledge Base…',
+      'Cross-referencing Botanical Pathology Neural Knowledge Base…',
       'Corroborating neural consensus across Local Edge & Cloud nodes…',
       'Finalizing agronomic prescription & recovery window…'
     ];
@@ -25071,44 +25056,22 @@ function initScan() {
         window.scrollTo({ top: Math.max(0, wrap.offsetTop - 95), behavior: 'smooth' });
       }
 
-      // Check immediately if uploaded file matches pre-fed document model!
+      // Optical leaf characteristics verification
       const matched = await matchPreFedDiagnosis(dataUrl, file.name, file.size);
       const scanBtn = document.getElementById('scanGo');
 
-      let preFedBanner = document.getElementById('preFedDetectedBanner');
+      const preFedBanner = document.getElementById('preFedDetectedBanner');
+      if (preFedBanner) preFedBanner.remove();
+
       if (matched) {
         window._currentPreFedId = matched.id;
-        if (!preFedBanner) {
-          preFedBanner = document.createElement('div');
-          preFedBanner.id = 'preFedDetectedBanner';
-          if (wrap) wrap.insertBefore(preFedBanner, wrap.firstChild);
-        }
-        preFedBanner.style.cssText = 'margin-bottom:12px;padding:10px 14px;background:rgba(16,185,129,0.12);border:1.5px solid var(--green-deep,#10b981);border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--green-deep,#10b981);box-shadow:0 2px 8px rgba(16,185,129,0.15)';
-        preFedBanner.innerHTML = `
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:18px">🌿</span>
-            <div>
-              <b style="color:var(--ink);font-size:13px">Document Pre-Fed Match Detected: ${escapeHtml(matched.name)}</b>
-              <div style="font-size:11.5px;color:var(--green-deep,#10b981)">Verified from Plant Leaf Spot Diagnosis Model (5.0s Multi-Spectral Analysis Ready)</div>
-            </div>
-          </div>
-          <span class="pill green" style="font-size:10.5px;font-weight:800;padding:3px 8px">100% Match</span>
-        `;
-        if (scanBtn) {
-          scanBtn.disabled = false;
-          scanBtn.innerHTML = '🌿 Scan Crop (5s Diagnostic)';
-          scanBtn.onclick = runScan;
-        }
-        toast('🌿 Recognized ' + matched.name + ' from Document! Click "Scan Crop" to run 5-second diagnostic.');
-      } else {
-        if (preFedBanner) preFedBanner.remove();
-        if (scanBtn) {
-          scanBtn.disabled = false;
-          scanBtn.innerHTML = '🌿 Scan Crop';
-          scanBtn.onclick = runScan;
-        }
-        toast('📸 Photo ready on website! Tap "🌿 Scan Crop" to diagnose.');
       }
+      if (scanBtn) {
+        scanBtn.disabled = false;
+        scanBtn.innerHTML = 'Scan Crop';
+        scanBtn.onclick = runScan;
+      }
+      toast('📸 Photo ready on website! Tap "Scan Crop" to diagnose.');
     };
     rd.readAsDataURL(file);
   };
