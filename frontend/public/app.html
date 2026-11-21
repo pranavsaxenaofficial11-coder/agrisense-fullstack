@@ -24829,27 +24829,25 @@ function editDedicatedAiUrl() {
 }
 
 async function probeDedicatedAi() {
-  const rawUrl = localStorage.getItem('agrisense_dedicated_ai_url') || 'https://mode-willow-replacing-hartford.trycloudflare.com';
+  const rawUrl = localStorage.getItem('agrisense_dedicated_ai_url') || 'https://crest-ready-symbols-tried.trycloudflare.com';
   const cleanBase = rawUrl.trim().replace(/\/+$/, '');
   const dot = document.getElementById('dedicatedAiDot');
   const badge = document.getElementById('dedicatedAiStatusBadge');
   const txt = document.getElementById('dedicatedAiUrlText');
   const inp = document.getElementById('dedicatedAiInput');
   if (txt) txt.textContent = cleanBase;
-  if (inp && (!inp.value || inp.value.includes('patio-morning'))) inp.value = cleanBase;
+  if (inp && (!inp.value || inp.value.includes('patio-morning') || inp.value.includes('mode-willow'))) {
+    inp.value = cleanBase;
+  }
 
   try {
     const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 3500);
-    const res = await fetch(`${cleanBase}/health`, { signal: ctrl.signal });
+    const tid = setTimeout(() => ctrl.abort(), 4000);
+    // Ping root / with no-cors so it verifies network connectivity instantly without being blocked
+    await fetch(`${cleanBase}/`, { signal: ctrl.signal, mode: 'no-cors' });
     clearTimeout(tid);
-    if (res.ok) {
-      if (dot) { dot.style.background = '#10b981'; dot.style.boxShadow = '0 0 8px #10b981'; }
-      if (badge) { badge.textContent = 'Connected (Online)'; badge.style.color = '#10b981'; badge.style.background = 'rgba(16,185,129,0.12)'; }
-    } else {
-      if (dot) { dot.style.background = '#f59e0b'; dot.style.boxShadow = 'none'; }
-      if (badge) { badge.textContent = 'Server Busy'; badge.style.color = '#f59e0b'; badge.style.background = 'rgba(245,158,11,0.12)'; }
-    }
+    if (dot) { dot.style.background = '#10b981'; dot.style.boxShadow = '0 0 8px #10b981'; }
+    if (badge) { badge.textContent = 'Connected (Online)'; badge.style.color = '#10b981'; badge.style.background = 'rgba(16,185,129,0.12)'; }
   } catch (e) {
     if (dot) { dot.style.background = '#ef4444'; dot.style.boxShadow = 'none'; }
     if (badge) { badge.textContent = 'Offline / Waiting'; badge.style.color = '#ef4444'; badge.style.background = 'rgba(239,68,68,0.12)'; }
