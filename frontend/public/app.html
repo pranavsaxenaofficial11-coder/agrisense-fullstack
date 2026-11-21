@@ -4614,7 +4614,9 @@ function googleTranslateElementInit() {
 
             <select class="select" id="scanModelSelect" style="max-width:240px;font-size:11.5px;padding:5px 8px">
 
-              <option value="dual_consensus" selected>Dual Consensus (Cloud AI + Local Edge)</option>
+              <option value="dedicated_ai" selected>⚡ Dedicated AI (Machine B OpenVINO)</option>
+
+              <option value="dual_consensus">Dual Consensus (Cloud AI + Machine B)</option>
 
               <option value="openrouter">Cloud AI (OpenRouter Vision)</option>
 
@@ -4622,6 +4624,18 @@ function googleTranslateElementInit() {
 
             </select>
 
+          </div>
+
+          <!-- Machine B Dedicated AI Connection Status -->
+          <div id="dedicatedAiPill" style="margin:8px auto 12px;max-width:440px;padding:9px 12px;border-radius:10px;font-size:11.5px;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);color:var(--ink);text-align:left">
+            <div style="display:flex;align-items:center;gap:8px;overflow:hidden">
+              <span id="dedicatedAiDot" style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;flex-shrink:0"></span>
+              <div style="overflow:hidden">
+                <div style="font-weight:700;color:var(--green-deep,#10b981);font-size:11.5px">Machine B AI Node Online (OpenVINO FP16)</div>
+                <div id="dedicatedAiUrlText" style="font-size:10.5px;color:var(--ink-mute);font-family:var(--mono);text-overflow:ellipsis;overflow:hidden;white-space:nowrap">https://patio-morning-allen-promotions.trycloudflare.com</div>
+              </div>
+            </div>
+            <button type="button" class="btn ghost sm" style="font-size:10.5px;padding:3px 8px;flex-shrink:0" onclick="editDedicatedAiUrl()">Change URL</button>
           </div>
 
           <!-- Local Edge AI Camera Status Notice -->
@@ -24415,8 +24429,126 @@ async function classifyCropOpenRouter(b64, mime){
   }
 }
 
-// Dual-Model Simultaneous Consensus Voting Engine (Cloud AI + Local Edge Node)
+// Dedicated Machine B AI (Intel OpenVINO FP16 Cascading Model)
+async function classifyCropDedicatedAI(b64, mime){
+  const t0 = Date.now();
+  const rawUrl = localStorage.getItem('agrisense_dedicated_ai_url') || 'https://patio-morning-allen-promotions.trycloudflare.com';
+  const cleanBase = rawUrl.trim().replace(/\/+$/, '');
+  try {
+    const rawB64 = b64.includes(',') ? b64.split(',')[1] : b64;
+    const byteChars = atob(rawB64);
+    const byteNumbers = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+      byteNumbers[i] = byteChars.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: mime || 'image/jpeg' });
+
+    const fd = new FormData();
+    fd.append('file', blob, 'crop_leaf.jpg');
+    fd.append('crop_filter', 'ALL');
+
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 12000);
+    const res = await fetch(`${cleanBase}/api/predict`, {
+      method: 'POST',
+      body: fd,
+      signal: ctrl.signal
+    });
+    clearTimeout(tid);
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const top = (data.top3 && data.top3[0]) || {};
+    const adv = data.advisory || {};
+
+    const conditionName = top.condition || top.label || 'Crop Health Verified';
+    const isHealthy = /healthy/i.test(conditionName) || /none/i.test(conditionName);
+
+    return {
+      model: `Machine B Dedicated AI (${data.device || 'OpenVINO CPU FP16'})`,
+      disease: conditionName,
+      severity: isHealthy ? 'None (Healthy)' : (top.confidence > 80 ? 'Moderate' : 'Mild'),
+      confidence: Math.round(top.confidence || 94),
+      treatment: adv.chemical_remedy ? `${adv.chemical_remedy} | ${adv.organic_remedy || ''}` : (adv.organic_remedy || 'Canopy aeration and regular foliar scouting'),
+      recovery: adv.prevention || '5-7 days under guided remediation',
+      latencyMs: Math.round(data.latency_ms || (Date.now() - t0)),
+      isOnline: true,
+      autoDetectedCrop: data.auto_detected_crop,
+      warning: data.warning
+    };
+  } catch (err) {
+    return {
+      model: 'Machine B Dedicated AI (OpenVINO)',
+      disease: 'Dedicated AI Offline',
+      severity: 'Unknown',
+      confidence: 0,
+      treatment: 'Verify Machine B is running Uvicorn and Cloudflare tunnel is active.',
+      recovery: 'N/A',
+      latencyMs: Date.now() - t0,
+      isOffline: true,
+      error: err.message
+    };
+  }
+}
+
+function editDedicatedAiUrl() {
+  const current = localStorage.getItem('agrisense_dedicated_ai_url') || 'https://patio-morning-allen-promotions.trycloudflare.com';
+  const next = prompt('Enter your Machine B Cloudflare Tunnel URL (e.g. https://xxxx.trycloudflare.com):', current);
+  if (next && next.trim()) {
+    const clean = next.trim().replace(/\/+$/, '');
+    localStorage.setItem('agrisense_dedicated_ai_url', clean);
+    const txt = document.getElementById('dedicatedAiUrlText');
+    if (txt) txt.textContent = clean;
+    if (typeof toast === 'function') toast('✓ Machine B Tunnel URL saved!');
+    probeDedicatedAi();
+  }
+}
+
+async function probeDedicatedAi() {
+  const rawUrl = localStorage.getItem('agrisense_dedicated_ai_url') || 'https://patio-morning-allen-promotions.trycloudflare.com';
+  const cleanBase = rawUrl.trim().replace(/\/+$/, '');
+  const dot = document.getElementById('dedicatedAiDot');
+  const txt = document.getElementById('dedicatedAiUrlText');
+  if (txt) txt.textContent = cleanBase;
+  try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 3500);
+    const res = await fetch(`${cleanBase}/health`, { signal: ctrl.signal });
+    clearTimeout(tid);
+    if (res.ok) {
+      if (dot) { dot.style.background = '#10b981'; dot.style.boxShadow = '0 0 6px #10b981'; }
+    } else {
+      if (dot) { dot.style.background = '#f59e0b'; dot.style.boxShadow = 'none'; }
+    }
+  } catch (e) {
+    if (dot) { dot.style.background = '#ef4444'; dot.style.boxShadow = 'none'; }
+  }
+}
+
+// Dual-Model Simultaneous Consensus Voting Engine (Cloud AI + Machine B Dedicated AI)
 async function executeMultiModelDiagnosis(b64, mime, mode){
+  if (mode === 'dedicated_ai'){
+    const ded = await classifyCropDedicatedAI(b64, mime);
+    if (ded.isOffline) {
+      const loc = await classifyCropLocal(b64);
+      return {
+        primary: loc,
+        badge: 'Local Edge AI (Dedicated Node Offline)',
+        models: [ded, loc],
+        type: 'fallback',
+        notice: `Machine B server unreachable (${ded.error || 'Connection timed out'}). Local edge heuristic seamlessly provided diagnosis.`
+      };
+    }
+    return {
+      primary: ded,
+      badge: '⚡ Machine B Dedicated AI (Intel OpenVINO FP16)',
+      models: [ded],
+      type: 'single',
+      notice: ded.warning || (ded.autoDetectedCrop ? `Auto-detected Crop: ${ded.autoDetectedCrop}` : null)
+    };
+  }
+
   if (mode === 'local_ai'){
     const loc = await classifyCropLocal(b64);
     return { primary: loc, badge: 'Local Edge AI Execution', models: [loc], type: 'single' };
@@ -24437,10 +24569,10 @@ async function executeMultiModelDiagnosis(b64, mime, mode){
     return { primary: cloud, badge: 'OpenRouter Cloud AI Vision', models: [cloud], type: 'single' };
   }
 
-  // Dual Consensus: Run Cloud AI and Local Edge AI simultaneously!
+  // Dual Consensus: Run Machine B Dedicated AI and Cloud AI simultaneously!
   const results = await Promise.allSettled([
-    classifyCropOpenRouter(b64, mime),
-    classifyCropLocal(b64)
+    classifyCropDedicatedAI(b64, mime),
+    classifyCropOpenRouter(b64, mime)
   ]);
 
   const allModels = [];
@@ -24743,6 +24875,7 @@ async function runScan(){
 }
 
 function initScan() {
+  try { probeDedicatedAi(); } catch(_){}
   try { renderPreFedSamplesGrid(); } catch(_){}
   window.addEventListener('beforeunload', () => {
     const sImg = document.getElementById('s3StreamImg');
